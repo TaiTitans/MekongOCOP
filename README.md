@@ -3,8 +3,11 @@
 
 ---
 **Đề tài:** Xây dựng sàn giao dịch OCOP kết hợp Chatbot AI.
+
 **Sinh viên thực hiện:** Phan Phát Tài
+
 **MSSV:** B2014946
+
 **Theo dõi tiến độ:** [Tại đây](phanphattai.notion.site)
 
 ---
