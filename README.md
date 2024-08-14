@@ -8,7 +8,7 @@
 
 **MSSV:** B2014946
 
-**Theo dõi tiến độ:** [Tại đây](phanphattai.notion.site)
+**Theo dõi tiến độ:** [Tại đây](https://phanphattai.notion.site/)
 
 ---
 ### Công nghệ sử dụng
