@@ -1,0 +1,18 @@
+version: '3'
+services:
+  eureka-server:
+    image: eureka:latest
+    build: ./eureka
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    image: api-gateway:latest
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    command: ["sh", "-c", "wait-for-it eureka-server:8761 -t 60 -- java -jar app.jar"]
+    depends_on:
+        - eureka-server
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
