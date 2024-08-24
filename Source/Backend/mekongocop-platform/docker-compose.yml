@@ -13,6 +13,35 @@ services:
       - "8080:8080"
     command: ["sh", "-c", "wait-for-it eureka-server:8761 -t 60 -- java -jar app.jar"]
     depends_on:
-        - eureka-server
+      - eureka-server
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+
+  user-service:
+    image: user-service:latest
+    build: ./user-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka-server
+      - postgres-user
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/userdb
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: B2014946
+
+  postgres-user:
+    image: postgres:16.4
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: B2014946
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-user_data:/var/lib/postgresql/data
+
+volumes:
+  postgres-user_data:
