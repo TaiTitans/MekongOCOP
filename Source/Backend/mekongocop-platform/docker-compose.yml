@@ -4,42 +4,42 @@ services:
     image: eureka:latest
     build: ./eureka
     ports:
-      - "8761:8761"
+      - "${EUREKA_SERVER_PORT}:${EUREKA_SERVER_PORT}"
 
   api-gateway:
     image: api-gateway:latest
     build: ./api-gateway
     ports:
-      - "8080:8080"
-    command: ["sh", "-c", "wait-for-it eureka-server:8761 -t 60 -- java -jar app.jar"]
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
+    command: ["sh", "-c", "wait-for-it eureka-server:${EUREKA_SERVER_PORT} -t 60 -- java -jar app.jar"]
     depends_on:
       - eureka-server
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:${EUREKA_SERVER_PORT}/eureka
 
   user-service:
     image: user-service:latest
     build: ./user-service
     ports:
-      - "8081:8081"
+      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     depends_on:
       - eureka-server
       - postgres-user
     environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/userdb
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: B2014946
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:${EUREKA_SERVER_PORT}/eureka
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:${POSTGRES_PORT}/${USER_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${USER_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
 
   postgres-user:
     image: postgres:16.4
     container_name: postgres-user
     environment:
-      POSTGRES_DB: userdb
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: B2014946
+      POSTGRES_DB: ${USER_DB_NAME}
+      POSTGRES_USER: ${USER_DB_USER}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     volumes:
       - postgres-user_data:/var/lib/postgresql/data
 
