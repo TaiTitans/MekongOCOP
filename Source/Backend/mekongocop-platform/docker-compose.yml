@@ -1,36 +1,13 @@
-version: '3'
+version: '3.8'
+
 services:
   eureka-server:
     image: eureka:latest
     build: ./eureka
     ports:
       - "${EUREKA_SERVER_PORT}:${EUREKA_SERVER_PORT}"
-  keycloak:
-    image: quay.io/keycloak/keycloak:latest
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
-    ports:
-      - "8180:8080"
-    depends_on:
-      - postgres-keycloak
-    command:
-      - start-dev
-
-  postgres-keycloak:
-    image: postgres:16.4
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres-keycloak_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   api-gateway:
     image: api-gateway:latest
@@ -42,33 +19,87 @@ services:
       - eureka-server
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:${EUREKA_SERVER_PORT}/eureka
+    networks:
+      - app-network
 
-  user-service:
-    image: user-service:latest
-    build: ./user-service
+  config-service:
+    image: config-service:latest
+    build: ./config-service
     ports:
-      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
-    depends_on:
-      - eureka-server
-      - postgres-user
+      - "${CONFIG_SERVICE_PORT}:${CONFIG_SERVICE_PORT}"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:${EUREKA_SERVER_PORT}/eureka
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:${POSTGRES_PORT}/${USER_DB_NAME}
-      SPRING_DATASOURCE_USERNAME: ${USER_DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: native
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: https://github.com/TaiTitans/mekongocop-config.git
+    networks:
+      - app-network
+    depends_on:
+      - eureka-server
 
-  postgres-user:
-    image: postgres:16.4
-    container_name: postgres-user
-    environment:
-      POSTGRES_DB: ${USER_DB_NAME}
-      POSTGRES_USER: ${USER_DB_USER}
-      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+#  user-service:
+#    image: user-service:latest
+#    build: ./user-service
+#    ports:
+#      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+#    depends_on:
+#      - eureka-server
+#      - config-service
+#      - postgres-user
+#    environment:
+#      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:${EUREKA_SERVER_PORT}/eureka
+#      SPRING_CLOUD_CONFIG_URI: http://config-service:${CONFIG_SERVICE_PORT}
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-user:5432/${USER_DB_NAME}
+#      SPRING_DATASOURCE_USERNAME: ${USER_DB_USER}
+#      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+#    networks:
+#      - app-network
+#
+#  postgres-user:
+#    image: postgres:16.4
+#    container_name: postgres-user
+#    environment:
+#      POSTGRES_DB: ${USER_DB_NAME}
+#      POSTGRES_USER: ${USER_DB_USER}
+#      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+#    ports:
+#      - "${USERDB_PORT}:5432"
+#    volumes:
+#      - postgres-user_data:/var/lib/postgresql/data
+#    networks:
+#      - app-network
+
+
+  auth-service:
+    image: auth-service:latest
+    build: ./auth-service
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+      - "8081:8081"
+    depends_on:
+      - postgres-auth
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/authdb
+      SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
+    networks:
+      - app-network
+
+  postgres-auth:
+    image: postgres:16.4
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    ports:
+      - "${AUTHDB_PORT}:5432"
     volumes:
-      - postgres-user_data:/var/lib/postgresql/data
+      - postgres-auth_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
 volumes:
-  postgres-user_data:
-  postgres-keycloak_data:
+  postgres-auth_data:
+
+networks:
+  app-network:

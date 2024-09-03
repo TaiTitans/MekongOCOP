@@ -1,38 +1,36 @@
 package com.mekongocop.apigateway.config;
 
-import com.mekongocop.apigateway.util.CustomReactiveJwtDecoder;
+import com.mekongocop.apigateway.util.JwtTokenFilter;
 import com.mekongocop.apigateway.util.JwtTokenProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebFluxSecurity
+@EnableWebSecurity
 public class SecurityConfig {
+    private static final Logger logger =  LoggerFactory.getLogger(SecurityConfig.class);
+    private final JwtTokenFilter jwtTokenFilter;
 
-    private final CustomReactiveJwtDecoder jwtDecoder;
-
-    public SecurityConfig(CustomReactiveJwtDecoder jwtDecoder) {
-        this.jwtDecoder = jwtDecoder;
+    public SecurityConfig(JwtTokenFilter jwtTokenFilter) {
+        this.jwtTokenFilter = jwtTokenFilter;
     }
 
     @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        logger.info("Security Filter Chain");
         http
-                .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/api/login", "/api/register", "/api/otp/**").permitAll()
-                        .anyExchange().authenticated()
-                )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .jwtDecoder(jwtDecoder)
-                        )
-                );
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                ).addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .csrf(csrf -> csrf.disable());
         return http.build();
     }
+
 }
