@@ -8,6 +8,7 @@ import com.mekongocop.mekongocopserver.repository.RoleRepository;
 import com.mekongocop.mekongocopserver.repository.UserRepository;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -68,12 +69,12 @@ public class UserService {
                 if (otp == null || !otp.equals(otpInput)) {
                     throw new IllegalArgumentException("Invalid OTP");
                 }
-                user.setEmail(userDTO.getEmail());
-                userRepository.save(user);
+                    user.setEmail(userDTO.getEmail());
+            userRepository.save(user);
 
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("An unexpected error occurred", e);
+        }
+    } catch (Exception e) {
+        throw new RuntimeException("An unexpected error occurred", e);
         }
     }
 
@@ -102,7 +103,7 @@ public class UserService {
             User user = convertUserDTOToUser(userDTO);
 
             // Tìm vai trò mặc định và gán nó cho người dùng
-            Role defaultRole = roleRepository.findByRolename("ROLE_CUSTOMER");
+            Role defaultRole = roleRepository.findByRolename("ROLE_BUYER");
             user.getRoles().add(defaultRole);
 
             // Mã hóa mật khẩu và lưu người dùng
@@ -114,6 +115,7 @@ public class UserService {
             throw new RuntimeException("An unexpected error occurred", e);
         }
     }
+    // Reset Password from Profile
     public void resetPassword(String token, String oldPassword, String newPassword) {
         try {
             int userId = jwtTokenProvider.getUserIdFromToken(token);
@@ -133,6 +135,36 @@ public class UserService {
             throw new RuntimeException("An unexpected error occurred", e);
         }
     }
+    // Renew password from Login Page
+    public void renewPassword(String email, String otp, String newPassword) {
+        try{
+            User user = userRepository.findByEmail(email);
+            if(user == null) {
+                throw new IllegalArgumentException("User not found");
+            }
+            if(otpService.isOTPValid(email, otp)){
+                user.setPassword(passwordEncoder.encode(newPassword));
+                userRepository.save(user);
+            }else{
+                throw new IllegalArgumentException("Invalid OTP");
+            }
+        }catch (Exception e) {
+            throw new RuntimeException("An unexpected error occurred", e);
+        }
+    }
+
+   public void forgotPassword(String email, HttpServletRequest httpRequest){
+        try{
+            String emailUser = String.valueOf(userRepository.findByEmail(email));
+            if(emailUser != null){
+                otpService.sendOTPForForgotPassword(email, httpRequest);
+            }else {
+                throw new IllegalArgumentException("Invalid email");
+            }
+        }catch (Exception e){
+            throw new RuntimeException("An unexpected error occurred", e);
+        }
+   }
 
     public void login(LoginRequest loginRequest, HttpServletResponse response) {
         try{

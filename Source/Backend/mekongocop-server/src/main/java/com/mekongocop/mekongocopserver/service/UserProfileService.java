@@ -6,6 +6,7 @@ import com.mekongocop.mekongocopserver.entity.User;
 import com.mekongocop.mekongocopserver.entity.UserProfile;
 import com.mekongocop.mekongocopserver.repository.UserProfileRepository;
 import com.mekongocop.mekongocopserver.repository.UserRepository;
+import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -39,6 +41,8 @@ public class UserProfileService {
 
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
 
     public UserProfileDTO convertJsonToDTO(String json) throws IOException {
@@ -56,6 +60,39 @@ public class UserProfileService {
     @Cacheable(value = "users", key = "#userId")
     public User getUserById(int userId) throws Exception {
         return userRepository.findById(userId).orElseThrow(() -> new Exception("User not found"));
+    }
+
+
+    public void updateProfile(String token, UserProfileDTO userProfileDTO) {
+        try {
+            int userId = jwtTokenProvider.getUserIdFromToken(token);
+            Optional<UserProfile> userProfileOptional = userProfileRepository.findById(userId);
+            if (userProfileOptional.isPresent()) {
+                UserProfile userProfile = userProfileOptional.get();
+                modelMapper.map(userProfileDTO, userProfile);
+                userProfileRepository.save(userProfile);
+            } else {
+                throw new Exception("User not found");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("An error occurred while editing user profile");
+        }
+    }
+
+    public void updateBio(String token, UserProfileDTO userProfileDTO){
+        try{
+            int userId = jwtTokenProvider.getUserIdFromToken(token);
+            Optional<UserProfile> userProfileOptional = userProfileRepository.findById(userId);
+            if(userProfileOptional.isPresent()){
+                UserProfile userProfile = userProfileOptional.get();
+                userProfile.setBio(userProfileDTO.bio);
+                userProfileRepository.save(userProfile);
+            }else{
+                throw new Exception("User not found");
+            }
+        }catch (Exception e){
+            throw new RuntimeException("An error occurred while editing bio");
+        }
     }
 
     @Async
