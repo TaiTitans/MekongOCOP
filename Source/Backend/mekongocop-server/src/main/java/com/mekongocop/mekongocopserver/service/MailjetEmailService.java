@@ -37,7 +37,7 @@ public class MailjetEmailService implements EmailSender {
             TransactionalEmail message = TransactionalEmail
                     .builder()
                     .to(new SendContact(to))
-                    .from(new SendContact("talktowntechnology@gmail.com", "Mekong OCOP"))
+                    .from(new SendContact("mekongocop@gmail.com", "Mekong OCOP"))
                     .subject("Your OTP Code")
                     .htmlPart("<html><body>" +
                             "<table width='100%' cellpadding='0' cellspacing='0' style='background-color: #f5f5f5;'>" +
@@ -65,6 +65,28 @@ public class MailjetEmailService implements EmailSender {
 
             SendEmailsResponse response = request.sendWith(this.mailjetClient);
 
+        } catch (MailjetException e) {
+            logger.error("Error sending email: {}", e.getMessage());
+            throw new MailParseException("Could not parse mail", e);
+        }
+    }
+
+    public void sendEmail(String to, String subject, String htmlContent) {
+        try {
+            TransactionalEmail message = TransactionalEmail
+                    .builder()
+                    .to(new SendContact(to))
+                    .from(new SendContact("mekongocop@gmail.com", "Mekong OCOP"))
+                    .subject(subject)
+                    .htmlPart(htmlContent)
+                    .build();
+
+            SendEmailsRequest request = SendEmailsRequest
+                    .builder()
+                    .message(message)
+                    .build();
+
+            SendEmailsResponse response = request.sendWith(this.mailjetClient);
         } catch (MailjetException e) {
             logger.error("Error sending email: {}", e.getMessage());
             throw new MailParseException("Could not parse mail", e);

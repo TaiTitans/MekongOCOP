@@ -1,6 +1,7 @@
 package com.mekongocop.mekongocopserver.util;
 
 import com.mekongocop.mekongocopserver.dto.UserDTO;
+import com.mekongocop.mekongocopserver.entity.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -9,10 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -48,6 +48,7 @@ public class JwtTokenProvider {
         return expiration.before(new Date());
     }
 
+
     public String generateAccessToken(UserDTO userDTO) {
         return Jwts.builder()
                 .setSubject(String.format("%s,%s", userDTO.getUser_id(), userDTO.getUsername()))
@@ -65,6 +66,7 @@ public class JwtTokenProvider {
         claims.put("roles", userDTO.getRoles());
         return doGenerateToken(claims, userDTO.getUsername(), refreshTokenExpirationInMs);
     }
+
 
     private String doGenerateToken(Map<String, Object> claims, String subject, long expirationInMs) {
         return Jwts.builder()

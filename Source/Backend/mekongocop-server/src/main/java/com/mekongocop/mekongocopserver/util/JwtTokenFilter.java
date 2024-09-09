@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 public class JwtTokenFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenFilter.class);
 
@@ -34,13 +35,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String token = jwtTokenProvider.getTokenFromRequest(request);
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                logger.debug("Valid JWT token found, setting authentication context");
+            if (token != null) {
+                logger.warn("Valid JWT token found, setting authentication context");
                 setAuthenticationContext(token, request, response);
             } else {
-                logger.debug("No valid JWT token found");
+                logger.warn("No valid JWT token found");
             }
-        } catch (Exception e) {
+        }catch (Exception e){
             logger.error("Error processing JWT token", e);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
@@ -58,6 +59,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 new WebAuthenticationDetailsSource().buildDetails(request));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+//        String cleanedUsername = userDetails.getUsername().replaceAll("[^a-zA-Z0-9_-]", "");
+//        Cookie usernameCookie = new Cookie("username", cleanedUsername);
+//        usernameCookie.setMaxAge(7200); // 2 hour expiration time
+//        response.addCookie(usernameCookie);
     }
 
     private UserDetails getUserDetails(String token) {
@@ -71,5 +76,5 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         return user;
     }
+    }
 
-}

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -19,11 +20,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private static final Logger logger =  LoggerFactory.getLogger(SecurityConfig.class);
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userDetailsService = userDetailsService;
     }
 
     @Bean
@@ -33,21 +35,23 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        logger.info("Security Filter Chain");
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v*/login").permitAll()
                         .requestMatchers("/api/v*/register").permitAll()
                         .requestMatchers("/api/v*/otp/**").permitAll()
                         .requestMatchers("/api/v*/user/**").permitAll()
-                        .requestMatchers("/api/v*/common/**").hasAnyRole("BUYER", "SELLER", "ADMIN")
                         .requestMatchers("/api/v*/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v*/common/**").hasAnyRole("BUYER", "SELLER")
                         .anyRequest().authenticated()
-                ).csrf(csrf -> csrf.disable())
+                )
+                .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .addFilterBefore(new JwtTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

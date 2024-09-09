@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -45,8 +47,23 @@ public class UserService {
     public static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     public UserDTO convertUserToUserDTO(User user) {
-        return modelMapper.map(user, UserDTO.class);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUser_id(user.getUser_id());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setPassword(user.getPassword());
+        userDTO.setOauth_provider(user.getOauth_provider());
+        userDTO.setOauth_id(user.getOauth_id());
+
+        // Chuyển đổi từ Set<Role> thành Set<String>
+        Set<String> roleNames = user.getRoles().stream()
+                .map(Role::getRole_name)
+                .collect(Collectors.toSet());
+        userDTO.setRoles(roleNames);
+
+        return userDTO;
     }
+
 
     public User convertUserDTOToUser(UserDTO userDTO) {
         return modelMapper.map(userDTO, User.class);
