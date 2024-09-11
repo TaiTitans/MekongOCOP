@@ -5,6 +5,7 @@ import com.cloudinary.utils.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,7 +21,7 @@ public class CloudinaryService {
         this.cloudinary = new Cloudinary(cloudinaryUrl);
         logger.info("Cloudinary initialized with URL: {}", cloudinaryUrl);
     }
-
+    @Async
     public Map<String, Object> uploadImage(MultipartFile file, String userId) throws IOException {
         String folderPath = "mekongocop/" + userId;
         logger.info("Attempting to upload image for user {} to folder {}", userId, folderPath);

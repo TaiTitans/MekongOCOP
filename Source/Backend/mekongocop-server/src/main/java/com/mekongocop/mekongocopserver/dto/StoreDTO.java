@@ -15,7 +15,8 @@ public class StoreDTO {
         this.updated_at = updated_at;
         this.status = status;
     }
-
+    public StoreDTO() {
+    }
     public int store_id;
     public String store_name;
     public String store_address;
