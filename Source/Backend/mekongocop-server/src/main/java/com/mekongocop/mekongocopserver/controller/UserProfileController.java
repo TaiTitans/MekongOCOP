@@ -73,4 +73,19 @@ public class UserProfileController {
         }
     }
 
+
+    @GetMapping("/profile")
+    public ResponseEntity<StatusResponse<UserProfile>> getUserProfile(@RequestHeader("Authorization") String authHeader) {
+        try{
+            String validToken = TokenExtractor.extractToken(authHeader);
+            if(!jwtTokenProvider.validateToken(authHeader)){
+                return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Invalid token", null));
+            }
+            UserProfile userProfile = userProfileService.getUserProfileByToken(validToken);
+            return ResponseEntity.ok(new StatusResponse<>("Success", "User profile successfully", userProfile));
+        }catch (Exception e){
+            return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", e.getMessage(), null));
+        }
+    }
+
 }

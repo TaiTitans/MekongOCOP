@@ -129,4 +129,22 @@ public class UserProfileService {
         });
     }
 
+
+    public UserProfile getUserProfileByToken(String token){
+        try{
+            int userId = jwtTokenProvider.getUserIdFromToken(token);
+            Optional<UserProfile> userProfileOptional = userProfileRepository.findById(userId);
+            if(userProfileOptional.isPresent()){
+                UserProfile userProfile = userProfileOptional.get();
+                return userProfile;
+            }else{
+                throw new Exception("User not found");
+            }
+        }catch (Exception e){
+            throw new RuntimeException("An error occurred while getting user profile");
+        }
+    }
+
+
+
 }
