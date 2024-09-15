@@ -5,7 +5,7 @@ import java.util.List;
 public class ProductDTO {
 
 
-    public ProductDTO(int productId, String productName, String productDescription, int productPrice, int productQuantity, int category, int province, List<ProductImageDTO> productImages, List<ReviewDTO> reviews) {
+    public ProductDTO(int productId, String productName, String productDescription, int productPrice, int productQuantity, int category, int province, List<ProductImageDTO> productImages, List<ReviewDTO> reviews, int store) {
         this.productId = productId;
         this.productName = productName;
         this.productDescription = productDescription;
@@ -15,6 +15,7 @@ public class ProductDTO {
         this.province = province;
         this.productImages = productImages;
         this.reviews = reviews;
+        this.store = store;
     }
 
     public int getProductId() {
@@ -89,6 +90,14 @@ public class ProductDTO {
         this.reviews = reviews;
     }
 
+    public int getStore() {
+        return store;
+    }
+
+    public void setStore(int store) {
+        this.store = store;
+    }
+
     private int productId;
     private String productName;
     private String productDescription;
@@ -98,7 +107,7 @@ public class ProductDTO {
     private int province;
     private List<ProductImageDTO> productImages;
     private List<ReviewDTO> reviews;
-
+    private int store;
     public ProductDTO() {
 
     }

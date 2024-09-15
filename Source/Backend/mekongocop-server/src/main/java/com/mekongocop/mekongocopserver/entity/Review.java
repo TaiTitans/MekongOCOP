@@ -7,12 +7,14 @@ import java.util.Date;
 @Entity
 @Table(name = "review")
 public class Review {
-    public Review(int review_id, int rating, Date created_at, String comment, Product product_id, User user_id) {
+
+
+    public Review(int review_id, int rating, String comment, Product product, Date created_at, User user_id) {
         this.review_id = review_id;
         this.rating = rating;
-        this.created_at = created_at;
         this.comment = comment;
-        this.product_id = product_id;
+        this.product = product;
+        this.created_at = created_at;
         this.user_id = user_id;
     }
 
@@ -48,12 +50,12 @@ public class Review {
         this.created_at = created_at;
     }
 
-    public Product getProduct_id() {
-        return product_id;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProduct_id(Product product_id) {
-        this.product_id = product_id;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     public User getUser_id() {
@@ -72,7 +74,7 @@ public class Review {
     private Date created_at;
     @ManyToOne
     @JoinColumn(name = "product_id")
-    private Product product_id;
+    private Product product;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user_id;

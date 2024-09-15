@@ -12,6 +12,9 @@ public class ProductImage {
         this.product = product;
     }
 
+    public ProductImage(String imageUrl, boolean isPrimary) {
+    }
+
     public int getImage_id() {
         return image_id;
     }

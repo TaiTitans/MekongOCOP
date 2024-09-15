@@ -9,7 +9,8 @@ import java.util.Set;
 @Table(name="products")
 public class Product {
 
-    public Product(int product_id, String product_name, String product_description, int product_price, int product_quantity, ProductCategory productCategory, Province province, Set<ProductImage> product_images, Set<Review> reviews) {
+
+    public Product(int product_id, String product_name, String product_description, int product_price, int product_quantity, ProductCategory productCategory, Province province, Set<ProductImage> product_images, Set<Review> reviews, Store store) {
         this.product_id = product_id;
         this.product_name = product_name;
         this.product_description = product_description;
@@ -19,6 +20,7 @@ public class Product {
         this.province = province;
         this.product_images = product_images;
         this.reviews = reviews;
+        this.store = store;
     }
 
     public int getProduct_id() {
@@ -93,6 +95,14 @@ public class Product {
         this.reviews = reviews;
     }
 
+    public Store getStore() {
+        return store;
+    }
+
+    public void setStore(Store store) {
+        this.store = store;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int product_id;
@@ -111,6 +121,9 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Review> reviews = new HashSet<>();
+    @ManyToOne
+    @JoinColumn(name = "store_id")
+    private Store store;
     public Product() {
 
     }
