@@ -5,14 +5,16 @@ import java.util.List;
 public class ProductDTO {
 
 
-    public ProductDTO(int productId, String productName, String productDescription, int productPrice, int productQuantity, int category, int province, List<ProductImageDTO> productImages, List<ReviewDTO> reviews, int store) {
+    public ProductDTO(int productId, String productName, String productDescription, int productPrice, int productQuantity, int categoryId, String categoryName, int provinceId, String provinceName, List<ProductImageDTO> productImages, List<ReviewDTO> reviews, int store) {
         this.productId = productId;
         this.productName = productName;
         this.productDescription = productDescription;
         this.productPrice = productPrice;
         this.productQuantity = productQuantity;
-        this.category = category;
-        this.province = province;
+        this.categoryId = categoryId;
+        this.categoryName = categoryName;
+        this.provinceId = provinceId;
+        this.provinceName = provinceName;
         this.productImages = productImages;
         this.reviews = reviews;
         this.store = store;
@@ -58,20 +60,36 @@ public class ProductDTO {
         this.productQuantity = productQuantity;
     }
 
-    public int getCategory() {
-        return category;
+    public int getCategoryId() {
+        return categoryId;
     }
 
-    public void setCategory(int category) {
-        this.category = category;
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
     }
 
-    public int getProvince() {
-        return province;
+    public String getCategoryName() {
+        return categoryName;
     }
 
-    public void setProvince(int province) {
-        this.province = province;
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public int getProvinceId() {
+        return provinceId;
+    }
+
+    public void setProvinceId(int provinceId) {
+        this.provinceId = provinceId;
+    }
+
+    public String getProvinceName() {
+        return provinceName;
+    }
+
+    public void setProvinceName(String provinceName) {
+        this.provinceName = provinceName;
     }
 
     public List<ProductImageDTO> getProductImages() {
@@ -82,14 +100,6 @@ public class ProductDTO {
         this.productImages = productImages;
     }
 
-    public List<ReviewDTO> getReviews() {
-        return reviews;
-    }
-
-    public void setReviews(List<ReviewDTO> reviews) {
-        this.reviews = reviews;
-    }
-
     public int getStore() {
         return store;
     }
@@ -98,13 +108,23 @@ public class ProductDTO {
         this.store = store;
     }
 
+    public List<ReviewDTO> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<ReviewDTO> reviews) {
+        this.reviews = reviews;
+    }
+
     private int productId;
     private String productName;
     private String productDescription;
     private int productPrice;
     private int productQuantity;
-    private int category;
-    private int province;
+    private int categoryId;
+    private String categoryName;
+    private int provinceId;
+    private String provinceName;
     private List<ProductImageDTO> productImages;
     private List<ReviewDTO> reviews;
     private int store;

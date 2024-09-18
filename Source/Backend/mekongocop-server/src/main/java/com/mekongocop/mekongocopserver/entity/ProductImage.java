@@ -1,5 +1,6 @@
 package com.mekongocop.mekongocopserver.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 @Entity

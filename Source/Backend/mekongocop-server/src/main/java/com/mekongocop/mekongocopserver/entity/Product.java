@@ -1,5 +1,7 @@
 package com.mekongocop.mekongocopserver.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -110,12 +112,15 @@ public class Product {
     private String product_description;
     private int product_price;
     private int product_quantity;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private ProductCategory productCategory;
+
     @ManyToOne
     @JoinColumn(name = "province_id")
     private Province province;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProductImage> product_images = new HashSet<>();
 

@@ -1,6 +1,8 @@
 package com.mekongocop.mekongocopserver.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.Date;
 
@@ -69,8 +71,10 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int review_id;
+    @Pattern(regexp = "1|2|3|4|5", message = "Rating must be 1, 2, or 3,4,5")
     private int rating;
     private String comment;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private Date created_at;
     @ManyToOne
     @JoinColumn(name = "product_id")
