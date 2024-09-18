@@ -39,4 +39,39 @@ public class CloudinaryService {
             throw e;
         }
     }
+
+    @Async
+    public Map<String, Object> uploadProductImage(MultipartFile file, String userId, String storeId, String productId) throws IOException {
+        String folderPath = "mekongocop/" + userId + "/" + storeId + "/" + productId;
+        logger.info("Attempting to upload image for user {} to folder {}", userId, folderPath);
+
+        try {
+            Map<String, Object> params = ObjectUtils.asMap(
+                    "folder", folderPath,
+                    "resource_type", "auto"
+            );
+            Map<String, Object> result = this.cloudinary.uploader().upload(file.getBytes(), params);
+            logger.info("Image uploaded successfully. Result: {}", result);
+            return result;
+        } catch (IOException e) {
+            logger.error("Failed to upload image for user {}", userId, e);
+            throw e;
+        }
+    }
+
+    public void deleteProductImage(String imageUrl) {
+        try {
+            // Lấy ID của hình ảnh từ URL
+            String[] parts = imageUrl.split("/");
+            String publicId = parts[parts.length - 1].split("\\.")[0];
+
+            // Xóa hình ảnh trên Cloudinary
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (IOException e) {
+            throw new RuntimeException("Error deleting product image from Cloudinary", e);
+        }
+    }
+
+
 }
+
