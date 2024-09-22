@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -73,7 +74,7 @@ public class ProductController {
     }
 
     @PatchMapping("/seller/store/product/{id}/price")
-    public ResponseEntity<StatusResponse<Void>> updatePrice(@PathVariable int id, @RequestParam int newPrice, @RequestHeader("Authorization") String token){
+    public ResponseEntity<StatusResponse<Void>> updatePrice(@PathVariable int id, @RequestParam BigDecimal newPrice, @RequestHeader("Authorization") String token){
         try{
             String validToken = TokenExtractor.extractToken(token);
             if (!jwtTokenProvider.validateToken(token)) {

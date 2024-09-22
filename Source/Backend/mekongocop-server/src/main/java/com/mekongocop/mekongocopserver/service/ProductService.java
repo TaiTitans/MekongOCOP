@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -286,7 +287,7 @@ public class ProductService {
     }
 
     @Transactional
-    public void updatePrice(int productId, int newPrice, String token) {
+    public void updatePrice(int productId, BigDecimal newPrice, String token) {
         try {
             int userId = jwtTokenProvider.getUserIdFromToken(token);
             Optional<Store> storeOptional = storeRepository.findByUserId(userId);

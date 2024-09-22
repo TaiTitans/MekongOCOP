@@ -178,6 +178,24 @@ public class CartService {
             throw new RuntimeException(e);
         }
     }
+    public void clearCart(String token) {
+        try {
+            // Lấy userId từ JWT token
+            int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+            // Tạo khóa giỏ hàng dựa trên userId
+            String cartKey = "cart:" + userId;
+
+            // Lấy kết nối đến Redis
+            Jedis jedis = jedisPool.getResource();
+
+            // Xóa giỏ hàng khỏi Redis
+            jedis.del(cartKey);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to clear the cart", e);
+        }
+    }
 
 
 }

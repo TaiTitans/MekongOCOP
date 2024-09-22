@@ -1,12 +1,14 @@
 package com.mekongocop.mekongocopserver.dto;
 
+import java.math.BigDecimal;
+
 public class CartItemDTO {
 
     public CartItemDTO() {
     }
 
 
-    public CartItemDTO(int productId, int quantity, String productName, int price) {
+    public CartItemDTO(int productId, int quantity, String productName, BigDecimal price) {
         this.productId = productId;
         this.quantity = quantity;
         this.productName = productName;
@@ -37,16 +39,16 @@ public class CartItemDTO {
         this.productName = productName;
     }
 
-    public int getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
     private int productId;
     private int quantity;
     private String productName;
-    private int price;
+    private BigDecimal price;
 }

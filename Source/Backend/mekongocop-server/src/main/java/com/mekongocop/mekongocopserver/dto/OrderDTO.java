@@ -1,24 +1,29 @@
 package com.mekongocop.mekongocopserver.dto;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
 public class OrderDTO {
 
 
-    public OrderDTO(int order_id, int user_id, String payment, int total_price, String status, Date created_at, Date updated_at, List<OrderItemDTO> items) {
+
+
+    public OrderDTO(){
+
+    }
+
+    public OrderDTO(int order_id, int user_id, BigDecimal total_price, String payment, String status, String address, BigDecimal ship, Date created_at, Date updated_at, List<OrderItemDTO> items) {
         this.order_id = order_id;
         this.user_id = user_id;
-        this.payment = payment;
         this.total_price = total_price;
+        this.payment = payment;
         this.status = status;
+        this.address = address;
+        this.ship = ship;
         this.created_at = created_at;
         this.updated_at = updated_at;
         this.items = items;
-    }
-
-    public OrderDTO() {
-
     }
 
     public int getOrder_id() {
@@ -37,12 +42,20 @@ public class OrderDTO {
         this.user_id = user_id;
     }
 
-    public int getTotal_price() {
+    public BigDecimal getTotal_price() {
         return total_price;
     }
 
-    public void setTotal_price(int total_price) {
+    public void setTotal_price(BigDecimal total_price) {
         this.total_price = total_price;
+    }
+
+    public String getPayment() {
+        return payment;
+    }
+
+    public void setPayment(String payment) {
+        this.payment = payment;
     }
 
     public String getStatus() {
@@ -53,12 +66,20 @@ public class OrderDTO {
         this.status = status;
     }
 
-    public String getPayment() {
-        return payment;
+    public String getAddress() {
+        return address;
     }
 
-    public void setPayment(String payment) {
-        this.payment = payment;
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public BigDecimal getShip() {
+        return ship;
+    }
+
+    public void setShip(BigDecimal ship) {
+        this.ship = ship;
     }
 
     public Date getCreated_at() {
@@ -87,9 +108,11 @@ public class OrderDTO {
 
     private int order_id;
     private int user_id;
-    private int total_price;
+    private BigDecimal total_price;
     private String payment;
     private String status;
+    private String address;
+    private BigDecimal ship;
     private Date created_at;
     private Date updated_at;
     private List<OrderItemDTO> items;
