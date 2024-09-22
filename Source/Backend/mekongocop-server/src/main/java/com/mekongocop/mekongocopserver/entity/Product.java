@@ -1,9 +1,8 @@
 package com.mekongocop.mekongocopserver.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,7 +11,7 @@ import java.util.Set;
 public class Product {
 
 
-    public Product(int product_id, String product_name, String product_description, int product_price, int product_quantity, ProductCategory productCategory, Province province, Set<ProductImage> product_images, Set<Review> reviews, Store store) {
+    public Product(int product_id, String product_name, String product_description, BigDecimal product_price, int product_quantity, ProductCategory productCategory, Province province, Set<ProductImage> product_images, Set<Review> reviews, Store store) {
         this.product_id = product_id;
         this.product_name = product_name;
         this.product_description = product_description;
@@ -49,11 +48,11 @@ public class Product {
         this.product_description = product_description;
     }
 
-    public int getProduct_price() {
+    public BigDecimal getProduct_price() {
         return product_price;
     }
 
-    public void setProduct_price(int product_price) {
+    public void setProduct_price(BigDecimal product_price) {
         this.product_price = product_price;
     }
 
@@ -110,7 +109,7 @@ public class Product {
     private int product_id;
     private String product_name;
     private String product_description;
-    private int product_price;
+    private BigDecimal product_price;
     private int product_quantity;
 
     @ManyToOne
