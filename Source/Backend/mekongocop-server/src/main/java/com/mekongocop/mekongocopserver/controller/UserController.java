@@ -28,7 +28,9 @@ public class UserController {
         try{
             userService.registerUser(userDTO, otp);
             return ResponseEntity.ok(new StatusResponse<>("Success", "User registered successfully", null));
-        } catch(Exception e){
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new StatusResponse<>("Error", e.getMessage(), null));
+        }catch(Exception e){
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "An unexpected error occurred", null));
         }
     }
@@ -107,8 +109,10 @@ public class UserController {
         try{
             userService.login(loginRequest, response);
             return ResponseEntity.ok(new StatusResponse<>("Success", "Login successful", null));
+        }catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new StatusResponse<>("Error", e.getMessage(), null));
         }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new StatusResponse<>("Error", "An unexpected error occurred", null));
+            return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "An unexpected error occurred.", null));
         }
     }
 

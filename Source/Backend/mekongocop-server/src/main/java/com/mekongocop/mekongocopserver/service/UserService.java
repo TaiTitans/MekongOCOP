@@ -212,8 +212,10 @@ public class UserService {
                 usernameCookie.setMaxAge(259200);
                 response.addCookie(usernameCookie);
             }else{
-                throw new IllegalArgumentException("User not found");
+                throw new IllegalArgumentException("Username or password not correct");
             }
+        }catch (IllegalArgumentException e) {
+            throw e;
         }catch (Exception e) {
             throw new RuntimeException("An unexpected error occurred", e);
         }
