@@ -19,12 +19,16 @@ import 'package:smart_shop/Screens/Profile/profile.dart';
 import 'package:smart_shop/Screens/Settings/settings.dart';
 import 'package:smart_shop/Screens/ShippingAddress/shipping_address.dart';
 import 'package:smart_shop/Screens/SignUp/sign_up.dart';
-
+import 'package:smart_shop/screens/SignIn/sign_in.dart';
+import 'package:smart_shop/screens/Login/forgot_password.dart';
 class AppConstants {
   static Map<String, Widget Function(dynamic)> appRoutes = {
     '/': (_) => const OnBoarding(),
     Login.routeName: (_) => const Login(),
-    Verification.routeName: (_) => const Verification(),
+    Verification.routeName: (context) {
+      final String email = ModalRoute.of(context)!.settings.arguments as String;
+      return Verification(email: email);
+    },
     Home.routeName: (_) => const Home(),
     Main.routeName: (_) => const Main(),
     Catalogue.routeName: (_) => const Catalogue(),
@@ -42,6 +46,8 @@ class AppConstants {
     OnBoarding.routeName: (_) => const OnBoarding(),
     NotificationScreen.routeName: (_) => const NotificationScreen(),
     ShippingAddress.routeName: (_) => const ShippingAddress(),
+    SignIn.routeName: (_) => const SignIn(),
+    ForgotPasswordScreen.routeName: (_) => const ForgotPasswordScreen(),
   };
 
   static setSystemStyling() {
@@ -57,5 +63,5 @@ class AppConstants {
   }
 
   static const privacyPolicyTxt =
-      'Give your E-Commerce app an outstanding look.It\'s a small but attractive and beautiful design template for your E-Commerce App.Contact us for more amazing and outstanding designs for your apps.Do share this app with your Friends and rate us if you like this.Also check your other apps';
+      'Mekong OCOP .Sàn giao dịch sản phẩm hợp tác OCOP vùng Đồng bằng sông Cửu Long.';
 }

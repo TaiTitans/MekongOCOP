@@ -5,6 +5,7 @@ import 'package:smart_shop/Common/Widgets/gradient_header.dart';
 import 'package:smart_shop/Screens/Login/verification_screen.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
+import 'package:smart_shop/screens/SignIn/sign_in.dart';
 import 'package:smart_shop/service/auth_service.dart';
 class Login extends StatefulWidget {
 
@@ -34,14 +35,20 @@ class _LoginState extends State<Login>{
       });
       return;
     }
-    final success = await _authService.sendOTPSignUp(email);
+    final messageRespone = await _authService.sendOTPSignUp(email);
 
     setState(() {
       _isLoading = false;
     });
-    if(success){
-      Navigator.pushReplacementNamed(context, Verification.routeName);
-    }else{
+    if(messageRespone == null){
+      Navigator.pushReplacementNamed(context, Verification.routeName,
+      arguments: email);
+    }
+    else if(messageRespone == 'Email is already registered') {
+      setState(() {
+        _errorMessage = 'Email đã đăng ký';
+      });
+    } else{
       setState(() {
         _errorMessage = 'Gửi OTP không thành công. Vui lòng thử lại.';
       });
@@ -51,14 +58,14 @@ class _LoginState extends State<Login>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            _buildWidget(context),
-          ],
+        body: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildHeader(context),
+                _buildWidget(context),
+              ],
+            )
         )
-      )
     );
   }
 
@@ -134,22 +141,31 @@ class _LoginState extends State<Login>{
 
   Widget _buildSkipButton() {
     return TextButton(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.pushReplacementNamed(context, SignIn.routeName);
+      },
       child: Text(
-        'Bỏ qua',
-        style: FontStyles.montserratBold17().copyWith(color: Colors.grey),
+        'Đăng nhập',
+        style: FontStyles.montserratBold17().copyWith(color: Colors.grey,
+        decoration: TextDecoration.underline),
       ),
     );
   }
 
-  Widget _buildLoadingIndicator(){
-    return const CircularProgressIndicator();
+  Widget _buildLoadingIndicator() {
+    return Container(
+      margin: EdgeInsets.only(top: 15),
+      child: const CircularProgressIndicator(),
+    );
   }
 
-  Widget _buildErrorText(){
-    return Text(
-      _errorMessage ?? '',
-      style: TextStyle(color: Colors.red, fontSize: 14.0.sp),
+  Widget _buildErrorText() {
+    return Container(
+      margin: EdgeInsets.only(top: 10),
+      child: Text(
+        _errorMessage ?? '',
+        style: TextStyle(color: Colors.red, fontSize: 14.0.sp),
+      ),
     );
   }
 
