@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // Thêm import này
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:smart_shop/Utils/Constants/app_constants.dart';
 import 'package:smart_shop/Utils/app_theme.dart';
 

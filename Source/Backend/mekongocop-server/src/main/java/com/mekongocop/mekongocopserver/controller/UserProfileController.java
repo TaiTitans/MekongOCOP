@@ -2,12 +2,15 @@ package com.mekongocop.mekongocopserver.controller;
 
 import com.mekongocop.mekongocopserver.common.StatusResponse;
 import com.mekongocop.mekongocopserver.dto.UserProfileDTO;
+import com.mekongocop.mekongocopserver.entity.User;
 import com.mekongocop.mekongocopserver.entity.UserProfile;
+import com.mekongocop.mekongocopserver.repository.UserProfileRepository;
 import com.mekongocop.mekongocopserver.service.UserProfileService;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import com.mekongocop.mekongocopserver.util.TokenExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,15 +23,21 @@ public class UserProfileController {
     private UserProfileService userProfileService;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private UserProfileRepository userProfileRepository;
 
     @PostMapping("/profile")
     public CompletableFuture<ResponseEntity<StatusResponse<UserProfileDTO>>> addUserProfile(
             @RequestPart("dto") String dto,
-            @RequestPart("file") MultipartFile file) {
+            @RequestPart("file") MultipartFile file, @RequestHeader("Authorization") String token) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                String validToken = TokenExtractor.extractToken(token);
+                if(!jwtTokenProvider.validateToken(token)){
+                    return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Token error", null));
+                }
                 UserProfileDTO userProfileDTO = userProfileService.convertJsonToDTO(dto);
-                userProfileService.addProfile(userProfileDTO, file);
+                userProfileService.addProfile(userProfileDTO, file, validToken);
                 return ResponseEntity.ok(new StatusResponse<>("Success", "Add profile successfully", userProfileDTO));
             } catch (Exception e) {
                 return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Failed to add profile", null));
@@ -86,6 +95,18 @@ public class UserProfileController {
         }catch (Exception e){
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", e.getMessage(), null));
         }
+    }
+    @GetMapping("/checkProfile")
+    public ResponseEntity<Boolean> checkProfile(@RequestParam int userId) {
+        UserProfile userProfile = userProfileRepository.findByUserId(userId);
+
+        if (userProfile == null) {
+            // Trả về false hoặc thông báo không tìm thấy profile
+            return ResponseEntity.ok(false);
+        }
+
+        // Tiến hành kiểm tra nếu profile tồn tại
+        return ResponseEntity.ok(userProfile.getUser_id() != null);
     }
 
 }

@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.Cookie;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -105,15 +107,30 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<StatusResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response){
-        try{
+    public ResponseEntity<StatusResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
             userService.login(loginRequest, response);
+
+            // Kiểm tra xem cookie có tồn tại không
+            Cookie[] cookies = request.getCookies();
+            boolean hasProfile = false;
+
+            if (cookies != null) {
+                hasProfile = Arrays.stream(cookies)
+                        .filter(cookie -> "hasProfile".equals(cookie.getName()))
+                        .findFirst()
+                        .map(Cookie::getValue)
+                        .map(Boolean::parseBoolean)
+                        .orElse(false);
+            }
+
             return ResponseEntity.ok(new StatusResponse<>("Success", "Login successful", null));
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new StatusResponse<>("Error", e.getMessage(), null));
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "An unexpected error occurred.", null));
         }
     }
+
 
 }
