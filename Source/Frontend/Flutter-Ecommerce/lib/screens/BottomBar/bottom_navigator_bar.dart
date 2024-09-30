@@ -7,28 +7,30 @@ import 'package:smart_shop/Screens/Profile/profile.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
 
-class Main extends StatefulWidget {
-  const Main({Key? key}) : super(key: key);
-  static const String routeName = 'main';
+class BottomNavigatorBar extends StatefulWidget {
+  const BottomNavigatorBar({Key? key}) : super(key: key);
+  static const String routeName = 'bottomNavigatorBar';
 
   @override
-  _MainState createState() => _MainState();
+  _BottomNavigatorBarState createState() => _BottomNavigatorBarState();
 }
 
-class _MainState extends State<Main> {
+class _BottomNavigatorBarState extends State<BottomNavigatorBar> {
   int currentIndex = 0;
+
+  // Danh sách các màn hình
   List<Widget> myScreens = [
     const Home(),
     const Catalogue(),
     const Favorite(),
     const Profile(),
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: myScreens.elementAt(currentIndex),
-      // bottomNavigationBar: buildBottomNavigation(),
-      bottomSheet: buildBottomSheet(),
+bottomNavigationBar: buildBottomSheet(),
       resizeToAvoidBottomInset: false,
     );
   }
@@ -73,11 +75,12 @@ class _MainState extends State<Main> {
       selectedItemColor: AppColors.primaryDark,
       onTap: (value) {
         setState(() {
-          // currentIndex = value;
+          currentIndex = value; // Cập nhật chỉ số khi người dùng nhấn
         });
       },
     );
   }
+
 
   Widget buildBottomSheet() {
     var screenWidth = MediaQuery.of(context).size.width;
@@ -114,7 +117,7 @@ class _MainState extends State<Main> {
                                   : Colors.grey,
                             ),
                             Text(
-                              'Home',
+                              'Trang chủ',
                               style: TextStyle(
                                 color: currentIndex == 0
                                     ? Colors.black
@@ -139,7 +142,7 @@ class _MainState extends State<Main> {
                                   : Colors.grey,
                             ),
                             Text(
-                              'Catalogue',
+                              'Danh mục',
                               style: TextStyle(
                                 color: currentIndex == 1
                                     ? Colors.black
@@ -158,13 +161,13 @@ class _MainState extends State<Main> {
                         child: Column(
                           children: [
                             Icon(
-                              Icons.favorite_outline,
+                              Icons.chat_bubble_outline,
                               color: currentIndex == 2
                                   ? AppColors.primaryLight
                                   : Colors.grey,
                             ),
                             Text(
-                              'Favorite',
+                              'Chatbot',
                               style: TextStyle(
                                 color: currentIndex == 2
                                     ? Colors.black
@@ -189,7 +192,7 @@ class _MainState extends State<Main> {
                                   : Colors.grey,
                             ),
                             Text(
-                              'Profile',
+                              'Cá nhân',
                               style: TextStyle(
                                 color: currentIndex == 3
                                     ? Colors.black

@@ -226,5 +226,40 @@ public class UserService {
             throw new RuntimeException("An unexpected error occurred", e);
         }
     }
+    public String refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = getRefreshTokenFromCookies(request.getCookies());
 
+        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
+            String username = jwtTokenProvider.getUsernameFromToken(refreshToken);
+            User user = userRepository.findByUsername(username);
+
+            if (user != null) {
+                UserDTO userDTO = convertUserToUserDTO(user);
+                String newAccessToken = jwtTokenProvider.generateAccessToken(userDTO);
+
+                // Thêm cookie mới cho access token
+                Cookie accessTokenCookie = new Cookie("accessToken", newAccessToken);
+                accessTokenCookie.setPath("/");
+                accessTokenCookie.setMaxAge(3600); // 1 hour
+                response.addCookie(accessTokenCookie);
+
+                return newAccessToken; // Trả về access token mới nếu cần
+            } else {
+                throw new IllegalArgumentException("Invalid refresh token.");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid refresh token.");
+        }
+    }
+
+    private String getRefreshTokenFromCookies(Cookie[] cookies) {
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("refreshToken")) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
 }

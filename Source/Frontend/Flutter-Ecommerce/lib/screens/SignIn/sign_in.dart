@@ -88,7 +88,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
       if (hasProfile) {
         _showSuccessSnackbar('Đăng nhập thành công!');
         print('hasProfile: ${response['hasProfile']}');
-        Navigator.pushReplacementNamed(context, Home.routeName);
+        Navigator.pushReplacementNamed(context, '/');
       } else {
         _showSuccessSnackbar('Bạn cần cập nhật thông tin cá nhân.');
         Navigator.pushReplacementNamed(context, SignUp.routeName);

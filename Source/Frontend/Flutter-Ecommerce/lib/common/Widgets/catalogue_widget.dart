@@ -7,10 +7,13 @@ import 'package:smart_shop/Utils/font_styles.dart';
 import 'package:smart_shop/dummy/dummy_data.dart';
 
 class CatalogueWidget extends StatelessWidget {
-  const CatalogueWidget({this.height, this.width, this.index, Key? key})
+  const CatalogueWidget({this.height, this.width, this.index, this.imagePath, Key? key})
       : super(key: key);
+
   final double? height, width;
   final int? index;
+  final String? imagePath; // Thêm tham số imagePath để nhận đường dẫn ảnh từ assets
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -20,20 +23,20 @@ class CatalogueWidget extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: CachedNetworkImage(
-              imageUrl: DummyData.catalogueImagesLink[index!],
+            child: Image.asset(
+              imagePath ?? '', // Đọc ảnh từ assets
               fit: BoxFit.cover,
               width: width,
+              height: height,
               color: const Color.fromRGBO(29, 35, 50, 0.2),
               colorBlendMode: BlendMode.srcOver,
-              height: height,
-              placeholder: (context, error) {
+              errorBuilder: (context, error, stackTrace) {
+                // Xử lý khi không tìm thấy ảnh
                 return ShimmerEffect(
-                    borderRadius: 10.0, height: height, width: height);
-              },
-              errorWidget: (context, errorName, error) {
-                return ShimmerEffect(
-                    borderRadius: 10.0, height: height, width: width);
+                  borderRadius: 10.0,
+                  height: height,
+                  width: width,
+                );
               },
             ),
           ),

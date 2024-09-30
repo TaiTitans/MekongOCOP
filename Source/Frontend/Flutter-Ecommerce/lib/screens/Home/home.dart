@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
-import 'package:flutter_carousel_slider/carousel_slider_indicators.dart';
-import 'package:flutter_carousel_slider/carousel_slider_transforms.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_shop/Common/Widgets/app_title.dart';
 import 'package:smart_shop/Common/Widgets/catalogue_widget.dart';
 import 'package:smart_shop/Common/Widgets/custom_app_bar.dart';
 import 'package:smart_shop/Common/Widgets/item_widget.dart';
+import 'package:smart_shop/Common/Widgets/shimmer_effect.dart';
 import 'package:smart_shop/Screens/Catalogue/catalogue.dart';
+import 'package:smart_shop/Screens/Favorite/favorite.dart';
 import 'package:smart_shop/Screens/Notifications/notifications.dart';
 import 'package:smart_shop/Screens/Onboarding/onboarding.dart';
 import 'package:smart_shop/Screens/Product/product.dart';
 import 'package:smart_shop/Screens/Settings/settings.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:smart_shop/dummy/dummy_data.dart';
-import 'package:smart_shop/Common/Widgets/shimmer_effect.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../service/product_service.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -28,6 +30,49 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _key = GlobalKey();
+  Future<void> _logout(BuildContext context) async {
+    // Xóa access token và refresh token từ SharedPreferences
+    final sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.remove('accessToken');
+    await sharedPreferences.remove('refreshToken'); // Nếu bạn lưu refresh token
+
+    // Điều hướng đến màn hình đăng nhập
+    Navigator.pushReplacementNamed(context, OnBoarding.routeName);
+  }
+
+  Future<List<dynamic>> _fetchProducts(BuildContext context) async {
+    // Get accessToken from SharedPreferences
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final accessToken = sharedPreferences.getString('accessToken') ?? '';
+
+    final productService = ProductService();
+    return await productService.fetchProductsNewFeed(accessToken);
+  }
+
+  Future<void> _handleFavorite(BuildContext context, int productId) async {
+    // Lấy accessToken từ SharedPreferences
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final accessToken = sharedPreferences.getString('accessToken') ?? '';
+
+    // Gọi API để yêu thích sản phẩm
+    ProductService productService = ProductService();
+    bool isSuccess = await productService.favoriteProduct(productId, accessToken);
+
+    if (isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar( content: Text(
+          'Thao tác thành công',
+          style: TextStyle(color: Colors.black), // Đổi màu chữ
+        ),
+          backgroundColor: Colors.white, // Đổi màu nền của SnackBar
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Yêu thích sản phẩm thất bại!')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +135,7 @@ class _HomeState extends State<Home> {
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width / 2,
-              height: MediaQuery.of(context).size.height / 3.5,
+              height: MediaQuery.of(context).size.height / 3.0,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,33 +145,56 @@ class _HomeState extends State<Home> {
                       Navigator.pop(context);
                       Navigator.pushNamed(context, Settings.routeName);
                     },
-                    leading: const Icon(Icons.settings,
+                    leading: const Icon(Icons.star,
                         color: AppColors.primaryLight),
                     title: Text(
-                      'Settings',
+                      'Yêu thích',
                       style: FontStyles.montserratRegular18(),
                     ),
                   ),
                   ListTile(
                     onTap: () {
-                      // Navigator.pushNamed(context, Settings.routeName);
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, Settings.routeName);
+                    },
+                    leading: const Icon(Icons.supervised_user_circle,
+                        color: AppColors.primaryLight),
+                    title: Text(
+                      'Trở thành người bán',
+                      style: FontStyles.montserratRegular18(),
+                    ),
+                  ),
+                  ListTile(
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, Settings.routeName);
+                    },
+                    leading: const Icon(Icons.settings,
+                        color: AppColors.primaryLight),
+                    title: Text(
+                      'Cài đặt',
+                      style: FontStyles.montserratRegular18(),
+                    ),
+                  ),
+                  ListTile(
+                    onTap: () {
+                      Navigator.pushNamed(context, Favorite.routeName);
                     },
                     leading: const Icon(Icons.help_outline,
                         color: AppColors.primaryLight),
                     title: Text(
-                      'Help',
+                      'Trợ giúp',
                       style: FontStyles.montserratRegular18(),
                     ),
                   ),
                   ListTile(
-                    onTap: () {
-                      Navigator.pushReplacementNamed(
-                          context, OnBoarding.routeName);
+                    onTap: () async {
+                      await _logout(context);
                     },
                     leading: const Icon(Icons.logout_outlined,
                         color: AppColors.primaryLight),
                     title: Text(
-                      'Logout',
+                      'Đăng xuất',
                       style: FontStyles.montserratRegular18(),
                     ),
                   ),
@@ -176,7 +244,7 @@ class _HomeState extends State<Home> {
               top: screenHeight * .020.h,
               left: 20.0,
               child: Text(
-                'Fashion Sale',
+                'Sản phẩm giảm giá',
                 style: FontStyles.montserratBold25()
                     .copyWith(color: AppColors.white),
               )),
@@ -186,7 +254,7 @@ class _HomeState extends State<Home> {
             child: Row(
               children: [
                 Text(
-                  'See More',
+                  'Xem thêm',
                   style: FontStyles.montserratBold12().copyWith(
                     color: AppColors.secondary,
                   ),
@@ -207,31 +275,28 @@ class _HomeState extends State<Home> {
   Widget _buildCatalogue() {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(context, Catalogue.routeName, arguments: [true,true]);
+        Navigator.pushNamed(context, Catalogue.routeName, arguments: [true, true]);
       },
       child: Container(
-        margin: EdgeInsets.only(
-            top: 25.0.h, left: 20.h, right: 20.0.h, bottom: 17.h),
+        margin: EdgeInsets.only(top: 25.0.h, left: 20.h, right: 20.0.h, bottom: 17.h),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Catalogue',
+                  'Danh mục sản phẩm',
                   style: FontStyles.montserratBold19().copyWith(
                     color: const Color(0xFF34283E),
                   ),
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, Catalogue.routeName,
-                        arguments: [true, true]);
+                    Navigator.pushNamed(context, Catalogue.routeName, arguments: [true, true]);
                   },
                   child: Text(
-                    'See All ',
-                    style: FontStyles.montserratBold12()
-                        .copyWith(color: const Color(0xFF9B9B9B)),
+                    'Xem thêm ',
+                    style: FontStyles.montserratBold12().copyWith(color: const Color(0xFF9B9B9B)),
                   ),
                 ),
               ],
@@ -248,6 +313,7 @@ class _HomeState extends State<Home> {
                     height: 88.h,
                     width: 88.w,
                     index: index,
+                    imagePath: DummyData.catalogueImagesLink[index], // Truyền đường dẫn ảnh từ assets
                   );
                 },
               ),
@@ -258,81 +324,116 @@ class _HomeState extends State<Home> {
     );
   }
 
+
   Widget _buildFeatured(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
+
     return Container(
       margin: EdgeInsets.only(
-          left: 20.0.w, right: 20.0.w, top: 20.h, bottom: screenHeight * .09.h),
+        left: 20.0.w,
+        right: 20.0.w,
+        top: 20.h,
+        bottom: screenHeight * .09.h,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Featured',
-            style: FontStyles.montserratBold19()
-                .copyWith(color: const Color(0xFF34283E)),
+            'Sản phẩm mới',
+            style: FontStyles.montserratBold19().copyWith(color: const Color(0xFF34283E)),
           ),
           SizedBox(height: 10.0.h),
-          SizedBox(
-            child: GridView.builder(
-              shrinkWrap: true,
-              itemCount: 4,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisExtent: 270.0.h,
-                  crossAxisSpacing: 10.0.w),
-              itemBuilder: (_, index) {
-                return GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, Product.routeName,
-                          arguments: index);
+          FutureBuilder<List<dynamic>>(
+            future: _fetchProducts(context),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No products found.'));
+              } else {
+                final products = snapshot.data!;
+                return SizedBox(
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    itemCount: products.length,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisExtent: 250.0.h,
+                      crossAxisSpacing: 10.0.w,
+                      mainAxisSpacing: 8.0.h,
+                    ),
+                    itemBuilder: (_, index) {
+                      final product = products[index];
+                      String productImageUrl = product['productImages'].isNotEmpty
+                          ? product['productImages'][0]['imageUrl']
+                          : '';
+
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, Product.routeName,
+                              arguments: product['productId']);
+                        },
+                        child: ItemWidget(
+                          index: index,
+                          favoriteIcon: true,
+                          productName: product['productName'],
+                          productPrice: formatCurrency(product['productPrice']),
+                          productImageUrl: productImageUrl,
+                          productId: product['productId'],
+                          onFavorite: (int productId) {
+                              _handleFavorite(context, productId);
+                            },
+                        ),
+                      );
                     },
-                    child: ItemWidget(
-                      index: index,
-                      favoriteIcon: true,
-                    ));
-              },
-            ),
+                  ),
+                );
+              }
+            },
           ),
         ],
       ),
     );
-    // const SizedBox(height: 20.0),
   }
+
+
+  String formatCurrency(double price) {
+    final formatter = NumberFormat.simpleCurrency(locale: 'vi_VN');
+    return formatter.format(price);
+  }
+
 
   Widget makeSlider() {
     return CarouselSlider.builder(
-        unlimitedMode: true,
-        autoSliderDelay: const Duration(seconds: 5),
-        enableAutoSlider: true,
-        slideBuilder: (index) {
-          return CachedNetworkImage(
-            imageUrl: DummyData.sellerImagesLink[index],
-            color: const Color.fromRGBO(42, 3, 75, 0.35),
-            colorBlendMode: BlendMode.srcOver,
-            fit: BoxFit.fill,
-            placeholder: (context, name) {
-              return ShimmerEffect(
-                borderRadius: 10.0.r,
-                height: 88.h,
-                width: 343.w,
-              );
-            },
-            errorWidget: (context, error, child) {
-              return ShimmerEffect(
-                borderRadius: 10.0.r,
-                height: 88.h,
-                width: 343.w,
-              );
-            },
-          );
-        },
-        slideTransform: const DefaultTransform(),
-        slideIndicator: CircularSlideIndicator(
-          currentIndicatorColor: AppColors.lightGray,
-          alignment: Alignment.bottomCenter,
-          padding: EdgeInsets.only(bottom: 10.h, left: 20.0.w),
-        ),
-        itemCount: DummyData.sellerImagesLink.length);
+      unlimitedMode: true,
+      autoSliderDelay: const Duration(seconds: 5),
+      enableAutoSlider: true,
+      slideBuilder: (index) {
+        return Image.asset(
+          DummyData.sellerImagesLink[index],
+          color: const Color.fromRGBO(42, 3, 75, 0.35),
+          colorBlendMode: BlendMode.srcOver,
+          fit: BoxFit.fill,
+          errorBuilder: (context, error, stackTrace) {
+            return ShimmerEffect(
+              borderRadius: 10.0.r,
+              height: 88.h,
+              width: 343.w,
+            );
+          },
+        );
+      },
+      slideTransform: const DefaultTransform(),
+      slideIndicator: CircularSlideIndicator(
+        currentIndicatorColor: AppColors.lightGray,
+        alignment: Alignment.bottomCenter,
+        padding: EdgeInsets.only(bottom: 10.h, left: 20.0.w),
+      ),
+      itemCount: DummyData.sellerImagesLink.length,
+    );
   }
+
 }

@@ -1,162 +1,96 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smart_shop/Common/Widgets/shimmer_effect.dart';
-import 'package:smart_shop/Utils/app_colors.dart';
-import 'package:smart_shop/Utils/font_styles.dart';
-import 'package:smart_shop/dummy/dummy_data.dart';
 
 class ItemWidget extends StatefulWidget {
-  const ItemWidget({this.index, this.favoriteIcon, Key? key}) : super(key: key);
-  final int? index;
-  final bool? favoriteIcon;
+  final int index;
+  final bool favoriteIcon;
+  final String productName;
+  final String productPrice;
+  final String productImageUrl;
+  final int productId;
+  final Function(int) onFavorite;
+
+  const ItemWidget({
+    Key? key,
+    required this.index,
+    required this.favoriteIcon,
+    required this.productName,
+    required this.productPrice,
+    required this.productImageUrl,
+    required this.productId,
+    required this.onFavorite,
+  }) : super(key: key);
+
   @override
-  State<ItemWidget> createState() => _ItemWidgetState();
+  _ItemWidgetState createState() => _ItemWidgetState();
 }
 
 class _ItemWidgetState extends State<ItemWidget> {
-  bool isFavorite = false;
+  late bool isFavorite;
+
+  @override
+  void initState() {
+    super.initState();
+    isFavorite = widget.favoriteIcon; // Khởi tạo trạng thái yêu thích
+  }
+
+  void toggleFavorite() {
+    setState(() {
+      isFavorite = !isFavorite; // Đảo ngược trạng thái yêu thích
+    });
+    widget.onFavorite(widget.productId); // Gọi hàm onFavorite khi thay đổi trạng thái
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildFeaturedWidget(context, widget.index),
-        _buildFeaturedItemText(context),
-        _buildFeaturedItemPrice(context),
-      ],
-    );
-  }
-
-  Widget _buildFeaturedWidget(BuildContext context, index) {
-    var screenHeight = MediaQuery.of(context).size.height;
-    var screenWidth = MediaQuery.of(context).size.width;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: Container(
-                height: 163.h,
-                width: 163.w,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                child: CachedNetworkImage(
-                  imageUrl: DummyData.featured[index],
-                  fit: BoxFit.cover,
-                  placeholder: (context, name) {
-                    return ShimmerEffect(
-                        borderRadius: 10.0,
-                        height: screenHeight * .15,
-                        width: screenWidth * .40);
-                  },
-                  errorWidget: (context, error, child) {
-                    return ShimmerEffect(
-                      borderRadius: 10.0,
-                      height: screenHeight * .20,
-                      width: screenWidth * .45,
-                    );
-                  },
-                ),
+    return Card(
+      elevation: 4,
+      child: Stack(
+        children: [
+          // Ảnh sản phẩm
+          ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8.0),
+              topRight: Radius.circular(8.0),
+            ),
+            child: Image.network(
+              widget.productImageUrl,
+              fit: BoxFit.cover,
+              height: 150.0,
+              width: double.infinity,
+            ),
+          ),
+          // Nút yêu thích ở góc trên bên phải
+          Positioned(
+            right: 8.0,
+            top: 8.0,
+            child: IconButton(
+              icon: Icon(
+                isFavorite ? Icons.star_border : Icons.star,
+                color: isFavorite ? Colors.yellow : Colors.yellow,
+              ),
+              onPressed: toggleFavorite,
+            ),
+          ),
+          // Thông tin sản phẩm
+          Positioned(
+            top: 150.0,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.productName,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text(widget.productPrice),
+                ],
               ),
             ),
-            Container(
-              margin: const EdgeInsets.only(top: 10.0),
-              width: 47.0,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  bottomRight: Radius.circular(10.0),
-                  topRight: Radius.circular(10.0),
-                ),
-                gradient: LinearGradient(
-                  colors: [Color(0xFFF49763), Color(0xFFD23A3A)],
-                  stops: [0, 1],
-                  begin: Alignment.bottomRight,
-                  end: Alignment.topLeft,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  '50%',
-                  style: FontStyles.montserratBold17()
-                      .copyWith(fontSize: 11.0, color: AppColors.white),
-                ),
-              ),
-            ),
-            widget.favoriteIcon!
-                ? Positioned(
-                    bottom: -15.0,
-                    right: 10.0,
-                    child: Container(
-                        height: 36.0,
-                        width: 36.0,
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(36.0),
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isFavorite = !isFavorite;
-                            });
-                          },
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color:
-                                isFavorite ? AppColors.secondary : Colors.black,
-                          ),
-                        )),
-                  )
-                : const SizedBox(height: 0, width: 0),
-          ],
-        ),
-        _buildRatings(context),
-      ],
-    );
-  }
-
-  Widget _buildRatings(BuildContext context) {
-    return SizedBox(
-      height: 20,
-      width: MediaQuery.of(context).size.width,
-      child: ListView.builder(
-          itemCount: 5,
-          shrinkWrap: true,
-          scrollDirection: Axis.horizontal,
-          itemBuilder: (context, index) {
-            return const Icon(
-              Icons.star,
-              color: AppColors.secondary,
-              size: 10.0,
-            );
-          }),
-    );
-  }
-
-  Widget _buildFeaturedItemText(BuildContext context) {
-    var screenWidth = MediaQuery.of(context).size.width;
-    return SizedBox(
-      width: screenWidth * .40,
-      child: Text(
-        'ECOWISH Womens Color Block Striped Draped K...',
-        style: FontStyles.montserratRegular14().copyWith(
-          color: const Color(0xFF34283E),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeaturedItemPrice(BuildContext context) {
-    var screenWidth = MediaQuery.of(context).size.width;
-    return SizedBox(
-      width: screenWidth * .40,
-      child: Text(
-        '\$102.33',
-        style: FontStyles.montserratBold17(),
+          ),
+        ],
       ),
     );
   }

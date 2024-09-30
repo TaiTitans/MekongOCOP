@@ -66,7 +66,7 @@ class _SignUpState extends State<SignUp> {
         imageFile: _imageFile,
       );
       _showSuccessSnackbar('Thêm thông tin thành công');
-      Navigator.pushReplacementNamed(context, Home.routeName);
+      Navigator.pushReplacementNamed(context, '/');
     } catch (e) {
       print(e);
       _showErrorSnackbar('Thêm thông tin thất bại');

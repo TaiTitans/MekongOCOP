@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_shop/Common/Widgets/catalogue_widget.dart';
@@ -68,7 +69,7 @@ class _CatalogueState extends State<Catalogue> {
                   Navigator.pushNamed(context, Filter.routeName);
                 }
               : () {},
-          title: isItemClicked ? 'Clothing' : 'Catalogue'),
+          title: isItemClicked ? 'OCOP' : 'Danh mục'),
     );
   }
 
@@ -78,90 +79,71 @@ class _CatalogueState extends State<Catalogue> {
       margin: EdgeInsets.only(
           left: 10.0,
           right: 10.0,
-          top: 20.0,
+          top: 30.0,
           bottom: seeAllClicked ? 0.0 : screenHeight * .10),
       child: ListView.builder(
         itemCount: DummyData.catalogueImagesLink.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          return _buildCatalogueWidget(context, index: index);
+          return _buildCatalogueWidget(context, index: index); // Sử dụng widget ban đầu
         },
       ),
     );
   }
 
+
+
   Widget _buildCatalogueWidget(BuildContext context, {int? index}) {
     var screenWidth = MediaQuery.of(context).size.width;
+
     return GestureDetector(
       onTap: () {
         showCategories(context);
       },
-      child: CatalogueWidget(
-        height: 90.h,
-        width: screenWidth,
-        index: index,
+      child: Card(
+        margin: const EdgeInsets.only(top: 10.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        clipBehavior: Clip.antiAlias, // Để Clip ảnh theo Card
+        child: Stack(
+          children: [
+            // Sử dụng Image.asset thay vì CachedNetworkImage cho ảnh nội bộ
+            Image.asset(
+              DummyData.catalogueImagesLink[index!],
+              fit: BoxFit.cover,
+              width: screenWidth,
+              height: 120, // Có thể điều chỉnh theo nhu cầu
+              errorBuilder: (context, error, stackTrace) {
+                // Xử lý nếu ảnh không tải được
+                return Container(
+                  color: Colors.grey.shade300,
+                  child: Icon(Icons.broken_image, color: Colors.red),
+                );
+              },
+            ),
+            // Văn bản nằm trên ảnh
+            Positioned.fill(
+              child: Container(
+                alignment: Alignment.center,
+                color: Colors.black.withOpacity(0.5), // Màu nền đen mờ cho chữ nổi bật
+                child: Text(
+                  DummyData.catalogueTitles[index],
+                  style: FontStyles.montserratBold17().copyWith(
+                    fontSize: 17.0,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
-
-    // Container(
-    //   margin: const EdgeInsets.only(top: 10.0),
-    //   child: GestureDetector(
-    //     onTap: () {
-    //       showCategories(context);
-    //     },
-    //     child: Card(
-    //       color: AppColors.white,
-    //       child: Row(
-    //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //         children: [
-    //           Container(
-    //             margin: const EdgeInsets.only(left: 10.0),
-    //             child: Text(
-    //               title!,
-    //               style: FontStyles.montserratBold().copyWith(
-    //                 fontSize: 17.0,
-    //               ),
-    //               textAlign: TextAlign.center,
-    //             ),
-    //           ),
-    //           ClipRRect(
-    //             borderRadius: const BorderRadius.only(
-    //                 topLeft: Radius.circular(10.0),
-    //                 bottomRight: Radius.circular(-10.0)),
-    //             child: Container(
-    //                 height: 120,
-    //                 width: 140,
-    //                 decoration: const BoxDecoration(
-    //                   borderRadius: BorderRadius.only(
-    //                       topLeft: Radius.circular(10.0),
-    //                       bottomRight: Radius.circular(-10.0)),
-    //                   // image: DecorationImage(
-    //                   //   image: AssetImage('assets/catalogue/pic$index.png'),
-    //                   //   fit: BoxFit.fill,
-    //                   // ),
-    //                 ),
-    //                 child: CachedNetworkImage(
-    //                   imageUrl: DummyData.catalogueImagesLink[index!],
-    //                   imageBuilder: (context, provider) {
-    //                     return Image(
-    //                       image: NetworkImage(
-    //                           DummyData.catalogueImagesLink[index]),
-    //                       fit: BoxFit.fill,
-    //                     );
-    //                   },
-    //                   color: const Color.fromRGBO(42, 3, 75, 0.35),
-    //                   colorBlendMode: BlendMode.srcOver,
-    //                   fit: BoxFit.fill,
-    //                   // height: screenHeight * 0.75,
-    //                   // width: screenWidth,
-    //                 )),
-    //           ),
-    //         ],
-    //       ),
-    //     ),
-    //   ),
-    // );
   }
+
+
 
   showCategories(BuildContext context) {
     return showModalBottomSheet(
@@ -321,10 +303,13 @@ class _CatalogueState extends State<Catalogue> {
         gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, mainAxisExtent: 260.0.h, crossAxisSpacing: 10.0),
         itemBuilder: (_, index) {
-          return ItemWidget(
-            index: index,
-            favoriteIcon: true,
-          );
+          return null;
+
+          // return ItemWidget(
+          //   index: index,
+          //   favoriteIcon: true,
+          //
+          // );
         },
       ),
     );

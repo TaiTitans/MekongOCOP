@@ -99,10 +99,11 @@ class _OrdersState extends State<Orders> {
           itemBuilder: (context, index) {
             return Padding(
               padding: const EdgeInsets.only(right:18.0),
-              child: ItemWidget(
-                index: index,
-                favoriteIcon: false,
-              ),
+              // child: ItemWidget(
+              //   index: index,
+              //   favoriteIcon: false,
+              //
+              // ),
             );
           }),
     );

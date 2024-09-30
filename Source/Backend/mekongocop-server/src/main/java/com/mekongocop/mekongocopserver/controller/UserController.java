@@ -24,7 +24,17 @@ public class UserController {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-
+    @PostMapping("/user/refresh-token")
+    public ResponseEntity<String> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String newAccessToken = userService.refreshAccessToken(request, response);
+            return ResponseEntity.ok(newAccessToken);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpServletResponse.SC_INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+        }
+    }
     @PostMapping("/register")
     public ResponseEntity<StatusResponse<String>> registerUser(@RequestBody UserDTO userDTO, @RequestParam String otp){
         try{

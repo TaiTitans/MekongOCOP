@@ -15,7 +15,7 @@ class AppTitle extends StatelessWidget {
           style: fontStyle!.copyWith(color: AppColors.white),
           children: [
             TextSpan(
-              text: 'OCOP',
+              text: ' OCOP',
               style: fontStyle!.copyWith(color: AppColors.secondary),
             )
           ],

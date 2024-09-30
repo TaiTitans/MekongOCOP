@@ -99,9 +99,11 @@ class Items extends StatelessWidget {
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, mainAxisExtent: 300.0, crossAxisSpacing: 10.0),
         itemBuilder: (_, index) {
-          return ItemWidget(
-            index: index,
-          );
+          return null;
+
+          // return ItemWidget(
+          //   index: index,
+          // );
         },
       ),
     );

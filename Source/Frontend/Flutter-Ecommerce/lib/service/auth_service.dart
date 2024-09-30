@@ -4,6 +4,7 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
@@ -36,6 +37,57 @@ class AuthService {
   String renewPasswordUrl(String email, int otp, String newPassword) {
     final String apiUrl = dotenv.env['API_URL'] ?? '';
     return '$apiUrl/user/password/renew?email=$email&otp=$otp&newPassword=$newPassword';
+  }
+  String getNewAccessToken() {
+    final String apiUrl = dotenv.env['API_URL'] ?? '';
+    return '$apiUrl/user/refresh-token';
+  }
+  bool isTokenNotExpired(String? token) {
+    if (token == null) {
+      return false; // Token null có nghĩa là không hợp lệ
+    }
+
+    // Lấy ngày hết hạn từ token
+    DateTime? expirationDate = JwtDecoder.getExpirationDate(token);
+    if (expirationDate == null) {
+      return false; // Nếu không có expirationDate, coi như token không hợp lệ
+    }
+
+    // Lấy thời gian hiện tại
+    DateTime now = DateTime.now();
+
+    // So sánh thời gian hiện tại với ngày hết hạn
+    return now.isBefore(expirationDate); // Trả về true nếu token chưa hết hạn
+  }
+  Future<String?> refreshAccessToken() async {
+    final String url = getNewAccessToken(); // Thay đổi đường dẫn API
+    final dio = Dio();
+    try {
+      final response = await dio.post(
+        url,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // Nhận access token mới từ phản hồi
+        String newAccessToken = response.data['accessToken']; // Giả sử bạn nhận được token từ phản hồi
+
+        // Lưu access token mới vào SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('accessToken', newAccessToken);
+        return newAccessToken;
+      } else {
+        print('Error refreshing token: ${response.data['error']}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+
+    return null; // Trả về null nếu không có token mới
   }
 
 
@@ -82,7 +134,7 @@ class AuthService {
       }
     } catch (e) {
       print('Error: $e');
-      return {'error': 'Lỗi không xác định. Xin thử lại'};
+      return {'error': 'Sai tên đăng nhập hoặc mật khẩu'};
     }
   }
 
@@ -99,6 +151,7 @@ class AuthService {
       return acc;
     });
   }
+
 
   Future<String?> registerAccount(int otp, String username, String password,
       String email) async {

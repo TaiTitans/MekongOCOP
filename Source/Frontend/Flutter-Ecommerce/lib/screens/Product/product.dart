@@ -409,10 +409,12 @@ class Product extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
-                  return ItemWidget(
-                    index: index,
-                    favoriteIcon: true,
-                  );
+                  return null;
+
+                  // return ItemWidget(
+                  //   index: index,
+                  //   favoriteIcon: true,
+                  // );
                 }),
           )
         ],

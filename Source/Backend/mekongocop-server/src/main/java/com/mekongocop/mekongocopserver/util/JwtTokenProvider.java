@@ -110,5 +110,7 @@ public class JwtTokenProvider {
     public int getUserIdFromToken(String token) {
         return getClaimFromToken(token, claims -> Integer.parseInt(claims.getSubject().split(",")[0]));
     }
-
+    public String getUsernameFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.getSubject().split(",")[1]);
+    }
 }

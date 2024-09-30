@@ -98,10 +98,10 @@ class _FavoriteState extends State<Favorite> {
               Navigator.pushNamed(context, Product.routeName,
                   arguments: index);
             },
-            child: ItemWidget(
-              index: index,
-              favoriteIcon: true,
-            ),
+            // child: ItemWidget(
+            //   index: index,
+            //   favoriteIcon: true,
+            // ),
           );
         },
       ),
