@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_shop/Common/Widgets/app_title.dart';
@@ -17,8 +21,10 @@ import 'package:smart_shop/Screens/Settings/settings.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
 import 'package:smart_shop/dummy/dummy_data.dart';
+import 'package:smart_shop/service/seller_service.dart';
 
 import '../../service/product_service.dart';
+import '../../service/userprofile_service.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -30,6 +36,41 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _key = GlobalKey();
+  List<dynamic>? _products;
+  DateTime? _lastProductsUpdateTime;
+  @override
+  void initState() {
+    super.initState();
+    _loadCachedProducts();// Gọi API khi khởi tạo
+  }
+  Future<void> _submitSellerLicense(File? licenseFile) async {
+    final sellerService = SellerService();
+    if (licenseFile != null) {
+      final bool isSubmitted = await sellerService.submitSeller(imageFile: licenseFile);
+      if (isSubmitted) {
+        // Tải lên thành công
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tải lên ảnh giấy phép thành công!')),
+        );
+      } else {
+        // Tải lên thất bại
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tải lên ảnh giấy phép thất bại.')),
+        );
+      }
+    }
+  }
+  Future<void> _loadCachedProducts() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final cachedProducts = sharedPreferences.getString('cachedProducts');
+    if (cachedProducts != null) {
+      _products = jsonDecode(cachedProducts);
+      _lastProductsUpdateTime = DateTime.now().subtract(Duration(minutes: 29)); // Gán thời gian gần nhất
+      setState(() {});
+    } else {
+      await _fetchProducts(context); // Nếu không có dữ liệu cached, gọi API
+    }
+  }
   Future<void> _logout(BuildContext context) async {
     // Xóa access token và refresh token từ SharedPreferences
     final sharedPreferences = await SharedPreferences.getInstance();
@@ -40,14 +81,28 @@ class _HomeState extends State<Home> {
     Navigator.pushReplacementNamed(context, OnBoarding.routeName);
   }
 
-  Future<List<dynamic>> _fetchProducts(BuildContext context) async {
+  Future<void> _fetchProducts(BuildContext context) async {
+    // Kiểm tra nếu đã có sản phẩm và dữ liệu cache còn mới
+    if (_products != null && _lastProductsUpdateTime != null && DateTime.now().difference(_lastProductsUpdateTime!).inMinutes < 30) {
+      return; // Nếu dữ liệu cache còn mới, không gọi API nữa
+    }
+
     // Get accessToken from SharedPreferences
     final sharedPreferences = await SharedPreferences.getInstance();
     final accessToken = sharedPreferences.getString('accessToken') ?? '';
 
     final productService = ProductService();
-    return await productService.fetchProductsNewFeed(accessToken);
+    _products = await productService.fetchProductsNewFeed(accessToken);
+
+    // Lưu thời gian cập nhật dữ liệu mới nhất
+    _lastProductsUpdateTime = DateTime.now();
+
+    // Lưu dữ liệu sản phẩm vào SharedPreferences
+    await sharedPreferences.setString('cachedProducts', jsonEncode(_products));
+
+    setState(() {}); // Cập nhật UI
   }
+
 
   Future<void> _handleFavorite(BuildContext context, int productId) async {
     // Lấy accessToken từ SharedPreferences
@@ -80,7 +135,7 @@ class _HomeState extends State<Home> {
 
       key: _key,
       appBar: _buildCustomAppBar(context),
-      drawer: _buildDrawer(context),
+      drawer: _buildDrawer(context,_showUploadLicenseDialog,),
       body: _buildBody(context),
       resizeToAvoidBottomInset: false,
     );
@@ -99,7 +154,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildDrawer(BuildContext context) {
+  Widget _buildDrawer(BuildContext context, Future<void> Function(BuildContext) showUploadLicenseDialog) {
     return SizedBox(
       width: MediaQuery.of(context).size.width * .60,
       child: Drawer(
@@ -143,7 +198,7 @@ class _HomeState extends State<Home> {
                   ListTile(
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.pushNamed(context, Settings.routeName);
+                      Navigator.pushNamed(context, Favorite.routeName);
                     },
                     leading: const Icon(Icons.star,
                         color: AppColors.primaryLight),
@@ -155,7 +210,7 @@ class _HomeState extends State<Home> {
                   ListTile(
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.pushNamed(context, Settings.routeName);
+                      showUploadLicenseDialog(context);
                     },
                     leading: const Icon(Icons.supervised_user_circle,
                         color: AppColors.primaryLight),
@@ -343,62 +398,84 @@ class _HomeState extends State<Home> {
             style: FontStyles.montserratBold19().copyWith(color: const Color(0xFF34283E)),
           ),
           SizedBox(height: 10.0.h),
-          FutureBuilder<List<dynamic>>(
-            future: _fetchProducts(context),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(child: Text('No products found.'));
-              } else {
-                final products = snapshot.data!;
-                return SizedBox(
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    itemCount: products.length,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisExtent: 250.0.h,
-                      crossAxisSpacing: 10.0.w,
-                      mainAxisSpacing: 8.0.h,
-                    ),
-                    itemBuilder: (_, index) {
-                      final product = products[index];
-                      String productImageUrl = product['productImages'].isNotEmpty
-                          ? product['productImages'][0]['imageUrl']
-                          : '';
+          _products == null // Kiểm tra xem đã có sản phẩm chưa
+              ? Center(child: CircularProgressIndicator())
+              : (_products!.isEmpty
+              ? Center(child: Text('No products found.'))
+              : SizedBox(
+            child: GridView.builder(
+              shrinkWrap: true,
+              itemCount: _products!.length,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisExtent: 250.0.h,
+                crossAxisSpacing: 10.0.w,
+                mainAxisSpacing: 8.0.h,
+              ),
+              itemBuilder: (_, index) {
+                final product = _products![index];
+                String productImageUrl = product['productImages'].isNotEmpty
+                    ? product['productImages'][0]['imageUrl']
+                    : '';
 
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, Product.routeName,
-                              arguments: product['productId']);
-                        },
-                        child: ItemWidget(
-                          index: index,
-                          favoriteIcon: true,
-                          productName: product['productName'],
-                          productPrice: formatCurrency(product['productPrice']),
-                          productImageUrl: productImageUrl,
-                          productId: product['productId'],
-                          onFavorite: (int productId) {
-                              _handleFavorite(context, productId);
-                            },
-                        ),
-                      );
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, Product.routeName, arguments: product['productId']);
+                  },
+                  child: ItemWidget(
+                    index: index,
+                    favoriteIcon: true,
+                    productName: product['productName'],
+                    provinceName: product['provinceName'],
+                    productPrice: formatCurrency(product['productPrice']),
+                    productImageUrl: productImageUrl,
+                    productId: product['productId'],
+                    onFavorite: (int productId) {
+                      _handleFavorite(context, productId);
                     },
                   ),
                 );
-              }
-            },
-          ),
+              },
+            ),
+          )),
         ],
       ),
     );
   }
 
+  Future<void> _showUploadLicenseDialog(BuildContext context) async {
+    File? _licenseFile;
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Tải lên ảnh giấy phép'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () async {
+                final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+                if (pickedFile != null) {
+                  _licenseFile = File(pickedFile.path);
+                  Navigator.of(context).pop();
+                  await _submitSellerLicense(_licenseFile);
+                }
+              },
+              child: Text('Chọn ảnh từ thư viện'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Hủy'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   String formatCurrency(double price) {
     final formatter = NumberFormat.simpleCurrency(locale: 'vi_VN');

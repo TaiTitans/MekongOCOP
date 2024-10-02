@@ -7,6 +7,8 @@ import 'package:smart_shop/Screens/Profile/profile.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
 
+import '../Catalogue/province_catalogue.dart';
+
 class BottomNavigatorBar extends StatefulWidget {
   const BottomNavigatorBar({Key? key}) : super(key: key);
   static const String routeName = 'bottomNavigatorBar';
@@ -21,7 +23,7 @@ class _BottomNavigatorBarState extends State<BottomNavigatorBar> {
   // Danh sách các màn hình
   List<Widget> myScreens = [
     const Home(),
-    const Catalogue(),
+    const Province(),
     const Favorite(),
     const Profile(),
   ];
@@ -142,7 +144,7 @@ bottomNavigationBar: buildBottomSheet(),
                                   : Colors.grey,
                             ),
                             Text(
-                              'Danh mục',
+                              'Tỉnh thành',
                               style: TextStyle(
                                 color: currentIndex == 1
                                     ? Colors.black
@@ -247,16 +249,16 @@ bottomNavigationBar: buildBottomSheet(),
                   ),
                   title: RichText(
                     text: TextSpan(
-                      text: '\$239.98\n',
+                      text: 'Giỏ hàng',
                       style: FontStyles.montserratBold17()
                           .copyWith(fontSize: 11.0, color: AppColors.white),
-                      children: [
-                        TextSpan(
-                          text: '2 Items',
-                          style: FontStyles.montserratRegular14()
-                              .copyWith(fontSize: 11.0, color: AppColors.white),
-                        )
-                      ],
+                      // children: [
+                      //   TextSpan(
+                      //     text: 'OCOP',
+                      //     style: FontStyles.montserratRegular14()
+                      //         .copyWith(fontSize: 11.0, color: AppColors.white),
+                      //   )
+                      // ],
                     ),
                   ),
                 ),

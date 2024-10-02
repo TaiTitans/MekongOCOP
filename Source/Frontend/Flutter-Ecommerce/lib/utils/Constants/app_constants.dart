@@ -19,8 +19,11 @@ import 'package:smart_shop/Screens/Profile/profile.dart';
 import 'package:smart_shop/Screens/Settings/settings.dart';
 import 'package:smart_shop/Screens/ShippingAddress/shipping_address.dart';
 import 'package:smart_shop/Screens/SignUp/sign_up.dart';
+import 'package:smart_shop/screens/Product/product_catalogue.dart';
 import 'package:smart_shop/screens/SignIn/sign_in.dart';
 import 'package:smart_shop/screens/Login/forgot_password.dart';
+
+import '../../screens/Catalogue/province_catalogue.dart';
 class AppConstants {
   static Map<String, Widget Function(dynamic)> appRoutes = {
     '/': (_) => const BottomNavigatorBar(),
@@ -32,9 +35,17 @@ class AppConstants {
     Home.routeName: (_) => const Home(),
     BottomNavigatorBar.routeName: (_) => const BottomNavigatorBar(),
     Catalogue.routeName: (_) => const Catalogue(),
+    Province.routeName: (_)=> const Province(),
     Items.routeName: (_) => const Items(),
     Filter.routeName: (_) => const Filter(),
-    Product.routeName: (_) => Product(),
+    Product.routeName: (context) {
+      final int productId = ModalRoute.of(context)!.settings.arguments as int;
+      return Product(productId: productId);
+    },
+    ProductListScreen.routeName: (context) {
+      final List<dynamic> products = ModalRoute.of(context)!.settings.arguments as List<dynamic>;
+      return ProductListScreen(products: products);
+    },
     Favorite.routeName: (_) => const Favorite(),
     Profile.routeName: (_) => const Profile(),
     Cart.routeName: (_) => const Cart(),

@@ -83,6 +83,24 @@ public class FavoriteService {
         }
     }
 
+    public List<Integer> getListProductIdsFromFavorite(String token) {
+        try {
+            int userId = jwtTokenProvider.getUserIdFromToken(token);
+            // Ensure the user exists
+            userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Fetch favorite products as entities
+            List<Product> favoriteProducts = favoriteRepository.findFavoriteProductsByUserId(userId);
+
+            // Return a list of product IDs
+            return favoriteProducts.stream()
+                    .map(Product::getProduct_id)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 }

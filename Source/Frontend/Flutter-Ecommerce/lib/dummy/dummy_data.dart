@@ -15,7 +15,36 @@ class DummyData {
     'Du lịch',
     'Sản phẩm dược liệu',
   ];
-
+  static final List<String> provinceTitles = [
+    'An Giang',
+    'Bạc Liêu',
+    'Bến Tre',
+    'Cà Mau',
+    'Cần Thơ',
+    'Đồng Tháp',
+    'Hậu Giang',
+    'Kiên Giang',
+    'Long An',
+    'Sóc Trăng',
+    'Tiền Giang',
+    'Trà Vinh',
+    'Vĩnh Long'
+  ];
+  static final List<String> provinceImagesLink = [
+    'assets/province/1.jpg',
+    'assets/province/2.jpg',
+    'assets/province/3.jpg',
+    'assets/province/4.jpg',
+    'assets/province/5.jpg',
+    'assets/province/6.jpg',
+    'assets/province/7.png',
+    'assets/province/8.jpg',
+    'assets/province/9.jpg',
+    'assets/province/10.jpg',
+    'assets/province/11.jpg',
+    'assets/province/12.jpg',
+    'assets/province/13.jpg',
+  ];
   static final List<String> catalogueImagesLink = [
     'assets/cate/1.jpg',
     'assets/cate/2.jpg',

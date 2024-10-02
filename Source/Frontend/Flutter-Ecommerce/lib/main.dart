@@ -53,6 +53,7 @@ Future<void> main() async {
           theme: AppTheme.lightTheme,
           initialRoute: token != null ? '/' : OnBoarding.routeName,
           routes: AppConstants.appRoutes,
+
         );
       },
     ),

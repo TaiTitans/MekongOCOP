@@ -1,28 +1,26 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_shop/Common/Widgets/catalogue_widget.dart';
-import 'package:smart_shop/Common/Widgets/item_widget.dart';
-import 'package:smart_shop/Common/Widgets/custom_app_bar.dart';
-import 'package:smart_shop/Screens/Filter/filter.dart';
-import 'package:smart_shop/Utils/app_colors.dart';
-import 'package:smart_shop/Utils/font_styles.dart';
-import 'package:smart_shop/dummy/dummy_data.dart';
+
+import '../../Common/Widgets/custom_app_bar.dart';
+import '../../Utils/app_colors.dart';
+import '../../Utils/font_styles.dart';
+import '../../dummy/dummy_data.dart';
+import '../../service/product_service.dart';
+import '../Filter/filter.dart';
 import 'dart:io' as plateform;
 
-import '../../service/product_service.dart';
 import '../Product/product_catalogue.dart';
+class Province extends StatefulWidget {
+  static const String routeName = 'province';
 
-class Catalogue extends StatefulWidget {
-  static const String routeName = 'catalogue';
-
-  const Catalogue({Key? key}) : super(key: key);
+  const Province({Key? key}) : super(key: key);
   @override
-  State<Catalogue> createState() => _CatalogueState();
+  State<Province> createState() => _ProvinceState();
 }
 
-class _CatalogueState extends State<Catalogue> {
+class _ProvinceState extends State<Province> {
   final GlobalKey<ScaffoldState>? _key = GlobalKey();
   bool isItemClicked = false;
   bool seeAllClicked = false;
@@ -50,7 +48,7 @@ class _CatalogueState extends State<Catalogue> {
   PreferredSize _buildAppBar(BuildContext context) {
     return PreferredSize(
       preferredSize:
-          Size(double.infinity, MediaQuery.of(context).size.height * .20),
+      Size(double.infinity, MediaQuery.of(context).size.height * .20),
       child: CustomAppBar(
           scaffoldKey: _key,
           isHome: false,
@@ -70,10 +68,10 @@ class _CatalogueState extends State<Catalogue> {
           trailingIcon: isItemClicked ? Icons.filter_1_outlined : null,
           trailingOnTap: isItemClicked
               ? () {
-                  Navigator.pushNamed(context, Filter.routeName);
-                }
+            Navigator.pushNamed(context, Filter.routeName);
+          }
               : () {},
-          title: isItemClicked ? 'OCOP' : 'Danh mục'),
+          title: isItemClicked ? 'OCOP' : 'Tỉnh thành'),
     );
   }
 
@@ -84,9 +82,9 @@ class _CatalogueState extends State<Catalogue> {
           left: 10.0,
           right: 10.0,
           top: 02.0,
-          bottom: seeAllClicked ? 0.0 : screenHeight * .10),
+          bottom: seeAllClicked ? 0.0 : screenHeight * .02),
       child: ListView.builder(
-        itemCount: DummyData.catalogueImagesLink.length,
+        itemCount: DummyData.provinceImagesLink.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
           return _buildCatalogueWidget(context, index: index); // Sử dụng widget ban đầu
@@ -107,7 +105,7 @@ class _CatalogueState extends State<Catalogue> {
           final accessToken = sharedPreferences.getString('accessToken') ?? '';
           // Gọi API để lấy sản phẩm theo danh mục
           ProductService productService = ProductService();
-          List<dynamic> products = await productService.fetchProductsByCategory(index! + 1, accessToken); // Thêm 1 để phù hợp với ID từ 1 đến 7
+          List<dynamic> products = await productService.fetchProductsByProvince(index! + 1, accessToken);
 
           // Điều hướng đến màn hình hiển thị danh sách sản phẩm và truyền dữ liệu
           Navigator.pushNamed(
@@ -131,7 +129,7 @@ class _CatalogueState extends State<Catalogue> {
         child: Stack(
           children: [
             Image.asset(
-              DummyData.catalogueImagesLink[index!],
+              DummyData.provinceImagesLink[index!],
               fit: BoxFit.cover,
               width: screenWidth,
               height: 120,
@@ -147,7 +145,7 @@ class _CatalogueState extends State<Catalogue> {
                 alignment: Alignment.center,
                 color: Colors.black.withOpacity(0.5),
                 child: Text(
-                  DummyData.catalogueTitles[index],
+                  DummyData.provinceTitles[index],
                   style: FontStyles.montserratBold17().copyWith(
                     fontSize: 17.0,
                     color: Colors.white,
@@ -161,6 +159,11 @@ class _CatalogueState extends State<Catalogue> {
       ),
     );
   }
+
+
+
+
+
 
   Widget _buildItemsBody(BuildContext context) {
     return SingleChildScrollView(
@@ -176,7 +179,6 @@ class _CatalogueState extends State<Catalogue> {
       ),
     );
   }
-
 
 
   Widget _buildItemAndSortTile(BuildContext context) {
