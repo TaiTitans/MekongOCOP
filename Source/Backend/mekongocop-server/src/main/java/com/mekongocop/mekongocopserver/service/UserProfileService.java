@@ -97,10 +97,11 @@ public class UserProfileService {
 
     @Async
     @Transactional
-    public CompletableFuture<Void> addProfile(UserProfileDTO userProfileDTO, MultipartFile file) {
+    public CompletableFuture<Void> addProfile(UserProfileDTO userProfileDTO, MultipartFile file, String token) {
         return CompletableFuture.runAsync(() -> {
             try {
-                User user = getUserById(userProfileDTO.user_id);
+                int userId = jwtTokenProvider.getUserIdFromToken(token);
+                userProfileDTO.setUser_id(userId);
                 UserProfile userProfile = convertUserProfileDTOToUserProfile(userProfileDTO);
 
                 if (file != null) {
@@ -119,7 +120,6 @@ public class UserProfileService {
                 } else {
                     logger.info("No image file provided for upload");
                 }
-
                 UserProfile savedProfile = userProfileRepository.save(userProfile);
                 logger.info("User profile saved successfully. Profile ID: {}", savedProfile.getProfile_id());
             } catch (Exception e) {
@@ -145,6 +145,9 @@ public class UserProfileService {
         }
     }
 
-
+    public boolean hasUserProfile(int userId) {
+        // Kiểm tra số lượng profile liên quan đến userId
+        return userProfileRepository.countByUserId(userId) > 0;
+    }
 
 }

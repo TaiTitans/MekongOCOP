@@ -9,7 +9,7 @@ import 'package:smart_shop/Screens/Home/home.dart';
 import 'package:smart_shop/Screens/Items/items.dart';
 import 'package:smart_shop/Screens/Login/phone_screen.dart';
 import 'package:smart_shop/Screens/Login/verification_screen.dart';
-import 'package:smart_shop/Screens/Main/main.dart';
+import 'package:smart_shop/screens/BottomBar/bottom_navigator_bar.dart';
 import 'package:smart_shop/Screens/Notifications/notifications.dart';
 import 'package:smart_shop/Screens/Onboarding/onboarding.dart';
 import 'package:smart_shop/Screens/Orders/order.dart';
@@ -19,22 +19,33 @@ import 'package:smart_shop/Screens/Profile/profile.dart';
 import 'package:smart_shop/Screens/Settings/settings.dart';
 import 'package:smart_shop/Screens/ShippingAddress/shipping_address.dart';
 import 'package:smart_shop/Screens/SignUp/sign_up.dart';
+import 'package:smart_shop/screens/Product/product_catalogue.dart';
 import 'package:smart_shop/screens/SignIn/sign_in.dart';
 import 'package:smart_shop/screens/Login/forgot_password.dart';
+
+import '../../screens/Catalogue/province_catalogue.dart';
 class AppConstants {
   static Map<String, Widget Function(dynamic)> appRoutes = {
-    '/': (_) => const OnBoarding(),
+    '/': (_) => const BottomNavigatorBar(),
     Login.routeName: (_) => const Login(),
     Verification.routeName: (context) {
       final String email = ModalRoute.of(context)!.settings.arguments as String;
       return Verification(email: email);
     },
     Home.routeName: (_) => const Home(),
-    Main.routeName: (_) => const Main(),
+    BottomNavigatorBar.routeName: (_) => const BottomNavigatorBar(),
     Catalogue.routeName: (_) => const Catalogue(),
+    Province.routeName: (_)=> const Province(),
     Items.routeName: (_) => const Items(),
     Filter.routeName: (_) => const Filter(),
-    Product.routeName: (_) => Product(),
+    Product.routeName: (context) {
+      final int productId = ModalRoute.of(context)!.settings.arguments as int;
+      return Product(productId: productId);
+    },
+    ProductListScreen.routeName: (context) {
+      final List<dynamic> products = ModalRoute.of(context)!.settings.arguments as List<dynamic>;
+      return ProductListScreen(products: products);
+    },
     Favorite.routeName: (_) => const Favorite(),
     Profile.routeName: (_) => const Profile(),
     Cart.routeName: (_) => const Cart(),

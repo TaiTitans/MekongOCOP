@@ -6,6 +6,8 @@ import '../../Common/Widgets/app_button.dart';
 import '../../Common/Widgets/gradient_header.dart';
 import '../../Utils/app_colors.dart';
 import '../Home/home.dart';
+import '../Profile/profile.dart';
+import '../SignUp/sign_up.dart';
 class SignIn extends StatefulWidget {
   const SignIn({Key? key}) : super(key: key);
   static const String routeName = 'signin';
@@ -71,25 +73,37 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
       _errorMessage = null;
     });
 
+    print('Attempting to sign in with username: $username, password: $password');
+
     final response = await _authService.signIn(username, password);
 
-    setState(() {
-      _isLoading = false;
-    });
+    if (response['error'] == null) {
+      final cookies = response['cookies'] as Map<String, String>;
+      final hasProfile = response['hasProfile'] as bool;
 
-    if (response == null) {
-      _showSuccessSnackbar('Đăng nhập thành công!');
-      Navigator.pushReplacementNamed(context, Home.routeName);
-    } else if (response == 'Username or password not correct') {
       setState(() {
-        _showErrorSnackbar('Tên đăng nhập hoặc mật khẩu không chính xác');
+        _isLoading = false;
       });
+
+      if (hasProfile) {
+        _showSuccessSnackbar('Đăng nhập thành công!');
+        print('hasProfile: ${response['hasProfile']}');
+        Navigator.pushReplacementNamed(context, '/');
+      } else {
+        _showSuccessSnackbar('Bạn cần cập nhật thông tin cá nhân.');
+        Navigator.pushReplacementNamed(context, SignUp.routeName);
+      }
     } else {
+      print('Đăng nhập thất bại. Lỗi: ${response['error']}');
+
       setState(() {
-        _showErrorSnackbar(response);
+        _isLoading = false;
+        _errorMessage = response['error'];
       });
+      _showErrorSnackbar(_errorMessage!);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

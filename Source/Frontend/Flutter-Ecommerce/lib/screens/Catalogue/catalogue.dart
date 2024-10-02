@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_shop/Common/Widgets/catalogue_widget.dart';
 import 'package:smart_shop/Common/Widgets/item_widget.dart';
 import 'package:smart_shop/Common/Widgets/custom_app_bar.dart';
@@ -8,6 +10,9 @@ import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
 import 'package:smart_shop/dummy/dummy_data.dart';
 import 'dart:io' as plateform;
+
+import '../../service/product_service.dart';
+import '../Product/product_catalogue.dart';
 
 class Catalogue extends StatefulWidget {
   static const String routeName = 'catalogue';
@@ -50,7 +55,7 @@ class _CatalogueState extends State<Catalogue> {
           scaffoldKey: _key,
           isHome: false,
           // fixedHeight: 50.0,
-          enableSearchField: true,
+          enableSearchField: false,
           leadingIcon: showbackArrow ? plateform.Platform.isIOS
               ? Icons.arrow_back_ios
               : Icons.arrow_back : null,
@@ -68,7 +73,7 @@ class _CatalogueState extends State<Catalogue> {
                   Navigator.pushNamed(context, Filter.routeName);
                 }
               : () {},
-          title: isItemClicked ? 'Clothing' : 'Catalogue'),
+          title: isItemClicked ? 'OCOP' : 'Danh mục'),
     );
   }
 
@@ -78,159 +83,81 @@ class _CatalogueState extends State<Catalogue> {
       margin: EdgeInsets.only(
           left: 10.0,
           right: 10.0,
-          top: 20.0,
+          top: 02.0,
           bottom: seeAllClicked ? 0.0 : screenHeight * .10),
       child: ListView.builder(
         itemCount: DummyData.catalogueImagesLink.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          return _buildCatalogueWidget(context, index: index);
+          return _buildCatalogueWidget(context, index: index); // Sử dụng widget ban đầu
         },
       ),
     );
   }
 
+
+
   Widget _buildCatalogueWidget(BuildContext context, {int? index}) {
     var screenWidth = MediaQuery.of(context).size.width;
+
     return GestureDetector(
-      onTap: () {
-        showCategories(context);
-      },
-      child: CatalogueWidget(
-        height: 90.h,
-        width: screenWidth,
-        index: index,
-      ),
-    );
+      onTap: () async {
+        try {
+          final sharedPreferences = await SharedPreferences.getInstance();
+          final accessToken = sharedPreferences.getString('accessToken') ?? '';
+          // Gọi API để lấy sản phẩm theo danh mục
+          ProductService productService = ProductService();
+          List<dynamic> products = await productService.fetchProductsByCategory(index! + 1, accessToken); // Thêm 1 để phù hợp với ID từ 1 đến 7
 
-    // Container(
-    //   margin: const EdgeInsets.only(top: 10.0),
-    //   child: GestureDetector(
-    //     onTap: () {
-    //       showCategories(context);
-    //     },
-    //     child: Card(
-    //       color: AppColors.white,
-    //       child: Row(
-    //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //         children: [
-    //           Container(
-    //             margin: const EdgeInsets.only(left: 10.0),
-    //             child: Text(
-    //               title!,
-    //               style: FontStyles.montserratBold().copyWith(
-    //                 fontSize: 17.0,
-    //               ),
-    //               textAlign: TextAlign.center,
-    //             ),
-    //           ),
-    //           ClipRRect(
-    //             borderRadius: const BorderRadius.only(
-    //                 topLeft: Radius.circular(10.0),
-    //                 bottomRight: Radius.circular(-10.0)),
-    //             child: Container(
-    //                 height: 120,
-    //                 width: 140,
-    //                 decoration: const BoxDecoration(
-    //                   borderRadius: BorderRadius.only(
-    //                       topLeft: Radius.circular(10.0),
-    //                       bottomRight: Radius.circular(-10.0)),
-    //                   // image: DecorationImage(
-    //                   //   image: AssetImage('assets/catalogue/pic$index.png'),
-    //                   //   fit: BoxFit.fill,
-    //                   // ),
-    //                 ),
-    //                 child: CachedNetworkImage(
-    //                   imageUrl: DummyData.catalogueImagesLink[index!],
-    //                   imageBuilder: (context, provider) {
-    //                     return Image(
-    //                       image: NetworkImage(
-    //                           DummyData.catalogueImagesLink[index]),
-    //                       fit: BoxFit.fill,
-    //                     );
-    //                   },
-    //                   color: const Color.fromRGBO(42, 3, 75, 0.35),
-    //                   colorBlendMode: BlendMode.srcOver,
-    //                   fit: BoxFit.fill,
-    //                   // height: screenHeight * 0.75,
-    //                   // width: screenWidth,
-    //                 )),
-    //           ),
-    //         ],
-    //       ),
-    //     ),
-    //   ),
-    // );
-  }
-
-  showCategories(BuildContext context) {
-    return showModalBottomSheet(
-        shape: OutlineInputBorder(
-            borderSide: const BorderSide(color: AppColors.white),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20.0.r),
-              topRight: Radius.circular(20.0.r),
-            )),
-        context: context,
-        builder: (_) {
-          return Container(
-            margin: const EdgeInsets.all(20.0),
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20.0.r),
-                  topLeft: Radius.circular(20.0.r)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    height: 5.0.h,
-                    width: 60.0.w,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20.0.r),
-                      color: AppColors.lightGray,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20.0.h),
-                Center(
-                  child: Text(
-                    'Women\'s Fashions',
-                    style: FontStyles.montserratBold19(),
-                  ),
-                ),
-                const SizedBox(height: 20.0),
-                _buildCategories(context, 'Clothing'),
-                _buildCategories(context, 'Shoes'),
-                _buildCategories(context, 'Jewelry'),
-                _buildCategories(context, 'Watches'),
-                _buildCategories(context, 'HandBags'),
-                _buildCategories(context, 'Accessories'),
-                _buildCategories(context, 'Men\'s Fashion'),
-                _buildCategories(context, 'Girl\'s Fashion'),
-                _buildCategories(context, 'Boy\'s Fashion'),
-              ],
-            ),
+          // Điều hướng đến màn hình hiển thị danh sách sản phẩm và truyền dữ liệu
+          Navigator.pushNamed(
+            context,
+            ProductListScreen.routeName,
+            arguments: products, // Truyền danh sách sản phẩm
           );
-        });
-  }
-
-  Widget _buildCategories(BuildContext context, String title) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        setState(() {
-          isItemClicked = true;
-        });
+        } catch (error) {
+          // Xử lý lỗi ở đây, có thể hiển thị thông báo cho người dùng
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to load products: $error')),
+          );
+        }
       },
-      child: Text(
-        title,
-        style: FontStyles.montserratRegular14()
-            .copyWith(color: AppColors.textLightColor, height: 2.0),
+      child: Card(
+        margin: const EdgeInsets.only(top: 10.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Image.asset(
+              DummyData.catalogueImagesLink[index!],
+              fit: BoxFit.cover,
+              width: screenWidth,
+              height: 120,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.grey.shade300,
+                  child: Icon(Icons.broken_image, color: Colors.red),
+                );
+              },
+            ),
+            Positioned.fill(
+              child: Container(
+                alignment: Alignment.center,
+                color: Colors.black.withOpacity(0.5),
+                child: Text(
+                  DummyData.catalogueTitles[index],
+                  style: FontStyles.montserratBold17().copyWith(
+                    fontSize: 17.0,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -241,7 +168,7 @@ class _CatalogueState extends State<Catalogue> {
         children: [
           Container(
             margin: EdgeInsets.only(left: 20.0.w, top: 50.0.h),
-            child: _buildCategoriesTags(context),
+            // child: _buildCategoriesTags(context),
           ),
           _buildItemAndSortTile(context),
           _buildItems(context),
@@ -250,42 +177,12 @@ class _CatalogueState extends State<Catalogue> {
     );
   }
 
-  Widget _buildCategoriesTags(BuildContext context) {
-    List<String> titles = ['All', 'Dresses', 'Tops', 'Sweaters', 'Jeans'];
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: 32.0.h,
-      child: ListView.builder(
-        itemCount: titles.length,
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          return Container(
-            // width: 50.0,
-            margin: EdgeInsets.only(right: 10.0.w),
-            padding: EdgeInsets.symmetric(horizontal: 15.0.w),
-            decoration: BoxDecoration(
-                color: index == 0 ? AppColors.secondary : AppColors.white,
-                borderRadius: BorderRadius.circular(25.0.r)),
-            child: Center(
-              child: Text(
-                titles[index],
-                style: FontStyles.montserratRegular14().copyWith(
-                    color: index == 0
-                        ? AppColors.white
-                        : AppColors.textLightColor),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+
 
   Widget _buildItemAndSortTile(BuildContext context) {
     return ListTile(
         title: Text(
-          '166 Items',
+          'Items',
           style: FontStyles.montserratBold19(),
         ),
         trailing: Row(
@@ -321,10 +218,8 @@ class _CatalogueState extends State<Catalogue> {
         gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, mainAxisExtent: 260.0.h, crossAxisSpacing: 10.0),
         itemBuilder: (_, index) {
-          return ItemWidget(
-            index: index,
-            favoriteIcon: true,
-          );
+          return null;
+
         },
       ),
     );

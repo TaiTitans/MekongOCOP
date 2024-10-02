@@ -149,6 +149,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
           ),
           focusedBorder: InputBorder.none,
           enabledBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
         ),
       ),
     );

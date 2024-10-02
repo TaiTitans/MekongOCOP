@@ -5,6 +5,7 @@ import com.mekongocop.mekongocopserver.dto.UserDTO;
 import com.mekongocop.mekongocopserver.entity.Role;
 import com.mekongocop.mekongocopserver.entity.User;
 import com.mekongocop.mekongocopserver.repository.RoleRepository;
+import com.mekongocop.mekongocopserver.repository.UserProfileRepository;
 import com.mekongocop.mekongocopserver.repository.UserRepository;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
@@ -43,6 +44,9 @@ public class UserService {
     private RoleRepository roleRepository;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private UserProfileRepository profileRepository;
 
     public static final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -194,25 +198,27 @@ public class UserService {
 
                 //AccessToken
                 Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
-                accessTokenCookie.setHttpOnly(true);
-                accessTokenCookie.setSecure(true);
+                accessTokenCookie.setPath("/");
                 accessTokenCookie.setMaxAge(3600);
                 response.addCookie(accessTokenCookie);
                 //RefreshToken
                 Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-                refreshTokenCookie.setHttpOnly(true);
-                refreshTokenCookie.setSecure(true);
+                refreshTokenCookie.setPath("/");
                 refreshTokenCookie.setMaxAge(259200);
                 response.addCookie(refreshTokenCookie);
                 //Username
                 Cookie usernameCookie = new Cookie("userName", username);
-                usernameCookie.setHttpOnly(true);
-                usernameCookie.setSecure(true);
                 usernameCookie.setPath("/");
                 usernameCookie.setMaxAge(259200);
+
+                boolean hasProfile = profileRepository.existsByUser(user);
+                Cookie hasProfileCookie = new Cookie("hasProfile", String.valueOf(hasProfile));
+                hasProfileCookie.setPath("/");
+                hasProfileCookie.setMaxAge(259200); // 3 days
+                response.addCookie(hasProfileCookie);
                 response.addCookie(usernameCookie);
             }else{
-                throw new IllegalArgumentException("Username or password not correct");
+                throw new IllegalArgumentException("Tên đăng nhập hoặc mật khẩu sai");
             }
         }catch (IllegalArgumentException e) {
             throw e;
@@ -220,5 +226,40 @@ public class UserService {
             throw new RuntimeException("An unexpected error occurred", e);
         }
     }
+    public String refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = getRefreshTokenFromCookies(request.getCookies());
 
+        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
+            String username = jwtTokenProvider.getUsernameFromToken(refreshToken);
+            User user = userRepository.findByUsername(username);
+
+            if (user != null) {
+                UserDTO userDTO = convertUserToUserDTO(user);
+                String newAccessToken = jwtTokenProvider.generateAccessToken(userDTO);
+
+                // Thêm cookie mới cho access token
+                Cookie accessTokenCookie = new Cookie("accessToken", newAccessToken);
+                accessTokenCookie.setPath("/");
+                accessTokenCookie.setMaxAge(3600); // 1 hour
+                response.addCookie(accessTokenCookie);
+
+                return newAccessToken; // Trả về access token mới nếu cần
+            } else {
+                throw new IllegalArgumentException("Invalid refresh token.");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid refresh token.");
+        }
+    }
+
+    private String getRefreshTokenFromCookies(Cookie[] cookies) {
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("refreshToken")) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
 }

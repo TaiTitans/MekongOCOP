@@ -150,6 +150,17 @@ public class ProductController {
 
 
 
+    @GetMapping("/common/product/newfeed")
+    public ResponseEntity<StatusResponse<List<ProductDTO>>> getNewFeedProduct(){
+        try{
+            List<ProductDTO> productDTO = productService.getNewFeedProduct();
+            return ResponseEntity.ok(new StatusResponse<>("Success", "Product details", productDTO));
+        } catch (Exception e){
+            return ResponseEntity.internalServerError().body(new StatusResponse<>("Failed", "Failed to process request", null));
+        }
+    }
+
+
 }
 
 

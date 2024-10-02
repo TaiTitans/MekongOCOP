@@ -1,5 +1,7 @@
 package com.mekongocop.mekongocopserver.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mekongocop.mekongocopserver.dto.ProductCategoryDTO;
 import com.mekongocop.mekongocopserver.dto.ProductDTO;
@@ -14,9 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -45,10 +51,35 @@ public class ProductService {
     @Autowired
     private ProductImageRepository productImageRepository;
 
+    @Autowired
+    private JedisPool jedisPool;
     public ProductDTO convertJsonToDTO(String json)throws IOException {
         return objectMapper.readValue(json, ProductDTO.class);
     }
     public static final Logger log = LoggerFactory.getLogger(ProductService.class);
+
+
+    // Chuyển đổi từ List<ProductDTO> sang JSON
+    private String convertToJson(List<ProductDTO> productDTOs) {
+        // Sử dụng ObjectMapper hoặc Gson để chuyển đổi
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(productDTOs);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Chuyển đổi từ JSON sang List<ProductDTO>
+    private List<ProductDTO> convertFromJson(String json) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(json, new TypeReference<List<ProductDTO>>() {});
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public ProductDTO convertToDTO(Product product) {
         ProductDTO productDTO = new ProductDTO();
@@ -320,6 +351,33 @@ public class ProductService {
             }else{
                 log.warn("Store not found");
             }
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<ProductDTO> getNewFeedProduct() {
+        try {
+            Jedis jedis = jedisPool.getResource();
+            String key = "newfeed_product";
+
+            String valueKey = jedis.get("newfeed_product");
+            if(valueKey != null){
+
+                return convertFromJson(valueKey);
+            }
+            Pageable pageable = PageRequest.of(0, 10); // Lấy 10 sản phẩm mới nhất
+            List<Product> products = productRepository.findTop10Products(pageable);
+
+
+            List<ProductDTO> productDTOs = products.stream().map(this::convertToDTO).collect(Collectors.toList());
+
+            String jsonProductsDTO = convertToJson(productDTOs);
+            jedis.set(key, jsonProductsDTO);
+            jedis.expire(key, 3600);
+            return productDTOs;
+
+
         }catch (Exception e){
             throw new RuntimeException(e);
         }

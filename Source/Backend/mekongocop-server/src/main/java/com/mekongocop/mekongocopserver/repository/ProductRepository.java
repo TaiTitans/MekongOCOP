@@ -2,6 +2,7 @@ package com.mekongocop.mekongocopserver.repository;
 
 import com.mekongocop.mekongocopserver.entity.Product;
 import com.mekongocop.mekongocopserver.entity.Store;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT p FROM Product p WHERE p.province.province_id = :provinceId")
     List<Product> findAllByProvinceId(@Param("provinceId") int provinceId);
+
+    @Query("SELECT p FROM Product p ORDER BY p.product_id DESC")
+    List<Product> findTop10Products(Pageable pageable);
 }

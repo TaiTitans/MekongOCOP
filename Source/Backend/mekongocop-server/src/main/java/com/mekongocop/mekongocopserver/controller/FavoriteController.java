@@ -48,4 +48,20 @@ public class FavoriteController {
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Get favorite failed", null));
         }
     }
+
+    @GetMapping("/common/favorite/id")
+    public ResponseEntity<StatusResponse<List<Integer>>> getFavoritesProductID(@RequestHeader("Authorization") String token) {
+        try{
+            String validToken = TokenExtractor.extractToken(token);
+            if(!jwtTokenProvider.validateToken(token)){
+                return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Token is not valid", null));
+            }
+            List<Integer> productIdList =  favoriteService.getListProductIdsFromFavorite(validToken);
+            return ResponseEntity.ok(new StatusResponse<>("Success", "Favorite Product ID List", productIdList));
+        }catch (Exception e){
+            return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Get favorite failed", null));
+        }
+    }
+
+
 }
