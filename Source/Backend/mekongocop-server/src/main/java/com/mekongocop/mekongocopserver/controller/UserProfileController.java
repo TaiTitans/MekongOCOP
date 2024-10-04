@@ -8,7 +8,9 @@ import com.mekongocop.mekongocopserver.repository.UserProfileRepository;
 import com.mekongocop.mekongocopserver.service.UserProfileService;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import com.mekongocop.mekongocopserver.util.TokenExtractor;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -47,14 +49,11 @@ public class UserProfileController {
 
     @PutMapping("/profile")
     public ResponseEntity<StatusResponse<UserProfileDTO>> updateUserProfile(@RequestHeader("Authorization") String authHeader, @RequestBody UserProfileDTO userProfileDTO) {
-
-        String token = String.valueOf(jwtTokenProvider.validateToken(authHeader));
-        if (token == null) {
-            return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Invalid token", null));
-        }
-
         try {
             String tokenCheck = TokenExtractor.extractToken(authHeader);
+            if(!jwtTokenProvider.validateToken(authHeader)){
+                return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Token error", null));
+            }
             userProfileService.updateProfile(tokenCheck, userProfileDTO);
             return ResponseEntity.ok(new StatusResponse<>("Success", "Profile updated successfully", userProfileDTO));
         } catch (IllegalArgumentException e) {
@@ -84,16 +83,20 @@ public class UserProfileController {
 
 
     @GetMapping("/profile")
-    public ResponseEntity<StatusResponse<UserProfile>> getUserProfile(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<StatusResponse<UserProfileDTO>> getUserProfile(@RequestHeader("Authorization") String authHeader) {
         try{
             String validToken = TokenExtractor.extractToken(authHeader);
             if(!jwtTokenProvider.validateToken(authHeader)){
                 return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Invalid token", null));
             }
-            UserProfile userProfile = userProfileService.getUserProfileByToken(validToken);
+            UserProfileDTO userProfile = userProfileService.getUserProfileByToken(validToken);
             return ResponseEntity.ok(new StatusResponse<>("Success", "User profile successfully", userProfile));
-        }catch (Exception e){
-            return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", e.getMessage(), null));
+        }catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new StatusResponse<>("Error", e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new StatusResponse<>("Error", "An error occurred while getting user profile", null));
         }
     }
     @GetMapping("/checkProfile")

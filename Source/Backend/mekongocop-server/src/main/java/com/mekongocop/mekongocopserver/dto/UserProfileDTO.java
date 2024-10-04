@@ -18,7 +18,7 @@ public class UserProfileDTO {
 
     public int user_id;
     public String full_name;
-
+    public String user_profile_image;
     @NotNull
     public LocalDate birthday;
     @NotNull

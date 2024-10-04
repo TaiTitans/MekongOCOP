@@ -7,6 +7,7 @@ import com.mekongocop.mekongocopserver.entity.UserProfile;
 import com.mekongocop.mekongocopserver.repository.UserProfileRepository;
 import com.mekongocop.mekongocopserver.repository.UserRepository;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -50,13 +51,32 @@ public class UserProfileService {
     }
 
     public UserProfileDTO convertUserProfileToUserProfileDTO(UserProfile userProfile) {
-        return modelMapper.map(userProfile, UserProfileDTO.class);
+        UserProfileDTO dto = new UserProfileDTO();
+        dto.profileId = userProfile.getProfile_id();
+        dto.user_id = userProfile.getUser_id().getUser_id();
+        dto.full_name = userProfile.getFull_name();
+        dto.birthday = userProfile.getBirthday();
+        dto.sex = userProfile.getSex();
+        dto.bio = userProfile.getBio();
+        dto.user_profile_image = userProfile.getProfile_picture();
+        return dto;
     }
 
     public UserProfile convertUserProfileDTOToUserProfile(UserProfileDTO userProfileDTO) {
-        return modelMapper.map(userProfileDTO, UserProfile.class);
-    }
+        UserProfile userProfile = new UserProfile();
+        userProfile.setProfile_id(userProfileDTO.profileId);
 
+      User user = userRepository.findById(userProfileDTO.user_id).orElseThrow(() -> new EntityNotFoundException("User not found"));
+      userProfile.setUser_id(user);
+
+        userProfile.setFull_name(userProfileDTO.full_name);
+        userProfile.setBirthday(userProfileDTO.birthday);
+        userProfile.setSex(userProfileDTO.sex);
+        userProfile.setBio(userProfileDTO.bio);
+        userProfile.setProfile_picture(userProfileDTO.user_profile_image);
+
+        return userProfile;
+    }
     @Cacheable(value = "users", key = "#userId")
     public User getUserById(int userId) throws Exception {
         return userRepository.findById(userId).orElseThrow(() -> new Exception("User not found"));
@@ -66,18 +86,32 @@ public class UserProfileService {
     public void updateProfile(String token, UserProfileDTO userProfileDTO) {
         try {
             int userId = jwtTokenProvider.getUserIdFromToken(token);
-            Optional<UserProfile> userProfileOptional = userProfileRepository.findById(userId);
-            if (userProfileOptional.isPresent()) {
-                UserProfile userProfile = userProfileOptional.get();
-                modelMapper.map(userProfileDTO, userProfile);
-                userProfileRepository.save(userProfile);
-            } else {
-                throw new Exception("User not found");
+            UserProfile userProfile = userProfileRepository.findByUserId(userId);
+
+            if (userProfile == null) {
+                throw new EntityNotFoundException("User profile not found for userId: " + userId);
             }
+
+            // Cập nhật các trường từ DTO, giữ lại profile_id và user_id
+            userProfile.setFull_name(userProfileDTO.full_name);
+            userProfile.setBirthday(userProfileDTO.birthday);
+            userProfile.setSex(userProfileDTO.sex);
+            userProfile.setBio(userProfileDTO.bio);
+            // Giữ nguyên hình ảnh cũ nếu không có hình mới
+            if (userProfileDTO.user_profile_image != null) {
+                userProfile.setProfile_picture(userProfileDTO.user_profile_image);
+            }
+
+            // Lưu profile đã cập nhật
+            userProfileRepository.save(userProfile);
+
+        } catch (EntityNotFoundException e) {
+            throw new RuntimeException("User not found", e);
         } catch (Exception e) {
-            throw new RuntimeException("An error occurred while editing user profile");
+            throw new RuntimeException("An error occurred while updating user profile", e);
         }
     }
+
 
     public void updateBio(String token, UserProfileDTO userProfileDTO){
         try{
@@ -130,21 +164,15 @@ public class UserProfileService {
     }
 
 
-    public UserProfile getUserProfileByToken(String token){
-        try{
-            int userId = jwtTokenProvider.getUserIdFromToken(token);
-            Optional<UserProfile> userProfileOptional = userProfileRepository.findById(userId);
-            if(userProfileOptional.isPresent()){
-                UserProfile userProfile = userProfileOptional.get();
-                return userProfile;
-            }else{
-                throw new Exception("User not found");
-            }
-        }catch (Exception e){
-            throw new RuntimeException("An error occurred while getting user profile");
+    public UserProfileDTO getUserProfileByToken(String token) throws Exception {
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        UserProfile userProfile = userProfileRepository.findByUserId(userId);
+        if (userProfile == null) {
+            throw new EntityNotFoundException("User profile not found for userId: " + userId);
         }
+        UserProfileDTO userProfileDTO = convertUserProfileToUserProfileDTO(userProfile);
+        return userProfileDTO;
     }
-
     public boolean hasUserProfile(int userId) {
         // Kiểm tra số lượng profile liên quan đến userId
         return userProfileRepository.countByUserId(userId) > 0;

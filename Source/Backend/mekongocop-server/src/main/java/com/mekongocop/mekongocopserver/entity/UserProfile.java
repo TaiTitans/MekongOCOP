@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
+@Table(name = "user_profile")
 public class UserProfile {
     public UserProfile(int profile_id, User user_id, String full_name, String bio, LocalDate birthday, char sex, String profile_picture) {
         this.profile_id = profile_id;
