@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,7 +25,7 @@ import 'package:smart_shop/dummy/dummy_data.dart';
 import 'package:smart_shop/service/seller_service.dart';
 
 import '../../service/product_service.dart';
-import '../../service/userprofile_service.dart';
+
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -38,10 +39,11 @@ class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _key = GlobalKey();
   List<dynamic>? _products;
   DateTime? _lastProductsUpdateTime;
+  final productService = ProductService();
   @override
   void initState() {
     super.initState();
-    _loadCachedProducts();// Gọi API khi khởi tạo
+    _loadCachedProducts();
   }
   Future<void> _submitSellerLicense(File? licenseFile) async {
     final sellerService = SellerService();
@@ -71,6 +73,9 @@ class _HomeState extends State<Home> {
       await _fetchProducts(context); // Nếu không có dữ liệu cached, gọi API
     }
   }
+
+
+
   Future<void> _logout(BuildContext context) async {
     // Xóa access token và refresh token từ SharedPreferences
     final sharedPreferences = await SharedPreferences.getInstance();
@@ -82,35 +87,20 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _fetchProducts(BuildContext context) async {
-    // Kiểm tra nếu đã có sản phẩm và dữ liệu cache còn mới
-    if (_products != null && _lastProductsUpdateTime != null && DateTime.now().difference(_lastProductsUpdateTime!).inMinutes < 30) {
-      return; // Nếu dữ liệu cache còn mới, không gọi API nữa
-    }
-
-    // Get accessToken from SharedPreferences
+    // Fetch latest products
     final sharedPreferences = await SharedPreferences.getInstance();
     final accessToken = sharedPreferences.getString('accessToken') ?? '';
-
-    final productService = ProductService();
     _products = await productService.fetchProductsNewFeed(accessToken);
-
-    // Lưu thời gian cập nhật dữ liệu mới nhất
     _lastProductsUpdateTime = DateTime.now();
-
-    // Lưu dữ liệu sản phẩm vào SharedPreferences
     await sharedPreferences.setString('cachedProducts', jsonEncode(_products));
 
-    setState(() {}); // Cập nhật UI
+    setState(() {});
   }
-
 
   Future<void> _handleFavorite(BuildContext context, int productId) async {
     // Lấy accessToken từ SharedPreferences
     final sharedPreferences = await SharedPreferences.getInstance();
     final accessToken = sharedPreferences.getString('accessToken') ?? '';
-
-    // Gọi API để yêu thích sản phẩm
-    ProductService productService = ProductService();
     bool isSuccess = await productService.favoriteProduct(productId, accessToken);
 
     if (isSuccess) {
@@ -148,6 +138,7 @@ class _HomeState extends State<Home> {
         children: [
           _buildSellerCard(),
           _buildCatalogue(),
+          _buildProductSuggestions(context),
           _buildFeatured(context),
         ],
       ),
@@ -476,6 +467,252 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+  // Sản phẩm gợi ý
+  Widget _buildProductSuggestions(BuildContext context) {
+    var screenHeight = MediaQuery.of(context).size.height;
+    int? _currentProvinceId;
+    DateTime? _lastProductsUpdateTime;
+    List<dynamic>? _products;
+
+    return FutureBuilder<List<dynamic>>(
+      future: _getCurrentProvinceId().then((provinceId) {
+        _currentProvinceId = provinceId;
+        return _getCachedProductSuggestions(_currentProvinceId!);
+      }),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Lỗi khi tải sản phẩm: ${snapshot.error}'));
+        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+          _products = snapshot.data!.take(4).toList(); // Giới hạn 4 sản phẩm
+          _lastProductsUpdateTime = DateTime.now();
+          return Container(
+            margin: EdgeInsets.only(
+              left: 20.0.w,
+              right: 20.0.w,
+              top: 20.h,
+              bottom: screenHeight * .01.h,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Sản phẩm gợi ý',
+                      style: FontStyles.montserratBold19()
+                          .copyWith(color: const Color(0xFF34283E)),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${_getCurrentProvinceName(_currentProvinceId ?? -1)}',
+                          style: FontStyles.montserratRegular14()
+                              .copyWith(color: Colors.lightBlue),
+                        ),
+                        SizedBox(width: 4.0.w),
+                        Icon(
+                          Icons.location_on,
+                          color: Colors.green,
+                          size: 16.0.h,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10.0.h),
+                SizedBox(
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    itemCount: _products!.length,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisExtent: 250.0.h,
+                      crossAxisSpacing: 10.0.w,
+                      mainAxisSpacing: 8.0.h,
+                    ),
+                    itemBuilder: (_, index) {
+                      final product = _products![index];
+                      String productImageUrl = product['productImages'].isNotEmpty
+                          ? product['productImages'][0]['imageUrl']
+                          : '';
+
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, Product.routeName, arguments: product['productId']);
+                        },
+                        child: ItemWidget(
+                          index: index,
+                          favoriteIcon: true,
+                          productName: product['productName'],
+                          provinceName: product['provinceName'],
+                          productPrice: formatCurrency(product['productPrice']),
+                          productImageUrl: productImageUrl,
+                          productId: product['productId'],
+                          onFavorite: (int productId) {
+                            _handleFavorite(context, productId);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Center(child: Text('Không có sản phẩm gợi ý'));
+        }
+      },
+    );
+  }
+  Future<List<dynamic>> _getCachedProductSuggestions(int provinceId) async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final cachedProductSuggestions = sharedPreferences.getString('cachedProductSuggestions$provinceId');
+    final lastUpdateTime = sharedPreferences.getString('lastProductsUpdateTime$provinceId');
+
+    if (cachedProductSuggestions != null && lastUpdateTime != null) {
+      DateTime lastUpdate = DateTime.parse(lastUpdateTime);
+      if (DateTime.now().difference(lastUpdate).inMinutes < 30) {
+        return jsonDecode(cachedProductSuggestions); // Trả về dữ liệu cache
+      }
+    }
+
+    // Nếu cache hết hạn, gọi API để lấy dữ liệu mới
+    final products = await _fetchProductsByProvince(provinceId);
+    await sharedPreferences.setString('cachedProductSuggestions$provinceId', jsonEncode(products));
+    await sharedPreferences.setString('lastProductsUpdateTime$provinceId', DateTime.now().toIso8601String());
+
+    return products;
+  }
+
+  String _getCurrentProvinceName(int provinceId) {
+    switch (provinceId) {
+      case 1:
+        return 'An Giang';
+      case 2:
+        return 'Bạc Liêu';
+      case 3:
+        return 'Bến Tre';
+      case 4:
+        return 'Cà Mau';
+      case 5:
+        return 'Cần Thơ';
+      case 6:
+        return 'Đồng Tháp';
+      case 7:
+        return 'Hậu Giang';
+      case 8:
+        return 'Kiên Giang';
+      case 9:
+        return 'Long An';
+      case 10:
+        return 'Sóc Trăng';
+      case 11:
+        return 'Tiền Giang';
+      case 12:
+        return 'Trà Vinh';
+      case 13:
+        return 'Vĩnh Long';
+      default:
+        return 'Không xác định';
+    }
+  }
+  Future<int> _getCurrentProvinceId() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Người dùng từ chối quyền, hãy xử lý phù hợp
+        return -1;
+      }
+    }
+
+    final position = await Geolocator.getCurrentPosition();
+    return _getProvince(position.latitude, position.longitude);
+  }
+
+  Future<List<dynamic>> _fetchProductsByProvince(int provinceId) async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final accessToken = sharedPreferences.getString('accessToken') ?? '';
+
+    if (accessToken.isEmpty) {
+      throw Exception('Access token not found in SharedPreferences');
+    }
+
+    // Kiểm tra nếu đã có sản phẩm và dữ liệu cache còn mới
+    if (_products == null || DateTime.now().difference(_lastProductsUpdateTime!).inMinutes >= 30) {
+      _products = await _fetchProductsByProvince(provinceId);
+    }
+
+
+    return await productService.fetchProductsByProvince(provinceId, accessToken);
+  }
+
+  int _getProvince(double latitude, double longitude) {
+    // Xác định tỉnh/thành phố tương ứng với vị trí người dùng
+    if (latitude >= 10.5 && longitude >= 104.8 && latitude <= 11.5 && longitude <= 105.3) {
+      return 1; // An Giang
+    } else if (latitude >= 9.0 && longitude >= 105.0 && latitude <= 9.5 && longitude <= 105.5) {
+      return 2; // Bạc Liêu
+    } else if (latitude >= 9.7 && longitude >= 105.9 && latitude <= 10.2 && longitude <= 106.4) {
+      return 3; // Bến Tre
+    } else if (latitude >= 8.8 && longitude >= 104.7 && latitude <= 9.3 && longitude <= 105.2) {
+      return 4; // Cà Mau
+    } else if (latitude >= 9.9 && longitude >= 105.5 && latitude <= 10.4 && longitude <= 106.0) {
+      return 5; // Cần Thơ
+    } else if (latitude >= 10.1 && longitude >= 105.5 && latitude <= 10.6 && longitude <= 106.0) {
+      return 6; // Đồng Tháp
+    } else if (latitude >= 9.5 && longitude >= 105.3 && latitude <= 10.0 && longitude <= 105.8) {
+      return 7; // Hậu Giang
+    } else if (latitude >= 9.8 && longitude >= 104.8 && latitude <= 10.3 && longitude <= 105.3) {
+      return 8; // Kiên Giang
+    } else if (latitude >= 10.3 && longitude >= 105.8 && latitude <= 10.8 && longitude <= 106.3) {
+      return 9; // Long An
+    } else if (latitude >= 9.3 && longitude >= 105.3 && latitude <= 9.8 && longitude <= 105.8) {
+      return 10; // Sóc Trăng
+    } else if (latitude >= 10.1 && longitude >= 105.8 && latitude <= 10.6 && longitude <= 106.3) {
+      return 11; // Tiền Giang
+    } else if (latitude >= 9.5 && longitude >= 106.0 && latitude <= 10.0 && longitude <= 106.5) {
+      return 12; // Trà Vinh
+    } else if (latitude >= 10.0 && longitude >= 105.5 && latitude <= 10.5 && longitude <= 106.0) {
+      return 13; // Vĩnh Long
+    } else {
+      return -1; // Không xác định được
+    }
+  }
+
+
+  Future<void> _loadCachedProductsProvince() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final provinceId = await _getCurrentProvinceId();
+    final cachedProducts = sharedPreferences.getString('cachedProductSuggestions$provinceId');
+    if (cachedProducts != null) {
+      _products = jsonDecode(cachedProducts);
+      _lastProductsUpdateTime = DateTime.now().subtract(Duration(minutes: 29)); // Gán thời gian gần nhất
+      setState(() {});
+    } else {
+      await _fetchProductsProvince(context); // Nếu không có dữ liệu cached, gọi API
+    }
+  }
+
+  Future<void> _fetchProductsProvince(BuildContext context) async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final accessToken = sharedPreferences.getString('accessToken') ?? '';
+    final provinceId = await _getCurrentProvinceId();
+    final suggestionProducts = await _fetchProductsByProvince(provinceId);
+    // Tải sản phẩm mới và lưu cache
+    _products = await productService.fetchProductsByProvince(provinceId, accessToken);
+    await sharedPreferences.setString('cachedProductSuggestions$provinceId', jsonEncode(suggestionProducts));
+    _lastProductsUpdateTime = DateTime.now();
+
+    setState(() {});
+  }
+
 
   String formatCurrency(double price) {
     final formatter = NumberFormat.simpleCurrency(locale: 'vi_VN');

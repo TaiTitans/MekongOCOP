@@ -9,6 +9,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final CookieJar cookieJar = CookieJar();
+  final Dio _dio = Dio();
+  String getProfileUrl(){
+    final String apiUrl = dotenv.env['API_URL'] ?? '';
+    return '$apiUrl/user/profile';
+  }
+  String updateProfileUrl(){
+    final String apiUrl = dotenv.env['API_URL'] ?? '';
+    return '$apiUrl/user/profile';
+  }
   String registerAccountUrl(int otp) {
     final String apiUrl = dotenv.env['API_URL'] ?? '';
     return '$apiUrl/register?otp=$otp';
@@ -256,4 +265,76 @@ class AuthService {
     }
     return {};
   }
+
+
+
+  Future<Map<String, dynamic>?> fetchUserProfile(String accessToken) async {
+    try {
+      final response = await _dio.get(
+        getProfileUrl(),
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == 'Success') {
+        return response.data['data']; // Trả về dữ liệu sản phẩm từ response
+      } else {
+        throw Exception('Failed to load product details');
+      }
+    } catch (e) {
+      print('Error: $e');
+      return null;
+    }
+  }
+  Future<Map<String, dynamic>?> updateUserProfile({
+    required String fullName,
+    required String birthday,
+    required String sex,
+    required String bio,
+  }) async {
+    try {
+      // Get the access token from SharedPreferences
+      final sharedPreferences = await SharedPreferences.getInstance();
+      final accessToken = sharedPreferences.getString('accessToken') ?? '';
+
+      if (accessToken.isEmpty) {
+        throw Exception('Access token not found in SharedPreferences');
+      }
+
+      // Prepare the request body
+      final Map<String, dynamic> requestBody = {
+        "full_name": fullName,
+        "birthday": birthday,
+        "sex": sex,
+        "bio": bio,
+      };
+
+      // Make the PUT request
+      final response = await _dio.put(
+        updateProfileUrl(),
+        data: requestBody,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      // Handle successful response
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to update profile');
+      }
+    } catch (e) {
+      print('Error updating profile: $e');
+      return null;
+    }
+  }
 }
+

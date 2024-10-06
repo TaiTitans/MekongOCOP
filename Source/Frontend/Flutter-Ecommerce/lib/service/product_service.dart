@@ -102,8 +102,6 @@ class ProductService{
 
   Future<List<dynamic>> fetchProductsByProvince(int provinceId, String accessToken) async {
     try {
-      final sharedPreferences = await SharedPreferences.getInstance();
-      final accessToken = sharedPreferences.getString('accessToken') ?? '';
 
       if (accessToken.isEmpty) {
         throw Exception('Access token not found in SharedPreferences');
