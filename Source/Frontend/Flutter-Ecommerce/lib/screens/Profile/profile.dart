@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_shop/Common/Widgets/gradient_header.dart';
 import 'package:smart_shop/Screens/Onboarding/onboarding.dart';
 import 'package:smart_shop/Screens/Orders/order.dart';
@@ -87,10 +90,9 @@ class _ProfileState extends State<Profile> {
             Navigator.pushNamed(context, Orders.routeName);
           }),
           _buildProfileTile(Icons.settings, 'Cài đặt', () {
-            Navigator.pushNamed(context, Settings.routeName);
           }),
-          _buildProfileTile(Icons.login_outlined, 'Đăng xuất', () {
-            Navigator.pushReplacementNamed(context, OnBoarding.routeName);
+          _buildProfileTile(Icons.login_outlined, 'Đăng xuất', () async {
+            await _logout(context);
           }),
           _buildPrivacy(context),
         ],
@@ -289,4 +291,16 @@ _showSuccessSnackbar("Cập nhật thành công");
       });
     }
   }
+
+  Future<void> _logout(BuildContext context) async {
+    // Xóa access token và refresh token từ SharedPreferences
+    final sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.remove('accessToken');
+    await sharedPreferences.remove('refreshToken'); // Nếu bạn lưu refresh token
+
+    // Điều hướng đến màn hình đăng nhập
+    Navigator.pushReplacementNamed(context, OnBoarding.routeName);
+  }
+
+
 }
