@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -14,7 +14,7 @@ import java.util.List;
 public class Order {
 
 
-    public Order(int order_id, User user, BigDecimal total_price, String payment, String status, String address, BigDecimal ship, Date created_at, Date updated_at, List<OrderItem> items) {
+    public Order(int order_id, User user, BigDecimal total_price, String payment, String status, String address, BigDecimal ship, Timestamp created_at, Timestamp updated_at, List<OrderItem> items) {
         this.order_id = order_id;
         this.user = user;
         this.total_price = total_price;
@@ -83,19 +83,19 @@ public class Order {
         this.ship = ship;
     }
 
-    public Date getCreated_at() {
+    public Timestamp getCreated_at() {
         return created_at;
     }
 
-    public void setCreated_at(Date created_at) {
+    public void setCreated_at(Timestamp created_at) {
         this.created_at = created_at;
     }
 
-    public Date getUpdated_at() {
+    public Timestamp getUpdated_at() {
         return updated_at;
     }
 
-    public void setUpdated_at(Date updated_at) {
+    public void setUpdated_at(Timestamp updated_at) {
         this.updated_at = updated_at;
     }
 
@@ -122,11 +122,13 @@ public class Order {
 
     private String address;
     private BigDecimal ship;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date created_at;
 
+    @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date updated_at;
+    private Timestamp created_at;
+    @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private Timestamp updated_at;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> items = new ArrayList<>();
 

@@ -60,7 +60,7 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:61611")); // Cho phép origins
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:61611", "http://localhost:8081")); // Cho phép origins
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Cho phép các phương thức
         configuration.setAllowedHeaders(Arrays.asList("*")); // Cho phép tất cả các header
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

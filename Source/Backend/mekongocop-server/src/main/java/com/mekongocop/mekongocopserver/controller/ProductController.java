@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -158,6 +159,15 @@ public class ProductController {
         } catch (Exception e){
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Failed", "Failed to process request", null));
         }
+    }
+
+
+    @GetMapping("/admin/product/count")
+    public ResponseEntity<?> getCount(){
+        Long totalProducts = productService.getAllProduct();
+        return ResponseEntity.ok(Map.of(
+                "totalProduct", totalProducts
+        ));
     }
 
 

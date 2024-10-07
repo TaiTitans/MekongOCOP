@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -167,8 +168,8 @@ public class OrderService {
             orderItemDTO.setPrice(cartItem.getPrice());
             return orderItemDTO;
         }).collect(Collectors.toList()));
-        orderDTO.setCreated_at(new Date());
-        orderDTO.setUpdated_at(new Date());
+        orderDTO.setCreated_at((Timestamp) new Date());
+        orderDTO.setUpdated_at((Timestamp) new Date());
         return orderDTO;
     }
 
@@ -317,5 +318,19 @@ public class OrderService {
     }
 
 
+    public Long getTotalOrder(){
+        return orderRepository.countOrders();
+    }
+    public BigDecimal getTotalRevenueThisMonth() {
+        return orderRepository.totalRevenueThisMonth();
+    }
+
+    public BigDecimal getTotalRevenueToday() {
+        return orderRepository.totalRevenueToday();
+    }
+
+    public BigDecimal getTotalRevenueThisYear() {
+        return orderRepository.totalRevenueThisYear();
+    }
 }
 

@@ -6,10 +6,13 @@ import com.mekongocop.mekongocopserver.service.OrderService;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import com.mekongocop.mekongocopserver.util.TokenExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -107,5 +110,33 @@ public class OrderController {
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Update Order Failed", null));
         }
     }
+
+
+    @GetMapping("/admin/order/count")
+    public ResponseEntity<?> countOrderSuccess(){
+     Long totalOrders = orderService.getTotalOrder();
+        return ResponseEntity.ok(Map.of(
+                "totalOrders", totalOrders
+        ));
+    }
+
+    @GetMapping("/admin/order/total")
+    public ResponseEntity<?> totalRevenue() {
+        try {
+            BigDecimal today = orderService.getTotalRevenueToday();
+            BigDecimal month = orderService.getTotalRevenueThisMonth();
+            BigDecimal year = orderService.getTotalRevenueThisYear();
+
+            return ResponseEntity.ok(Map.of(
+                    "totalToday", today != null ? today : BigDecimal.ZERO,
+                    "totalMonth", month != null ? month : BigDecimal.ZERO,
+                    "totalYear", year != null ? year : BigDecimal.ZERO
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while fetching revenue data: " + e.getMessage());
+        }
+    }
+
 
 }

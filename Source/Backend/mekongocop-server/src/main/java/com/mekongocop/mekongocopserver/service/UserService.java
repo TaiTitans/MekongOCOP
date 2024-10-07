@@ -262,4 +262,19 @@ public class UserService {
         }
         return null;
     }
+
+
+    public Long getTotalUsers() {
+        return userRepository.countAllUsers();
+    }
+
+    public Long getUsersWithRoleBuyer() {
+        return userRepository.countUsersWithRoleBuyer();
+    }
+
+    public Long getUsersWithRoleSeller() {
+        return userRepository.countUsersWithRoleSeller();
+    }
+
+
 }

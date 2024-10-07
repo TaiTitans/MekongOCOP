@@ -448,4 +448,8 @@ public class ProductService {
         }
     }
 
+    public Long getAllProduct(){
+        return productRepository.countAllProduct();
+    }
+
 }
