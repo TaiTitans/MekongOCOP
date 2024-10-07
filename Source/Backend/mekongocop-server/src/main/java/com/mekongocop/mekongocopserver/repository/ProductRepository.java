@@ -25,4 +25,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT p FROM Product p ORDER BY p.product_id DESC")
     List<Product> findTop10Products(Pageable pageable);
+
+    @Query("SELECT COUNT(u) FROM Product u")
+    Long countAllProduct();
 }

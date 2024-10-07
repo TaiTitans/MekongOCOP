@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.Cookie;
 import java.util.Arrays;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -142,5 +143,16 @@ public class UserController {
         }
     }
 
+    @GetMapping("/admin/user/count")
+    public ResponseEntity<?> getCount() {
+        Long totalUsers = userService.getTotalUsers();
+        Long usersWithRoleBuyer = userService.getUsersWithRoleBuyer();
+        Long usersWithRoleSeller = userService.getUsersWithRoleSeller();
 
+        return ResponseEntity.ok(Map.of(
+                "totalUsers", totalUsers,
+                "usersWithRoleBuyer", usersWithRoleBuyer,
+                "usersWithRoleSeller", usersWithRoleSeller
+        ));
+    }
 }

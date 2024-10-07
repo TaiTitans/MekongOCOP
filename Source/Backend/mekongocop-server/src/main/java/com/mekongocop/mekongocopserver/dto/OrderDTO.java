@@ -1,7 +1,7 @@
 package com.mekongocop.mekongocopserver.dto;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class OrderDTO {
@@ -13,7 +13,7 @@ public class OrderDTO {
 
     }
 
-    public OrderDTO(int order_id, int user_id, BigDecimal total_price, String payment, String status, String address, BigDecimal ship, Date created_at, Date updated_at, List<OrderItemDTO> items) {
+    public OrderDTO(int order_id, int user_id, BigDecimal total_price, String payment, String status, String address, BigDecimal ship, Timestamp created_at, Timestamp updated_at, List<OrderItemDTO> items) {
         this.order_id = order_id;
         this.user_id = user_id;
         this.total_price = total_price;
@@ -82,19 +82,19 @@ public class OrderDTO {
         this.ship = ship;
     }
 
-    public Date getCreated_at() {
+    public Timestamp getCreated_at() {
         return created_at;
     }
 
-    public void setCreated_at(Date created_at) {
+    public void setCreated_at(Timestamp created_at) {
         this.created_at = created_at;
     }
 
-    public Date getUpdated_at() {
+    public Timestamp getUpdated_at() {
         return updated_at;
     }
 
-    public void setUpdated_at(Date updated_at) {
+    public void setUpdated_at(Timestamp updated_at) {
         this.updated_at = updated_at;
     }
 
@@ -113,7 +113,7 @@ public class OrderDTO {
     private String status;
     private String address;
     private BigDecimal ship;
-    private Date created_at;
-    private Date updated_at;
+    private Timestamp created_at;
+    private Timestamp updated_at;
     private List<OrderItemDTO> items;
 }
