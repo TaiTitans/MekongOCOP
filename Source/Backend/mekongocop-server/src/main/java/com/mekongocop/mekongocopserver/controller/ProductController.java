@@ -2,6 +2,7 @@ package com.mekongocop.mekongocopserver.controller;
 
 import com.mekongocop.mekongocopserver.common.StatusResponse;
 import com.mekongocop.mekongocopserver.dto.ProductDTO;
+import com.mekongocop.mekongocopserver.dto.StoreDTO;
 import com.mekongocop.mekongocopserver.entity.Product;
 import com.mekongocop.mekongocopserver.service.ProductService;
 import com.mekongocop.mekongocopserver.service.StoreService;
@@ -170,7 +171,11 @@ public class ProductController {
         ));
     }
 
-
+    @GetMapping("/admin/products")
+    public ResponseEntity<List<ProductDTO>> getAllListProduct(){
+        List<ProductDTO> products = productService.getAllProductList();
+        return ResponseEntity.ok(products);
+    }
 }
 
 

@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1")
 public class UserProfileController {
     @Autowired
     private UserProfileService userProfileService;
@@ -28,7 +28,7 @@ public class UserProfileController {
     @Autowired
     private UserProfileRepository userProfileRepository;
 
-    @PostMapping("/profile")
+    @PostMapping("/user/profile")
     public CompletableFuture<ResponseEntity<StatusResponse<UserProfileDTO>>> addUserProfile(
             @RequestPart("dto") String dto,
             @RequestPart("file") MultipartFile file, @RequestHeader("Authorization") String token) {
@@ -47,7 +47,7 @@ public class UserProfileController {
         });
     }
 
-    @PutMapping("/profile")
+    @PutMapping("/user/profile")
     public ResponseEntity<StatusResponse<UserProfileDTO>> updateUserProfile(@RequestHeader("Authorization") String authHeader, @RequestBody UserProfileDTO userProfileDTO) {
         try {
             String tokenCheck = TokenExtractor.extractToken(authHeader);
@@ -63,7 +63,7 @@ public class UserProfileController {
         }
     }
 
-    @PatchMapping("/profile/bio")
+    @PatchMapping("/user/profile/bio")
     public ResponseEntity<StatusResponse<String>> updateBio(@RequestHeader("Authorization") String authHeader, @RequestBody UserProfileDTO userProfileDTO) {
         String token = String.valueOf(jwtTokenProvider.validateToken(authHeader));
         if (token == null) {
@@ -82,7 +82,7 @@ public class UserProfileController {
     }
 
 
-    @GetMapping("/profile")
+    @GetMapping("/user/profile")
     public ResponseEntity<StatusResponse<UserProfileDTO>> getUserProfile(@RequestHeader("Authorization") String authHeader) {
         try{
             String validToken = TokenExtractor.extractToken(authHeader);
@@ -99,7 +99,7 @@ public class UserProfileController {
                     .body(new StatusResponse<>("Error", "An error occurred while getting user profile", null));
         }
     }
-    @GetMapping("/checkProfile")
+    @GetMapping("/user/checkProfile")
     public ResponseEntity<Boolean> checkProfile(@RequestParam int userId) {
         UserProfile userProfile = userProfileRepository.findByUserId(userId);
 
@@ -110,6 +110,12 @@ public class UserProfileController {
 
         // Tiến hành kiểm tra nếu profile tồn tại
         return ResponseEntity.ok(userProfile.getUser_id() != null);
+    }
+
+    @GetMapping("/admin/profile/{userId}")
+    public ResponseEntity<UserProfileDTO> profileUser(@PathVariable int userId) {
+        UserProfileDTO profile = userProfileService.getProfileByUserId(userId);
+        return ResponseEntity.ok(profile);
     }
 
 }

@@ -8,6 +8,7 @@ import com.mekongocop.mekongocopserver.repository.StoreRepository;
 import com.mekongocop.mekongocopserver.repository.UserRepository;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
@@ -21,8 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -47,23 +50,24 @@ public class StoreService {
     private EntityManager entityManager;
 
     private StoreDTO convertStoreToDTO(Store store) {
-        StoreDTO storeDTO = new StoreDTO(
-                store.getStore_id(),
-                store.getUser_id().getUser_id(),
-                store.getStore_name(),
-                store.getStore_description(),
-                store.getStore_address(),
-                store.getStore_logo(),
-                store.getStore_banner(),
-                store.getStatus(),
-                store.getCreated_at(),
-                store.getUpdated_at()
-        );
-        log.info("Converted StoreDTO: {}", storeDTO);
+        StoreDTO storeDTO = new StoreDTO();
+        storeDTO.store_id = store.getStore_id(); // Lấy ID của cửa hàng
+        storeDTO.user_id = store.getUser_id().getUser_id(); // Lấy ID của người dùng từ User object
+        storeDTO.store_name = store.getStore_name(); // Tên cửa hàng
+        storeDTO.store_description = store.getStore_description(); // Mô tả cửa hàng
+        storeDTO.store_address = store.getStore_address(); // Địa chỉ cửa hàng
+        storeDTO.store_logo = store.getStore_logo(); // Logo cửa hàng
+        storeDTO.store_banner = store.getStore_banner(); // Banner cửa hàng
+        storeDTO.status = store.getStatus(); // Trạng thái (Active/Banded)
+        storeDTO.created_at = store.getCreated_at(); // Ngày tạo cửa hàng
+        storeDTO.updated_at = store.getUpdated_at(); // Ngày cập nhật cửa hàng
+
+        log.info("Converted StoreDTO: {}", storeDTO); // Log kết quả chuyển đổi
         return storeDTO;
     }
 
-public Store convertDTOToStore(StoreDTO storeDTO) {
+
+    public Store convertDTOToStore(StoreDTO storeDTO) {
     return modelMapper.map(storeDTO, Store.class);
 }
 
@@ -255,6 +259,29 @@ public StoreDTO convertJsonToDTO(String json)throws IOException {
         }
     }
 
+    public List<StoreDTO> getAllStore(){
+        List<Store> stores = storeRepository.findAll();
+        return convertStoreListToStoreDTOList(stores);
+    }
 
+    private List<StoreDTO> convertStoreListToStoreDTOList(List<Store> stores) {
+        return stores.stream().map(this::convertStoreToDTO).collect(Collectors.toList());
+    }
+    public void updateStoreStatusToBanded(int storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new EntityNotFoundException("Store not found with ID: " + storeId));
 
+        // Kiểm tra trạng thái hiện tại và chuyển đổi
+        if ("Active".equals(store.getStatus())) {
+            store.setStatus("Banded");
+        } else if ("Banded".equals(store.getStatus())) {
+            store.setStatus("Active");
+        } else {
+            throw new IllegalStateException("Invalid store status");
+        }
+
+        // Lưu lại thay đổi và trả về trạng thái mới
+        storeRepository.save(store);
+    }
 }
+

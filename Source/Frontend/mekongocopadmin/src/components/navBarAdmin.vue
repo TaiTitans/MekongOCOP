@@ -1,7 +1,7 @@
 <template>
     <div>
       
-      <div class="flex bg-gray-100 h-screen">
+      <div class="flex bg-gray-100 h-full">
         <!-- Sidebar -->
         <div v-if="isNavbarVisible" class="hidden md:flex flex-col w-60 bg-gray-800 shadow-xl">
           <div class="flex items-center justify-center h-16 bg-white">
@@ -55,7 +55,7 @@
               </div>
               <div @click="goToFeedback" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-blue-600 mr-8" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Artboard 22</title><path d="M21.81,5.28l.77-2.38a1.44,1.44,0,0,0-.48-1.59,1.42,1.42,0,0,0-1.63-.1l-6.6,4.07H1V23H23V5.28ZM21,21H3V7.28H14.44l5.77-3.56L19.06,7.28H21Z"></path><path d="M6.4,13a1.4,1.4,0,1,0,1.4,1.4A1.4,1.4,0,0,0,6.4,13Z"></path><path d="M12,13a1.4,1.4,0,1,0,1.4,1.4A1.4,1.4,0,0,0,12,13Z"></path><path d="M17.6,13A1.4,1.4,0,1,0,19,14.4,1.4,1.4,0,0,0,17.6,13Z"></path></svg>
-                Ý Kiến
+               Yêu cầu
               </div>
               <div @click="logout" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-blue-600 mr-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -83,16 +83,16 @@
       },
         methods:{
             goToTinhThanh() {
-          this.$router.push({ name: 'TinhThanh' });
+          this.$router.push({ name: 'UserAdmin' });
         },
         goToDiaDiem() {
-          this.$router.push({ name: 'DiaDiem' });
+          this.$router.push({ name: 'StoreAdmin' });
         },
         goToAmThuc() {
-          this.$router.push({ name: 'AmThuc' });
+          this.$router.push({ name: 'ProductAdmin' });
         },
         goToFeedback() {
-          this.$router.push({ name: 'Feedback' });
+          this.$router.push({ name: 'ApproveAdmin' });
         },
         goToAdminDashboard() {
           this.$router.push({ path: '/admin' });

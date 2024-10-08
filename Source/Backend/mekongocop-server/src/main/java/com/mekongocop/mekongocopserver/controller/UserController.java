@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.Cookie;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -154,5 +155,10 @@ public class UserController {
                 "usersWithRoleBuyer", usersWithRoleBuyer,
                 "usersWithRoleSeller", usersWithRoleSeller
         ));
+    }
+    @GetMapping("/admin/users")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
     }
 }
