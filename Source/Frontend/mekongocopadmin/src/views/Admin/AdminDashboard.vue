@@ -9,7 +9,6 @@
 
 <script>
 import NavBarAdmin from '../../components/navBarAdmin.vue';
-import NavbarS from '../../components/NavbarS.vue';
 
 export default {
   name: 'AdminDashboard',

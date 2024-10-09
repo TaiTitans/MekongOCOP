@@ -2,6 +2,7 @@ package com.mekongocop.mekongocopserver.controller;
 
 import com.mekongocop.mekongocopserver.common.StatusResponse;
 import com.mekongocop.mekongocopserver.dto.OrderDTO;
+import com.mekongocop.mekongocopserver.repository.OrderRepository;
 import com.mekongocop.mekongocopserver.service.OrderService;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import com.mekongocop.mekongocopserver.util.TokenExtractor;
@@ -11,6 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +26,8 @@ public class OrderController {
     private OrderService orderService;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
+    @Autowired
+    private OrderRepository orderRepository;
     @PostMapping("/common/order")
     public ResponseEntity<StatusResponse<OrderDTO>> addOrder(@RequestHeader("Authorization") String token, @RequestParam String address, @RequestParam String payment) {
         try {
@@ -138,5 +144,54 @@ public class OrderController {
         }
     }
 
+    @GetMapping("seller/store/total/{storeId}")
+    public Map<String, BigDecimal> calculateStoreRevenue(@PathVariable int storeId) {
+        LocalDateTime now = LocalDateTime.now();
 
+        // Doanh thu trong ngày của cửa hàng
+        LocalDateTime startOfDay = now.with(LocalTime.MIN);
+        BigDecimal dayRevenue = orderRepository.calculateTotalRevenueByStore(storeId, startOfDay, now, "Success");
+
+        // Doanh thu trong tháng của cửa hàng
+        LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth()).with(LocalTime.MIN);
+        BigDecimal monthRevenue = orderRepository.calculateTotalRevenueByStore(storeId, startOfMonth, now, "Success");
+
+        // Doanh thu trong năm của cửa hàng
+        LocalDateTime startOfYear = now.with(TemporalAdjusters.firstDayOfYear()).with(LocalTime.MIN);
+        BigDecimal yearRevenue = orderRepository.calculateTotalRevenueByStore(storeId, startOfYear, now, "Success");
+
+        // Trả về kết quả
+        Map<String, BigDecimal> revenueMap = new HashMap<>();
+        revenueMap.put("dayRevenue", dayRevenue != null ? dayRevenue : BigDecimal.ZERO);
+        revenueMap.put("monthRevenue", monthRevenue != null ? monthRevenue : BigDecimal.ZERO);
+        revenueMap.put("yearRevenue", yearRevenue != null ? yearRevenue : BigDecimal.ZERO);
+
+        return revenueMap;
+    }
+
+
+    @GetMapping("seller/store/order/total/{storeId}")
+    public Map<String, Long> calculateOrderCountByStore(@PathVariable int storeId) {
+        LocalDateTime now = LocalDateTime.now();
+
+        // Đếm số đơn hàng trong ngày của cửa hàng
+        LocalDateTime startOfDay = now.with(LocalTime.MIN);
+        long dayOrderCount = orderRepository.calculateOrderCountByStore(storeId, startOfDay, now);
+
+        // Đếm số đơn hàng trong tháng của cửa hàng
+        LocalDateTime startOfMonth = now.with(TemporalAdjusters.firstDayOfMonth()).with(LocalTime.MIN);
+        long monthOrderCount = orderRepository.calculateOrderCountByStore(storeId, startOfMonth, now);
+
+        // Đếm số đơn hàng trong năm của cửa hàng
+        LocalDateTime startOfYear = now.with(TemporalAdjusters.firstDayOfYear()).with(LocalTime.MIN);
+        long yearOrderCount = orderRepository.calculateOrderCountByStore(storeId, startOfYear, now);
+
+        // Trả về kết quả
+        Map<String, Long> orderCountMap = new HashMap<>();
+        orderCountMap.put("dayOrderCount", dayOrderCount);
+        orderCountMap.put("monthOrderCount", monthOrderCount);
+        orderCountMap.put("yearOrderCount", yearOrderCount);
+
+        return orderCountMap;
+    }
 }

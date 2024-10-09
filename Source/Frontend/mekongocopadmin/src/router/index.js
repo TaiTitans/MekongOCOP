@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
+import Product from '../views/Seller/Product.vue'
 import StoreAdmin from '../views/Admin/StoreAdmin.vue'
 import ApproveAdmin from '../views/Admin/ApproveAdmin.vue'
-import AmThuc from '../views/AmThuc.vue'
-import Feedback from '../views/Feedback.vue'
+import OrderList from '../views/Seller/Order.vue'
+import ChartDashboard from '../views/Seller/ChartDashboard.vue'
 import Login from '../views/Login.vue'
 import SellerDashboard from '../views/Seller/SellerDashboard.vue'
 import authService from '../services/auth.service'
@@ -11,6 +11,7 @@ import AdminDashboard from '../views/Admin/AdminDashboard.vue'
 import UserAdmin from '../views/Admin/UserAdmin.vue'
 import DashboardChart from '../views/Admin/DashboardChart.vue'
 import ProductAdmin from'../views/Admin/ProductAdmin.vue'
+import Store from '../views/Seller/Store.vue'
 const routes = [
   {
     path: '/login',
@@ -21,7 +22,29 @@ const routes = [
     path: '/seller',
     name: 'SellerDashboard',
     component: SellerDashboard,
-    meta: { requiresSeller: true }
+    meta: { requiresSeller: true },
+    children: [
+{
+  path: '',
+  name: 'Store',
+  component: Store,
+},
+{
+  path: 'order',
+  name: 'OrderList',
+  component: OrderList,
+},
+{
+  path: 'product',
+  name: 'Product',
+  component: Product,
+},
+{
+  path: 'chart',
+  name: 'ChartDashboard',
+  component: ChartDashboard,
+}
+    ]
   },
   {
     path: '/admin',

@@ -4,6 +4,7 @@ import com.mekongocop.mekongocopserver.common.StatusResponse;
 import com.mekongocop.mekongocopserver.dto.ProductDTO;
 import com.mekongocop.mekongocopserver.dto.StoreDTO;
 import com.mekongocop.mekongocopserver.entity.Product;
+import com.mekongocop.mekongocopserver.repository.ProductRepository;
 import com.mekongocop.mekongocopserver.service.ProductService;
 import com.mekongocop.mekongocopserver.service.StoreService;
 import com.mekongocop.mekongocopserver.service.UserService;
@@ -30,7 +31,8 @@ public class ProductController {
     private StoreService storeService;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
+    @Autowired
+    private ProductRepository productRepository;
 
     @PostMapping("/seller/store/product")
     public ResponseEntity<StatusResponse<Object>> addProduct(@RequestPart("dto") String dto, @RequestPart("image") List<MultipartFile> images, @RequestHeader("Authorization") String token) {
@@ -175,6 +177,11 @@ public class ProductController {
     public ResponseEntity<List<ProductDTO>> getAllListProduct(){
         List<ProductDTO> products = productService.getAllProductList();
         return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("seller/product/count/{storeId}")
+    public Long countTotalProducts(@PathVariable int storeId) {
+        return productRepository.countProductsByStore(storeId);
     }
 }
 

@@ -11,6 +11,7 @@ import 'package:smart_shop/Screens/CheckOut/check_out.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
 
+import '../../service/address_service.dart';
 import '../../service/cart_service.dart';
 
 class Cart extends StatefulWidget {
@@ -22,6 +23,8 @@ class Cart extends StatefulWidget {
 }
 
 class _CartState extends State<Cart> {
+  late Future<List<dynamic>> _addressesFuture;
+  final AddressService _addressService = AddressService();
   late Future<List<dynamic>> _cartItemsFuture;
   final CartService _cartService = CartService();
   late String accessToken;
@@ -32,8 +35,13 @@ class _CartState extends State<Cart> {
     super.initState();
     _initialize();
     _cartItemsFuture = _fetchCartItems();
+    _addressesFuture = _fetchAddresses();
   }
-
+  Future<List<dynamic>> _fetchAddresses() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    accessToken = sharedPreferences.getString('accessToken') ?? '';
+    return _addressService.fetchAddress(accessToken); // Gọi hàm fetchAddress
+  }
   Future<void> _initialize() async {
     final sharedPreferences = await SharedPreferences.getInstance();
     accessToken = sharedPreferences.getString('accessToken') ?? '';
@@ -66,7 +74,8 @@ class _CartState extends State<Cart> {
   // Show modal to enter address and select payment method
   void _showCheckoutModal(BuildContext context) {
     String? _selectedPaymentMethod;
-    TextEditingController _addressController = TextEditingController();
+    String? _selectedAddress; // Biến để lưu địa chỉ được chọn
+    List<dynamic> _addressList = []; // Danh sách các địa chỉ
 
     showModalBottomSheet(
       context: context,
@@ -82,11 +91,38 @@ class _CartState extends State<Cart> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Nhập địa chỉ",
+                  Text("Chọn địa chỉ giao hàng",
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  TextField(
-                    controller: _addressController,
-                    decoration: InputDecoration(hintText: "Địa chỉ giao hàng"),
+                  FutureBuilder<List<dynamic>>(
+                    future: _addressesFuture, // Hàm Future để tải danh sách địa chỉ
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Có lỗi xảy ra khi tải địa chỉ'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text('Không có địa chỉ nào'));
+                      } else {
+                        _addressList = snapshot.data!; // Lưu danh sách địa chỉ
+
+                        return DropdownButton<String>(
+                          value: _selectedAddress,
+                          hint: Text('Chọn địa chỉ'),
+                          isExpanded: true,
+                          items: _addressList.map((address) {
+                            return DropdownMenuItem<String>(
+                              value: address['addressDescription'].toString(), // Mô tả địa chỉ
+                              child: Text(address['addressDescription']),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedAddress = value; // Cập nhật địa chỉ được chọn
+                            });
+                          },
+                        );
+                      }
+                    },
                   ),
                   SizedBox(height: 20),
                   Text("Chọn phương thức thanh toán",
@@ -118,15 +154,13 @@ class _CartState extends State<Cart> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      if (_addressController.text.isNotEmpty &&
+                      if (_selectedAddress != null &&
                           _selectedPaymentMethod != null) {
-                        String paymentMethodId = _selectedPaymentMethod!; // No need for conversion
-                        _createOrder(_addressController.text, paymentMethodId);
+                        _createOrder(_selectedAddress!, _selectedPaymentMethod!); // Truyền chuỗi địa chỉ vào hàm _createOrder
                         _showSuccessSnackbar("Đặt hàng thành công!");
-                        Navigator.pop(context); // Close modal after creating order
+                        Navigator.pop(context);
                       } else {
-                        // Show message if the information is incomplete
-_showErrorSnackbar("Vui lòng nhập địa chỉ giao hàng và phương thức thanh toán");
+                        _showErrorSnackbar("Vui lòng chọn địa chỉ và phương thức thanh toán");
                       }
                     },
                     child: Text("Xác nhận"),
@@ -142,6 +176,8 @@ _showErrorSnackbar("Vui lòng nhập địa chỉ giao hàng và phương thức
       },
     );
   }
+
+
   // Create order
   Future<void> _createOrder(String address, String paymentMethodId) async {
     await _cartService.createOrder(address, paymentMethodId, accessToken);
