@@ -1,0 +1,202 @@
+{
+  "intents": [
+    {
+      "tag": "lời_chào",
+      "patterns": ["Xin chào", "Chào bạn", "Chào", "Mình cần trợ giúp", "Ai đó ở đây không?"],
+      "responses": ["Xin chào, tôi rất vui được trò chuyện với bạn!", "Chào mừng, tôi có thể giúp gì bạn?", "Chào, tôi đây. Làm thế nào tôi có thể trợ giúp bạn?"],
+      "context": [""]
+    },
+    {
+      "tag": "tạm_biệt",
+      "patterns": ["Tạm biệt", "Hẹn gặp lại", "Chào nhé", "Kết thúc cuộc trò chuyện", "Đến lần sau"],
+      "responses": ["Tạm biệt, hẹn gặp lại!", "Tạm biệt, chúc bạn một ngày tốt lành!", "Hẹn gặp lại, chào nhé!"],
+      "context": [""]
+    },
+    {
+      "tag": "du_lịch_miền_tây",
+      "patterns": ["Tôi muốn đi du lịch miền Tây", "Có những địa điểm nào đẹp ở miền Tây?", "Cho tôi một số gợi ý về du lịch miền Tây", "Điểm đến nổi tiếng ở miền Tây là gì?", "Tôi muốn lên kế hoạch đi du lịch miền Tây"],
+      "responses": ["Miền Tây của chúng ta có rất nhiều địa điểm du lịch tuyệt vời và độc đáo. Dưới đây là một số gợi ý: \n Cần Thơ: Chợ nổi Cái Răng sầm uất, nhà cổ Bình Thủy mang đậm nét kiến trúc Pháp.\nCà Mau: Mũi Cà Mau - điểm cực Nam Tổ quốc, rừng U Minh Thượng với hệ sinh thái đa dạng.\nSóc Trăng: Chùa Dơi độc đáo, Bảo tàng Khmer tìm hiểu văn hóa Khmer.\nAn Giang: Rừng tràm Trà Sư xanh mát, núi Cấm hùng vĩ.\nCác địa điểm khác: Làng nổi Tân Lập, Cồn Thới Sơn, làng hoa Sa Đéc...", "Một số địa điểm nổi tiếng và hấp dẫn ở miền Tây bao gồm: \n Cần Thơ: Chợ nổi Cái Răng sầm uất, nhà cổ Bình Thủy mang đậm nét kiến trúc Pháp.\nCà Mau: Mũi Cà Mau - điểm cực Nam Tổ quốc, rừng U Minh Thượng với hệ sinh thái đa dạng.\nSóc Trăng: Chùa Dơi độc đáo, Bảo tàng Khmer tìm hiểu văn hóa Khmer.\nAn Giang: Rừng tràm Trà Sư xanh mát, núi Cấm hùng vĩ.\nCác địa điểm khác: Làng nổi Tân Lập, Cồn Thới Sơn, làng hoa Sa Đéc..."],
+      "context": [""]
+    },
+    {
+      "tag": "điểm_đến_miền_tây",
+      "patterns": ["Điểm đến nổi tiếng ở miền Tây là gì?", "Cho tôi danh sách những địa điểm phải đến ở miền Tây", "Những địa điểm nổi tiếng ở miền Tây là gì?", "Tôi nên đi đâu khi du lịch miền Tây?"],
+      "responses": ["Dưới đây là một số địa điểm nổi tiếng và không thể bỏ lỡ khi du lịch miền Tây:\n Cần Thơ: Chợ nổi Cái Răng sầm uất, nhà cổ Bình Thủy mang đậm nét kiến trúc Pháp.\nCà Mau: Mũi Cà Mau - điểm cực Nam Tổ quốc, rừng U Minh Thượng với hệ sinh thái đa dạng.\nSóc Trăng: Chùa Dơi độc đáo, Bảo tàng Khmer tìm hiểu văn hóa Khmer.\nAn Giang: Rừng tràm Trà Sư xanh mát, núi Cấm hùng vĩ.\nCác địa điểm khác: Làng nổi Tân Lập, Cồn Thới Sơn, làng hoa Sa Đéc...", "Một số điểm đến phải ghé thăm khi đi du lịch miền Tây là: \n Cần Thơ: Chợ nổi Cái Răng sầm uất, nhà cổ Bình Thủy mang đậm nét kiến trúc Pháp.\nCà Mau: Mũi Cà Mau - điểm cực Nam Tổ quốc, rừng U Minh Thượng với hệ sinh thái đa dạng.\nSóc Trăng: Chùa Dơi độc đáo, Bảo tàng Khmer tìm hiểu văn hóa Khmer.\nAn Giang: Rừng tràm Trà Sư xanh mát, núi Cấm hùng vĩ.\nCác địa điểm khác: Làng nổi Tân Lập, Cồn Thới Sơn, làng hoa Sa Đéc..."],
+      "context": [""]
+    },
+    {
+      "tag": "điểm_đến_Long_An",
+      "patterns": ["Địa điểm du lịch nổi tiếng ở Long An", "Tôi nên đi đâu khi du lịch Long An", "Những địa điểm du lịch nổi bật ở Long An", "Danh lam thắng cảnh ở Long An"],
+      "responses": ["Một số điểm đến nổi tiếng ở Long An bao gồm:\n- Chợ nổi Bình Đức\n- Khu di tích Gò Tháp\n- Đầm Sen Vàng\n- Làng gốm Bàu Trúc\n- Vườn Quốc gia Tràm Chim"],
+      "context": [""]
+    },
+    {
+      "tag": "điểm_đến_Tiền_Giang",
+      "patterns": ["Địa điểm du lịch nổi tiếng ở Tiền Giang", "Tôi nên đi đâu khi du lịch Tiền Giang", "Những địa điểm du lịch nổi bật ở Tiền Giang", "Danh lam thắng cảnh ở Tiền Giang"],
+      "responses": ["Một số điểm đến nổi tiếng ở Tiền Giang bao gồm:\n- Cù Lao Chàm\n- Vườn Trái Cây Cái Bè\n- Chùa Vĩnh Tràng\n- Núi Bà Đen\n- Cầu Rạch Miễu"],
+      "context": [""]
+    },
+    {
+      "tag": "điểm_đến_Bến_Tre",
+      "patterns": ["Địa điểm du lịch nổi tiếng ở Bến Tre", "Tôi nên đi đâu khi du lịch Bến Tre", "Những địa điểm du lịch nổi bật ở Bến Tre", "Danh lam thắng cảnh ở Bến Tre"],
+      "responses": ["Một số điểm đến nổi tiếng ở Bến Tre bao gồm:\n- Cồn Phụng\n- Cây cầu phao Rạch Miễu\n- Vườn dừa Cồn Phụng\n- Làng Nghề Phú Đức\n- Chùa Linh Ứng"],
+      "context": [""]
+    },
+    {
+      "tag": "điểm_đến_Vĩnh_Long",
+      "patterns": ["Địa điểm du lịch nổi tiếng ở Vĩnh Long", "Tôi nên đi đâu khi du lịch Vĩnh Long", "Những địa điểm du lịch nổi bật ở Vĩnh Long", "Danh lam thắng cảnh ở Vĩnh Long"],
+      "responses": ["Một số điểm đến nổi tiếng ở Vĩnh Long bao gồm:\n- Chợ nổi Cái Bè\n- Làng gốm Phú Hòa\n- Đình Tây An\n- Cồn Phụng\n- Khu du lịch sinh thái Cồn Sơn"],
+      "context": [""]
+    },
+    {
+      "tag": "ẩm_thực_miền_tây",
+      "patterns": ["Đặc sản miền Tây là gì?", "Tôi nên ăn gì khi đến miền Tây?", "Ẩm thực đặc sắc miền Tây", "Gợi ý món ăn miền Tây"],
+      "responses": ["Một số đặc sản nổi tiếng của miền Tây bao gồm:\n- Bánh xèo\n- Cá lóc nướng trui\n- Gỏi cuốn\n- Bún nước lèo\n- Xôi vò"],
+      "context": [""]
+    },
+    {
+      "tag": "đặc_sản_miền_tây",
+      "patterns": ["Đặc sản nổi tiếng miền Tây", "Có những đặc sản nào ở miền Tây?", "Sản phẩm OCOP miền Tây"],
+      "responses": ["Một số đặc sản và sản phẩm OCOP nổi bật của miền Tây bao gồm:\n- Mật ong Cái Bè\n- Mứt dừa Bến Tre\n- Bánh tráng Mỹ Lồng\n- Rượu gạo Đồng Tháp\n- Trái cây Miền Tây như sầu riêng, măng cụt."],
+      "context": [""]
+    },
+    {
+      "tag": "du_lịch_đồng_bằng_sông_cửu_long",
+      "patterns": ["Du lịch Đồng bằng sông Cửu Long có gì thú vị?", "Tôi muốn khám phá Đồng bằng sông Cửu Long", "Những điểm du lịch nổi bật ở Đồng bằng sông Cửu Long"],
+      "responses": ["Đồng bằng sông Cửu Long có nhiều hoạt động thú vị như:\n- Tham quan chợ nổi Cái Răng\n- Thưởng thức trái cây tại các vườn cây ăn trái\n- Khám phá các khu du lịch sinh thái và làng nghề truyền thống."],
+      "context": [""]
+    },
+    {
+      "tag": "sản_phẩm_OCOP",
+      "patterns": ["Giới thiệu về sản phẩm OCOP", "Sản phẩm OCOP là gì?", "Lợi ích của sản phẩm OCOP"],
+      "responses": ["Sản phẩm OCOP (Mỗi xã một sản phẩm) nhằm nâng cao giá trị sản phẩm địa phương, phát triển kinh tế và tạo việc làm cho người dân. Những sản phẩm OCOP đặc trưng của miền Tây có thể là thực phẩm, đồ thủ công mỹ nghệ và các sản phẩm dịch vụ."],
+      "context": [""]
+    },
+    {
+      "tag": "đồng_bằng_sông_cửu_long",
+      "patterns": ["Đồng bằng sông cửu long", "ĐBSCL", "Mekong OCOP"],
+      "responses": ["Vùng Đồng bằng sông Cửu Long là vùng cực nam của Việt Nam, một trong hai phần của Nam Bộ. Khu vực này có 1 thành phố trực thuộc trung ương là Cần Thơ và 12 tỉnh: Long An, Tiền Giang, Bến Tre, Vĩnh Long, Trà Vinh, Hậu Giang, Sóc Trăng, Đồng Tháp, An Giang, Kiên Giang, Bạc Liêu và Cà Mau."],
+      "context": [""]
+    },
+    {
+      "tag": "mua_sắm_trực_tuyến",
+      "patterns": ["Làm sao để mua hàng trên trang này?", "Tôi muốn mua sản phẩm", "Làm sao để thanh toán trực tuyến?", "Cách đặt hàng trên website này là gì?"],
+      "responses": ["Để mua sản phẩm, bạn có thể chọn sản phẩm, thêm vào giỏ hàng và tiến hành thanh toán.", "Bạn có thể thanh toán trực tuyến qua tiền mặt hoặc ví điện tử.", "Chọn sản phẩm bạn muốn, sau đó điền thông tin và thanh toán."],
+      "context": [""]
+    },
+    {
+      "tag": "thanh_toán_hóa_đơn",
+      "patterns": ["Làm sao để thanh toán hóa đơn?", "Tôi cần thanh toán", "Cách thanh toán", "Hướng dẫn thanh toán hóa đơn trực tuyến"],
+      "responses": ["Bạn có thể thanh toán hóa đơn  bằng cách truy cập vào trang dịch vụ và chọn mục thanh toán.", "Để thanh toán hóa đơn, hãy chọn phương thức thanh toán trực tuyến .", "Bạn có thể sử dụng các dịch vụ ví điện tử để thanh toán hóa đơn."],
+      "context": [""]
+    },
+        {
+      "tag": "địa_điểm_OCOP_ĐBSCL",
+      "patterns": ["Địa điểm du lịch nổi tiếng ở Đồng Bằng Sông Cửu Long", "Những địa điểm du lịch OCOP ở ĐBSCL", "Du lịch OCOP ở ĐBSCL có gì hay?", "Tôi muốn đi du lịch ở ĐBSCL"],
+      "responses": ["Một số địa điểm du lịch OCOP nổi bật ở ĐBSCL gồm có:\n- Cần Thơ: Chợ nổi Cái Răng, Nhà cổ Bình Thủy.\n- Cà Mau: Rừng U Minh Thượng, Mũi Cà Mau.\n- Đồng Tháp: Làng hoa Sa Đéc, Khu di tích Xẻo Quýt.\n- An Giang: Rừng tràm Trà Sư, Núi Cấm."],
+      "context": [""]
+    },
+    {
+      "tag": "ẩm_thực_OCOP_ĐBSCL",
+      "patterns": ["Ẩm thực đặc sản của Đồng Bằng Sông Cửu Long", "OCOP đặc sản của ĐBSCL", "Món ăn ngon ở ĐBSCL", "Gợi ý món ăn đặc sản OCOP miền Tây"],
+      "responses": ["Một số món ăn đặc sản OCOP của ĐBSCL bao gồm:\n- Bánh xèo Cần Thơ\n- Lẩu mắm Sóc Trăng\n- Cá lóc nướng trui An Giang\n- Chuột đồng nướng Đồng Tháp\n- Hủ tiếu Mỹ Tho Tiền Giang"],
+      "context": [""]
+    },
+    {
+      "tag": "sản_phẩm_OCOP_ĐBSCL",
+      "patterns": ["Sản phẩm OCOP của Đồng Bằng Sông Cửu Long là gì?", "Sản phẩm OCOP nổi bật của ĐBSCL", "Tôi muốn mua sản phẩm OCOP từ miền Tây", "Sản phẩm OCOP nổi bật ở miền Tây"],
+      "responses": ["Một số sản phẩm OCOP nổi bật của ĐBSCL gồm có:\n- Bánh Pía Sóc Trăng\n- Nước mắm Phú Quốc Kiên Giang\n- Mứt dừa Bến Tre\n- Mật ong Cà Mau\n- Rượu sen Đồng Tháp"],
+      "context": [""]
+    },
+    {
+      "tag": "địa_điểm_ĐBSCL",
+      "patterns": ["Địa điểm du lịch nổi tiếng ở Đồng Bằng Sông Cửu Long", "Những địa điểm du lịch nổi bật ở ĐBSCL", "Tôi muốn đi du lịch ở ĐBSCL", "Danh lam thắng cảnh ở ĐBSCL"],
+      "responses": ["Một số địa điểm du lịch nổi tiếng ở ĐBSCL bao gồm:\n- Cần Thơ: Chợ nổi Cái Răng, Nhà cổ Bình Thủy.\n- Cà Mau: Rừng U Minh Thượng, Mũi Cà Mau.\n- Đồng Tháp: Làng hoa Sa Đéc, Khu di tích Xẻo Quýt.\n- An Giang: Rừng tràm Trà Sư, Núi Cấm.\n- Kiên Giang: Đảo Phú Quốc, Hòn Sơn."],
+      "context": [""]
+    },
+    {
+      "tag": "ẩm_thực_ĐBSCL",
+      "patterns": ["Ẩm thực đặc sản của Đồng Bằng Sông Cửu Long", "Món ăn ngon ở ĐBSCL", "Gợi ý món ăn đặc sản miền Tây", "Đặc sản ẩm thực ĐBSCL"],
+      "responses": ["Một số món ăn đặc sản của ĐBSCL bao gồm:\n- Bánh xèo Cần Thơ\n- Lẩu mắm Sóc Trăng\n- Cá lóc nướng trui An Giang\n- Chuột đồng nướng Đồng Tháp\n- Hủ tiếu Mỹ Tho Tiền Giang"],
+      "context": [""]
+    },
+    {
+      "tag": "sản_phẩm_ĐBSCL",
+      "patterns": ["Sản phẩm nổi bật của Đồng Bằng Sông Cửu Long là gì?", "Sản phẩm nổi bật của ĐBSCL", "Tôi muốn mua sản phẩm từ miền Tây", "Sản phẩm nổi bật ở miền Tây"],
+      "responses": ["Một số sản phẩm nổi bật của ĐBSCL gồm có:\n- Bánh Pía Sóc Trăng\n- Nước mắm Phú Quốc Kiên Giang\n- Mứt dừa Bến Tre\n- Mật ong Cà Mau\n- Rượu sen Đồng Tháp"],
+      "context": [""]
+    },
+    {
+      "tag": "địa_điểm_ĐBSCL_thêm",
+      "patterns": ["Địa điểm du lịch khác ở Đồng Bằng Sông Cửu Long", "Những địa điểm du lịch khác ở ĐBSCL", "Tôi muốn biết thêm về địa điểm du lịch ở ĐBSCL", "Danh lam thắng cảnh khác ở ĐBSCL"],
+      "responses": ["Một số địa điểm du lịch khác ở ĐBSCL bao gồm:\n- Trà Vinh: Ao Bà Om, Chùa Hang.\n- Bạc Liêu: Nhà Công tử Bạc Liêu, Vườn chim Bạc Liêu.\n- Hậu Giang: Khu du lịch sinh thái Lung Ngọc Hoàng.\n- Sóc Trăng: Chùa Dơi, Chùa Chén Kiểu."],
+      "context": [""]
+    },
+    {
+      "tag": "ẩm_thực_ĐBSCL_thêm",
+      "patterns": ["Ẩm thực đặc sản khác của Đồng Bằng Sông Cửu Long", "Món ăn ngon khác ở ĐBSCL", "Gợi ý món ăn đặc sản khác miền Tây", "Đặc sản ẩm thực khác ĐBSCL"],
+      "responses": ["Một số món ăn đặc sản khác của ĐBSCL bao gồm:\n- Bánh tằm bì Bạc Liêu\n- Bún nước lèo Sóc Trăng\n- Lẩu cá linh bông điên điển An Giang\n- Bánh cống Cần Thơ\n- Bánh hỏi thịt nướng Phú Tân"],
+      "context": [""]
+    },
+    {
+      "tag": "sản_phẩm_ĐBSCL_thêm",
+      "patterns": ["Sản phẩm nổi bật khác của Đồng Bằng Sông Cửu Long là gì?", "Sản phẩm nổi bật khác của ĐBSCL", "Tôi muốn mua sản phẩm khác từ miền Tây", "Sản phẩm nổi bật khác ở miền Tây"],
+      "responses": ["Một số sản phẩm nổi bật khác của ĐBSCL gồm có:\n- Khô cá lóc An Giang\n- Rượu sim Phú Quốc\n- Bánh phồng tôm Sa Giang\n- Mắm cá linh Châu Đốc\n- Trà hoa vàng U Minh"],
+      "context": [""]
+    },
+    {
+      "tag": "du_lich_mien_tay_địa_phuong",
+      "patterns": [
+          "Tôi muốn đi du lịch ở Cần Thơ",
+          "Có địa điểm nào nổi tiếng ở Tiền Giang không?",
+          "Du lịch Bến Tre có gì hay?",
+          "Gợi ý du lịch ở Vĩnh Long"
+      ],
+      "responses": [
+          "Ở Cần Thơ, bạn không thể bỏ qua chợ nổi Cái Răng và nhà cổ Bình Thủy.",
+          "Ở Tiền Giang, bạn có thể thăm quan Cầu Rạch Miễu và vườn cây ăn trái Cái Bè.",
+          "Bến Tre nổi tiếng với vườn dừa Cồn Phụng và cây cầu phao Rạch Miễu.",
+          "Vĩnh Long có chợ nổi Cái Bè và khu du lịch sinh thái Cồn Sơn."
+      ],
+      "context": [
+          ""
+      ]
+  },
+  {
+      "tag": "am_thuc_mien_tay",
+      "patterns": [
+          "Đặc sản ẩm thực miền Tây là gì?",
+          "Tôi nên ăn gì khi đến Cần Thơ?",
+          "Món ăn nổi tiếng ở Đồng Tháp là gì?",
+          "Gợi ý món ngon ở Sóc Trăng"
+      ],
+      "responses": [
+          "Một số đặc sản nổi tiếng ở miền Tây bao gồm: Bánh xèo Cần Thơ, Lẩu mắm Sóc Trăng, Cá lóc nướng trui Đồng Tháp, và Hủ tiếu Mỹ Tho.",
+          "Đặc sản Cần Thơ có bánh cống, bánh xèo, và các món nướng đặc trưng.",
+          "Đồng Tháp nổi tiếng với cá lóc nướng trui và chuột đồng nướng.",
+          "Sóc Trăng nổi tiếng với bún nước lèo và bánh pía."
+      ],
+      "context": [
+          ""
+      ]
+  },
+  {
+      "tag": "san_pham_OCOP_mien_tay",
+      "patterns": [
+          "Sản phẩm OCOP nổi bật của miền Tây là gì?",
+          "Tôi muốn mua sản phẩm OCOP ở Cần Thơ",
+          "Những sản phẩm OCOP đặc trưng của Bến Tre là gì?",
+          "Sản phẩm OCOP nào nổi tiếng ở Đồng Tháp?"
+      ],
+      "responses": [
+          "Một số sản phẩm OCOP nổi bật của miền Tây bao gồm: Mật ong Cái Bè, Mứt dừa Bến Tre, Rượu sen Đồng Tháp, và Nước mắm Phú Quốc.",
+          "Ở Cần Thơ, sản phẩm OCOP nổi bật bao gồm rượu mận Sáu Tia và lạp xưởng Cần Thơ.",
+          "Bến Tre có mứt dừa và kẹo dừa đặc trưng trong sản phẩm OCOP.",
+          "Đồng Tháp nổi tiếng với rượu sen và trà sen OCOP."
+      ],
+      "context": [
+          ""
+      ]
+  }
+  ]
+}
