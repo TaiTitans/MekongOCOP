@@ -7,6 +7,7 @@ import com.mekongocop.mekongocopserver.repository.StoreRepository;
 import com.mekongocop.mekongocopserver.service.StoreService;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import com.mekongocop.mekongocopserver.util.TokenExtractor;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -127,4 +130,21 @@ public class StoreController {
     }
 
 
+    @GetMapping("/admin/stores")
+    public ResponseEntity<List<StoreDTO>> getAllStores(){
+        List<StoreDTO> stores = storeService.getAllStore();
+        return ResponseEntity.ok(stores);
+    }
+
+    @PatchMapping("admin/store/{store_id}/status")
+    public ResponseEntity<?> updateStoreStatus(@PathVariable("store_id") int storeId) {
+        try {
+            storeService.updateStoreStatusToBanded(storeId);
+            return ResponseEntity.ok(Map.of("message", "Store status updated to Banded successfully"));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Store not found"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unable to update store status"));
+        }
+    }
 }

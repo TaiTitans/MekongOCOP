@@ -3,10 +3,7 @@ package com.mekongocop.mekongocopserver.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mekongocop.mekongocopserver.dto.ProductCategoryDTO;
-import com.mekongocop.mekongocopserver.dto.ProductDTO;
-import com.mekongocop.mekongocopserver.dto.ProductImageDTO;
-import com.mekongocop.mekongocopserver.dto.ReviewDTO;
+import com.mekongocop.mekongocopserver.dto.*;
 import com.mekongocop.mekongocopserver.entity.*;
 import com.mekongocop.mekongocopserver.repository.*;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
@@ -450,6 +447,15 @@ public class ProductService {
 
     public Long getAllProduct(){
         return productRepository.countAllProduct();
+    }
+
+    public List<ProductDTO> getAllProductList(){
+        List<Product> products = productRepository.findAll();
+        return convertProductListToProductDTOList(products);
+    }
+
+    private List<ProductDTO> convertProductListToProductDTOList(List<Product> products) {
+        return products.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
 }

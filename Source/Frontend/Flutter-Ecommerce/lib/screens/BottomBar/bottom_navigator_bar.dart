@@ -8,6 +8,7 @@ import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
 
 import '../Catalogue/province_catalogue.dart';
+import '../Chatbot/chatbot.dart';
 
 class BottomNavigatorBar extends StatefulWidget {
   const BottomNavigatorBar({Key? key}) : super(key: key);
@@ -24,7 +25,7 @@ class _BottomNavigatorBarState extends State<BottomNavigatorBar> {
   List<Widget> myScreens = [
     const Home(),
     const Province(),
-    const Favorite(),
+    ChatbotApp(),
     const Profile(),
   ];
 

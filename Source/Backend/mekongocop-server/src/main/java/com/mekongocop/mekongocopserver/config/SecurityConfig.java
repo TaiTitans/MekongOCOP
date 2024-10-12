@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v*/user/**").permitAll()
                         .requestMatchers("/api/v*/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v*/seller/**").hasRole("SELLER")
-                        .requestMatchers("/api/v*/common/**").hasAnyRole("BUYER", "SELLER")
+                        .requestMatchers("/api/v*/common/**").hasAnyRole("ADMIN","BUYER", "SELLER")
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
@@ -61,7 +61,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:61611", "http://localhost:8081")); // Cho phép origins
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Cho phép các phương thức
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH")); // Cho phép các phương thức
         configuration.setAllowedHeaders(Arrays.asList("*")); // Cho phép tất cả các header
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration); // Cấu hình cho tất cả đường dẫn

@@ -1,126 +1,102 @@
 <template>
-
-    <div>
+  <div>
     
-        <div class="flex bg-gray-100 h-[100%]">
-    
-    <!-- sidebar -->
-    <div class="hidden md:flex flex-col w-64 bg-gray-800">
-        <div class="flex items-center justify-center h-16 bg-gray-900">
-            <span class="text-white font-bold uppercase">MekongTravel Admin</span>
+    <div class="flex bg-gray-100 h-full">
+      <!-- Sidebar -->
+      <div v-if="isNavbarVisible" class="hidden md:flex flex-col w-60 bg-gray-800 shadow-xl">
+        <div class="flex items-center justify-center h-16 bg-white">
+          <span class="text-black font-bold text-l uppercase">MekongTravel Seller</span>
         </div>
         <div class="flex flex-col flex-1 overflow-y-auto">
-            <nav class="flex-1 px-2 py-4 bg-gray-800">
-                <div  class="flex items-center px-4 py-2 text-gray-100 hover:bg-gray-700" @click="goToTinhThanh">
-                    <svg class="w-6 h-6 text-yellow-600 mr-2 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.8 13.938h-.011a7 7 0 1 0-11.464.144h-.016l.14.171c.1.127.2.251.3.371L12 21l5.13-6.248c.194-.209.374-.429.54-.659l.13-.155Z"/>
-</svg>
+          <nav class="flex-1 px-2 py-4 bg-gray-200 shadow-inner">
+              <div @click="goToAdminDashboard" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+                  <svg class="w-6 h-6 text-gray-600 mr-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5" />
+              </svg>
 
-    
-                    Tỉnh Thành
-    </div>
-                <div @click="goToDiaDiem" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700">
-                    <svg class="w-6 h-6 text-yellow-600 mr-2 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5"/>
-</svg>
+              Trang chủ
+            </div>
+            <div @click="goToTinhThanh" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
 
-    
-                    Địa Điểm
-    </div>
-                <div @click="goToAmThuc" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700">
-                    <svg class="w-6 h-6 text-yellow-600 mr-2 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"/>
-  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13c0 2.038-2.239 4.5-5 4.5S7 15.038 7 13c0 1.444 10 1.444 10 0Z"/>
-  <path fill="currentColor" d="m9 6.811.618 1.253 1.382.2-1 .975.236 1.377L9 9.966l-1.236.65L8 9.239l-1-.975 1.382-.2L9 6.811Zm6 0 .618 1.253 1.382.2-1 .975.236 1.377L15 9.966l-1.236.65L14 9.239l-1-.975 1.382-.2L15 6.811Z"/>
-  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m9 6.811.618 1.253 1.382.2-1 .975.236 1.377L9 9.966l-1.236.65L8 9.239l-1-.975 1.382-.2L9 6.811Zm6 0 .618 1.253 1.382.2-1 .975.236 1.377L15 9.966l-1.236.65L14 9.239l-1-.975 1.382-.2L15 6.811Z"/>
+<svg class="w-6 h-6 text-gray-600 mr-8" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>New Product</title><path d="M455.839,137.354,402.292,60.867a42.688,42.688,0,0,0-34.953-18.2H144.661a42.692,42.692,0,0,0-34.953,18.2l-53.547,76.49a74.308,74.308,0,0,0-13.495,42.82V416A53.4,53.4,0,0,0,96,469.333H416A53.4,53.4,0,0,0,469.333,416V180.174A74.31,74.31,0,0,0,455.839,137.354ZM384.813,73.1l53.368,76.234h-120.1L301.01,64h66.329A21.334,21.334,0,0,1,384.813,73.1ZM213.333,170.667h85.333V224H213.333ZM279.257,64l17.065,85.333H215.678L232.743,64ZM127.188,73.1A21.339,21.339,0,0,1,144.661,64H210.99l-17.067,85.333H73.819ZM448,416a32.035,32.035,0,0,1-32,32H96a32.035,32.035,0,0,1-32-32V180.174a53.592,53.592,0,0,1,.88-9.508H192v64a10.667,10.667,0,0,0,10.667,10.667H309.333A10.667,10.667,0,0,0,320,234.667v-64H447.12a53.592,53.592,0,0,1,.88,9.508Z"></path><path d="M192,298.667a10.667,10.667,0,0,0-10.667,10.667v41.38l-33.984-47.578a10.668,10.668,0,0,0-19.349,6.2V384a10.667,10.667,0,1,0,21.333,0V342.62L183.318,390.2a10.668,10.668,0,0,0,19.349-6.2V309.333A10.667,10.667,0,0,0,192,298.667Z"></path><path d="M272,320a10.667,10.667,0,1,0,0-21.333H229.333a10.667,10.667,0,0,0-10.667,10.667V384a10.667,10.667,0,0,0,10.667,10.667H272a10.667,10.667,0,0,0,0-21.333H240v-16h21.333a10.667,10.667,0,1,0,0-21.333H240V320Z"></path><path d="M386.1,298.875a10.67,10.67,0,0,0-12.557,8.359l-9.047,45.026-11.036-21.187a10.663,10.663,0,0,0-18.917,0L323.505,352.26l-9.047-45.026a10.667,10.667,0,1,0-20.917,4.2l15,74.667a10.664,10.664,0,0,0,19.917,2.828L344,359.094l15.542,29.833a10.659,10.659,0,0,0,9.453,5.74,11.307,11.307,0,0,0,1.505-.1,10.67,10.67,0,0,0,8.958-8.464l15-74.667A10.666,10.666,0,0,0,386.1,298.875Z"></path></svg>
+              Sản phẩm
+            </div>
+            <div @click="goToDiaDiem" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+           <svg class="w-6 h-6 text-gray-600 mr-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g id="Order_confirmation"><path d="M228.2588,453.47l2.04-18.38H90.209a10.0033,10.0033,0,0,1-10-10V88.15a10.0033,10.0033,0,0,1,10-10h211.14a10.0036,10.0036,0,0,1,10,10V246.62a55.7953,55.7953,0,0,1,15.24-9.14V60.61a32.7,32.7,0,0,0-32.7-32.7H97.6689a32.7,32.7,0,0,0-32.7,32.7V453.17a32.7,32.7,0,0,0,32.7,32.7h139.5A45.4382,45.4382,0,0,1,228.2588,453.47Zm-9.6,12.18h-45.76v-12h45.76Z"></path><path d="M156.8589,166.84a23.8988,23.8988,0,1,1-23.82-25.82v-11a34.895,34.895,0,1,0,34.84,36.82Z"></path><path d="M123.3818,153.4585l-8.8574,8.0957,13.1875,14.4277a6.0015,6.0015,0,0,0,4.39,1.9522h.039a6.0023,6.0023,0,0,0,4.376-1.8945L164.5117,146.2l-8.7519-8.2109-23.5616,25.1142Z"></path><path d="M156.8589,261.9226a23.8988,23.8988,0,1,1-23.82-25.82v-11a34.8951,34.8951,0,1,0,34.84,36.82Z"></path><path d="M123.3818,248.541l-8.8574,8.0957,13.1875,14.4278a6.0018,6.0018,0,0,0,4.39,1.9521h.039a6.0019,6.0019,0,0,0,4.376-1.8945l27.9951-29.8393-8.7519-8.211L132.1982,258.186Z"></path><path d="M98.1387,355.0894a34.8967,34.8967,0,0,0,69.74,1.92h-11.02a23.8988,23.8988,0,1,1-23.82-25.82v-11A34.9381,34.9381,0,0,0,98.1387,355.0894Z"></path><path d="M123.3818,343.6279l-8.8574,8.0957,13.1875,14.4278a6.0014,6.0014,0,0,0,4.39,1.9521h.039a6.0019,6.0019,0,0,0,4.376-1.8945L164.5117,336.37l-8.7519-8.2109-23.5616,25.1142Z"></path><rect x="192.8047" y="146.8691" width="72.6846" height="12"></rect><rect x="192.8047" y="170.9619" width="50.5986" height="12"></rect><rect x="192.8047" y="239.9688" width="50.5986" height="12"></rect><rect x="192.8047" y="264.0615" width="72.333" height="12"></rect><path d="M453.917,454.3008,439.8076,327.4414A20.4882,20.4882,0,0,0,419.4238,309.2H391.39V289.85a44.365,44.365,0,0,0-43.5429-44.3063c-24.7925-.4248-45.084,20.2965-45.084,45.0926V309.2H274.7285a20.4883,20.4883,0,0,0-20.3838,18.2422l-14.164,127.35a33.3819,33.3819,0,0,0,33.1777,37.0737h146.94a33.8255,33.8255,0,0,0,33.6182-37.5649ZM314.7627,289.85a32.3513,32.3513,0,0,1,31.7559-32.3081c18.0766-.3076,32.871,14.8732,32.871,32.9524V309.2H314.7627ZM436.5635,472.5947a21.8536,21.8536,0,0,1-16.2647,7.271h-146.94a21.3834,21.3834,0,0,1-21.252-23.747l14.1641-127.35a8.5018,8.5018,0,0,1,8.458-7.5689h28.0342V345h12V321.2H379.39V345h12V321.2h28.0342a8.5017,8.5017,0,0,1,8.458,7.5684l14.1094,126.8593A21.8513,21.8513,0,0,1,436.5635,472.5947Z"></path></g></svg>
+              Đơn hàng
+            </div>
+            <div @click="goToAmThuc" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+              <svg class="w-6 h-6 text-gray-600 mr-8" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 115.98 122.88" style="enable-background:new 0 0 115.98 122.88" xml:space="preserve"><g><path d="M17.2,0h59.47c4.73,0,9.03,1.93,12.15,5.05c3.12,3.12,5.05,7.42,5.05,12.15v38.36c0,4.73-1.93,9.03-5.05,12.15 c-3.12,3.12-7.42,5.05-12.15,5.05H46.93L20.81,95.21c-1.21,1.04-3.04,0.9-4.08-0.32c-0.51-0.6-0.74-1.34-0.69-2.07l1.39-20.07H17.2 c-4.73,0-9.03-1.93-12.15-5.05C1.93,64.59,0,60.29,0,55.56V17.2c0-4.73,1.93-9.03,5.05-12.15C8.16,1.93,12.46,0,17.2,0L17.2,0z M102.31,27.98c3.37,0.65,6.39,2.31,8.73,4.65c3.05,3.05,4.95,7.26,4.95,11.9v38.36c0,4.64-1.89,8.85-4.95,11.9 c-3.05,3.05-7.26,4.95-11.9,4.95h-0.61l1.42,20.44l0,0c0.04,0.64-0.15,1.3-0.6,1.82c-0.91,1.07-2.52,1.19-3.58,0.28l-26.22-23.2 H35.01l17.01-17.3h36.04c7.86,0,14.3-6.43,14.3-14.3V29.11C102.35,28.73,102.34,28.35,102.31,27.98L102.31,27.98z M25.68,43.68 c-1.6,0-2.9-1.3-2.9-2.9c0-1.6,1.3-2.9,2.9-2.9h30.35c1.6,0,2.9,1.3,2.9,2.9c0,1.6-1.3,2.9-2.9,2.9H25.68L25.68,43.68z M25.68,29.32c-1.6,0-2.9-1.3-2.9-2.9c0-1.6,1.3-2.9,2.9-2.9H68.7c1.6,0,2.9,1.3,2.9,2.9c0,1.6-1.3,2.9-2.9,2.9H25.68L25.68,29.32z M76.66,5.8H17.2c-3.13,0-5.98,1.28-8.05,3.35C7.08,11.22,5.8,14.06,5.8,17.2v38.36c0,3.13,1.28,5.98,3.35,8.05 c2.07,2.07,4.92,3.35,8.05,3.35h3.34v0.01l0.19,0.01c1.59,0.11,2.8,1.49,2.69,3.08l-1.13,16.26L43.83,67.8 c0.52-0.52,1.24-0.84,2.04-0.84h30.79c3.13,0,5.98-1.28,8.05-3.35c2.07-2.07,3.35-4.92,3.35-8.05V17.2c0-3.13-1.28-5.98-3.35-8.05 C82.65,7.08,79.8,5.8,76.66,5.8L76.66,5.8z"></path></g></svg>
+             Chatting
+            </div>
+            <div @click="goToFeedback" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+              <svg class="w-6 h-6 text-gray-600 mr-8" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 23C3.18116 23.0001 3.3589 22.9506 3.514 22.857L18.063 14.127L28.586 18.91C28.743 18.9815 28.9159 19.0112 29.0878 18.9961C29.2597 18.981 29.4248 18.9217 29.567 18.824L43.536 9.19999L43.036 11.684C42.9839 11.944 43.0372 12.2141 43.1842 12.4349C43.3313 12.6556 43.56 12.8089 43.82 12.861C43.8859 12.8738 43.9529 12.8801 44.02 12.88C44.2504 12.8798 44.4736 12.8001 44.652 12.6543C44.8303 12.5086 44.9529 12.3057 44.999 12.08L45.979 7.17999C46.0321 6.92022 45.9799 6.64998 45.8338 6.4287C45.6877 6.20742 45.4598 6.05321 45.2 5.99999L40.3 5.01999C40.0401 4.96695 39.7697 5.01933 39.5485 5.1656C39.3272 5.31188 39.173 5.54008 39.12 5.79999C39.067 6.0599 39.1193 6.33024 39.2656 6.55153C39.4119 6.77283 39.6401 6.92695 39.9 6.97999L42.485 7.49799L28.9 16.855L18.414 12.09C18.2664 12.0229 18.1048 11.9926 17.943 12.0019C17.7811 12.0111 17.624 12.0595 17.485 12.143L2.485 21.143C2.29767 21.2556 2.15241 21.4265 2.07144 21.6296C1.99048 21.8326 1.97827 22.0566 2.03668 22.2672C2.0951 22.4779 2.22092 22.6636 2.39489 22.7959C2.56887 22.9282 2.78141 22.9999 3 23V23Z" fill="black"></path>
+<path d="M45 40V18C45 17.4696 44.7893 16.9609 44.4142 16.5858C44.0391 16.2107 43.5304 16 43 16H38C37.4696 16 36.9609 16.2107 36.5858 16.5858C36.2107 16.9609 36 17.4696 36 18V40H34V25C34 24.4696 33.7893 23.9609 33.4142 23.5858C33.0391 23.2107 32.5304 23 32 23H27C26.4696 23 25.9609 23.2107 25.5858 23.5858C25.2107 23.9609 25 24.4696 25 25V40H23V22C23 21.4696 22.7893 20.9609 22.4142 20.5858C22.0391 20.2107 21.5304 20 21 20H16C15.4696 20 14.9609 20.2107 14.5858 20.5858C14.2107 20.9609 14 21.4696 14 22V40H12V28C12 27.4696 11.7893 26.9609 11.4142 26.5858C11.0391 26.2107 10.5304 26 10 26H5C4.46957 26 3.96086 26.2107 3.58579 26.5858C3.21071 26.9609 3 27.4696 3 28V40C2.73478 40 2.48043 40.1054 2.29289 40.2929C2.10536 40.4804 2 40.7348 2 41C2 41.2652 2.10536 41.5196 2.29289 41.7071C2.48043 41.8946 2.73478 42 3 42H45C45.2652 42 45.5196 41.8946 45.7071 41.7071C45.8946 41.5196 46 41.2652 46 41C46 40.7348 45.8946 40.4804 45.7071 40.2929C45.5196 40.1054 45.2652 40 45 40ZM38 18H43V40H38V18ZM27 25H32V40H27V25ZM16 22H21V40H16V22ZM5 28H10V40H5V28Z" fill="black"></path>
 </svg>
-
-    
-                   Ẩm Thực
-    </div>
-    <div @click="goToFeedback" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700">
-        <svg class="w-6 h-6 text-yellow-600 mr-2 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v5m0 0 2-2m-2 2-2-2M3 6v1a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1Zm2 2v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8H5Z"/>
-</svg>
-
-    
-    
-                    Ý Kiến
-    </div>
-                <div  @click="logout" class="flex items-center px-4 py-2 mt-2 text-gray-100 hover:bg-gray-700">
-                    <svg class="w-6 h-6 text-blue-600 mr-2 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"/>
-    </svg>
-    
-                   Đăng Xuất
-    </div>
-            </nav>
+            Doanh thu
+            </div>
+            <div @click="logout" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+              <svg class="w-6 h-6 text-blue-600 mr-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
+              </svg>
+              
+              Đăng Xuất
+            </div>
+          </nav>
         </div>
-    </div>
-    
-    </div>
-    
-    
-      
       </div>
-    
-    </template>
-    
-    <script>
-    import router from "../router/index";
-    export default {
-        name:'NavBar',
-        data() {
-        return {
-          username: localStorage.getItem("username"),
-          isLoggedIn : localStorage.getItem("isAuthenticated")
-        };
-      },
-        methods:{
-            goToTinhThanh() {
-          this.$router.push({ name: 'TinhThanh' });
-        },
-        goToDiaDiem() {
-          this.$router.push({ name: 'DiaDiem' });
-        },
-        goToAmThuc() {
-          this.$router.push({ name: 'AmThuc' });
-        },
-        goToFeedback() {
-          this.$router.push({ name: 'Feedback' });
-        },
-    
-        dangXuat() {
-          console.log("logout");
-          // localStorage.setItem("isAuthenticated", false);
-          localStorage.removeItem("username");
-          localStorage.removeItem("isAuthenticated");
-          document.cookie =
-            "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-          // this.checkAuthentication();
-          router.push('/login');
-        },
-        logout() {
-    // Xóa cookie chứa access token và refresh token
-    document.cookie = "accessToken=; path=/; max-age=0; secure;";
-    document.cookie = "refreshToken=; path=/; max-age=0; secure;";
-    
-    // Cập nhật trạng thái ứng dụng (nếu cần thiết)
-    // Ví dụ: gọi một hàm để cập nhật trạng thái người dùng hoặc chuyển hướng
-    console.log("Đã đăng xuất thành công.");
+    </div>
+  </div>
+</template>
 
-    // Chuyển hướng về trang đăng nhập hoặc trang khác
-    router.push('/login'); // Thay đổi đường dẫn nếu cần
-}
-    
-    
+  
+  <script>
+  import router from "../router/index";
+  export default {
+      name:'NavBar',
+      data() {
+      return {
+          isNavbarVisible: true
+      };
+    },
+      methods:{
+          goToTinhThanh() {
+        this.$router.push({ name: 'Product' });
       },
-      
-        }
+      goToDiaDiem() {
+        this.$router.push({ name: 'OrderList' });
+      },
+      goToAmThuc() {
+        this.$router.push({ name: 'ProductAdmin' });
+      },
+      goToFeedback() {
+        this.$router.push({ name: 'ChartDashboard' });
+      },
+      goToAdminDashboard() {
+        this.$router.push({ path: '/admin' });
+      },
+  
+      logout() {
+  // Xóa cookie chứa access token và refresh token
+  document.cookie = "accessToken=; path=/; max-age=0; secure;";
+  document.cookie = "refreshToken=; path=/; max-age=0; secure;";
+  
+  // Cập nhật trạng thái ứng dụng (nếu cần thiết)
+  // Ví dụ: gọi một hàm để cập nhật trạng thái người dùng hoặc chuyển hướng
+  console.log("Đã đăng xuất thành công.");
+
+  // Chuyển hướng về trang đăng nhập hoặc trang khác
+  router.push('/login'); // Thay đổi đường dẫn nếu cần
+}
+  
+  
+    },
     
-    </script>
-    
-    <style>
-    
-    </style>
+      }
+  
+  </script>
+  
+  <style>
+  
+  </style>

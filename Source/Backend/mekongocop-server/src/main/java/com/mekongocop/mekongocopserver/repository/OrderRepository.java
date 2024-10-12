@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
@@ -36,4 +37,20 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     BigDecimal totalRevenueThisYear();
 
 
+    @Query("SELECT SUM(oi.price * oi.quantity) FROM OrderItem oi " +
+            "JOIN oi.order o " +
+            "JOIN oi.product p " +
+            "WHERE p.store.store_id = :storeId AND o.status = :status AND o.created_at BETWEEN :startTime AND :endTime")
+    BigDecimal calculateTotalRevenueByStore(@Param("storeId") int storeId,
+                                            @Param("startTime") LocalDateTime startTime,
+                                            @Param("endTime") LocalDateTime endTime,
+                                            @Param("status") String status);
+    @Query("SELECT COUNT(DISTINCT o.order_id) FROM OrderItem oi " +
+            "JOIN oi.order o " +
+            "JOIN oi.product p " +
+            "WHERE p.store.store_id = :storeId AND o.status IN ('Pending', 'Success', 'Cancel') " +
+            "AND o.created_at BETWEEN :startTime AND :endTime")
+    long calculateOrderCountByStore(@Param("storeId") int storeId,
+                                    @Param("startTime") LocalDateTime startTime,
+                                    @Param("endTime") LocalDateTime endTime);
 }

@@ -108,9 +108,9 @@ import axios from 'axios';
         const userRoles = authService.getUserRoles();
         console.log("User roles:", userRoles);
         if (userRoles.includes('ROLE_ADMIN')) {
-          this.$router.push({ name: 'AdminDashboard' });
+          this.$router.push({ path: '/admin' });
         } else if (userRoles.includes('ROLE_SELLER')) {
-          this.$router.push({ name: 'SellerDashboard' });
+          this.$router.push({ path: '/seller' });
         } else {
           this.errorMessage = "Tài khoản không có quyền truy cập!";
         }

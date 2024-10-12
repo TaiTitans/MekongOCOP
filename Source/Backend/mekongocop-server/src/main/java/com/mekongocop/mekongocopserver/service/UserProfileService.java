@@ -178,4 +178,13 @@ public class UserProfileService {
         return userProfileRepository.countByUserId(userId) > 0;
     }
 
+    public UserProfileDTO getProfileByUserId(int userId){
+        UserProfile userProfile = userProfileRepository.findByUserId(userId);
+        if (userProfile == null) {
+            throw new EntityNotFoundException("User profile not found for userId: " + userId);
+        }
+        UserProfileDTO userProfileDTO = convertUserProfileToUserProfileDTO(userProfile);
+        return userProfileDTO;
+    }
+
 }

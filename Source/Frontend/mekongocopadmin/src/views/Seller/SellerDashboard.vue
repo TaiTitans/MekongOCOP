@@ -3,7 +3,6 @@
          <NavBar/>
  <router-view/>
      </div>
-     <h1>Seller Dashboard</h1>
  </template>
  
  <script>

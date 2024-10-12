@@ -1,5 +1,7 @@
 package com.mekongocop.mekongocopserver.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 public class StoreDTO {
@@ -24,7 +26,9 @@ public class StoreDTO {
     public String store_banner;
     public String store_description;
     public int user_id;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     public Date created_at;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     public Date updated_at;
     public String status;
 

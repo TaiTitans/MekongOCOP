@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import TinhThanh from '../views/TinhThanh.vue'
-import DiaDiem from '../views/DiaDiem.vue'
-import AmThuc from '../views/AmThuc.vue'
-import Feedback from '../views/Feedback.vue'
+import Product from '../views/Seller/Product.vue'
+import StoreAdmin from '../views/Admin/StoreAdmin.vue'
+import ApproveAdmin from '../views/Admin/ApproveAdmin.vue'
+import OrderList from '../views/Seller/Order.vue'
+import ChartDashboard from '../views/Seller/ChartDashboard.vue'
 import Login from '../views/Login.vue'
 import SellerDashboard from '../views/Seller/SellerDashboard.vue'
 import authService from '../services/auth.service'
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
+import UserAdmin from '../views/Admin/UserAdmin.vue'
+import DashboardChart from '../views/Admin/DashboardChart.vue'
+import ProductAdmin from'../views/Admin/ProductAdmin.vue'
+import Store from '../views/Seller/Store.vue'
 const routes = [
   {
     path: '/login',
@@ -18,7 +22,29 @@ const routes = [
     path: '/seller',
     name: 'SellerDashboard',
     component: SellerDashboard,
-    meta: { requiresSeller: true }
+    meta: { requiresSeller: true },
+    children: [
+{
+  path: '',
+  name: 'Store',
+  component: Store,
+},
+{
+  path: 'order',
+  name: 'OrderList',
+  component: OrderList,
+},
+{
+  path: 'product',
+  name: 'Product',
+  component: Product,
+},
+{
+  path: 'chart',
+  name: 'ChartDashboard',
+  component: ChartDashboard,
+}
+    ]
   },
   {
     path: '/admin',
@@ -26,24 +52,29 @@ const routes = [
     meta: { requiresAdmin: true },
     children: [
       {
-        path: 'tinhthanh',
-        name: 'TinhThanh',
-        component: TinhThanh,
+        path: '',
+        name: 'DashboardChart',
+        component: DashboardChart,
       },
       {
-        path: 'diadiem',
-        name: 'DiaDiem',
-        component: DiaDiem,
+        path: 'user',
+        name: 'UserAdmin',
+        component: UserAdmin,
       },
       {
-        path: 'amthuc',
-        name: 'AmThuc',
-        component: AmThuc,
+        path: 'store',
+        name: 'StoreAdmin',
+        component: StoreAdmin,
       },
       {
-        path: 'feedback',
-        name: 'Feedback',
-        component: Feedback,
+        path: 'product',
+        name: 'ProductAdmin',
+        component: ProductAdmin,
+      },
+      {
+        path: 'approve',
+        name: 'ApproveAdmin',
+        component: ApproveAdmin,
       },
     ],
   }
@@ -80,10 +111,10 @@ router.beforeEach((to, from, next) => {
     
     if (to.meta.requiresSeller && !userRoles.includes('ROLE_SELLER')) {
       console.log("User doesn't have ROLE_SELLER, redirecting to Home");
-      next({ name: 'AdminDashboard' });
+      next({ path: '/admin' });
     } else if (to.meta.requiresAdmin && !userRoles.includes('ROLE_ADMIN')) {
       console.log("User doesn't have ROLE_ADMIN, redirecting to Home");
-      next({ name: 'SellerDashboard' });
+      next({ path: '/seller' });
     } else if (isLoginPage) {
       console.log("User is already logged in, redirecting to Home");
       next({ name: 'Home' });

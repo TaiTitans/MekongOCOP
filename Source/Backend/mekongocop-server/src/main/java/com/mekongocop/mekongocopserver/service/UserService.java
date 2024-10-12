@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -275,6 +276,12 @@ public class UserService {
     public Long getUsersWithRoleSeller() {
         return userRepository.countUsersWithRoleSeller();
     }
-
+    public List<UserDTO> getAllUsers() {
+        List<User> userList = userRepository.findAll();
+        return convertUserListToUserDTOList(userList);
+    }
+    private List<UserDTO> convertUserListToUserDTOList(List<User> userList) {
+        return userList.stream().map(this::convertUserToUserDTO).collect(Collectors.toList());
+    }
 
 }

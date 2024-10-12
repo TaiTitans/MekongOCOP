@@ -24,6 +24,7 @@ import 'package:smart_shop/screens/SignIn/sign_in.dart';
 import 'package:smart_shop/screens/Login/forgot_password.dart';
 
 import '../../screens/Catalogue/province_catalogue.dart';
+import '../../screens/Chatbot/chatbot.dart';
 class AppConstants {
   static Map<String, Widget Function(dynamic)> appRoutes = {
     '/': (_) => const BottomNavigatorBar(),
@@ -58,6 +59,7 @@ class AppConstants {
     NotificationScreen.routeName: (_) => const NotificationScreen(),
     ShippingAddress.routeName: (_) => const ShippingAddress(),
     SignIn.routeName: (_) => const SignIn(),
+    ChatbotApp.routeName: (_) => ChatbotApp(),
     ForgotPasswordScreen.routeName: (_) => const ForgotPasswordScreen(),
   };
 
