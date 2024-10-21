@@ -8,6 +8,10 @@ class OrderService{
     final String apiUrl = dotenv.env['API_URL'] ?? '';
     return '$apiUrl/common/order';
   }
+  String writeReviewUrl(int product_id) {
+    final String apiUrl = dotenv.env['API_URL'] ?? '';
+    return '$apiUrl/common/product/$product_id/review';
+  }
 
 
   String cancelOrderUrl(int orderId) {
@@ -92,5 +96,32 @@ class OrderService{
     }
   }
 
+  Future<Map<String, dynamic>> writeReview(String accessToken, int productId, int rating, String reviewContent) async {
+    final String url = writeReviewUrl(productId);
+    final Map<String, dynamic> body = {
+      'rating': rating,
+      'reviewContent': reviewContent,
+    };
 
+    try {
+      Response response = await _dio.post(
+        url,
+        data: body,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data;
+      } else {
+        throw Exception('Failed to write review: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to write review: $e');
+    }
+  }
 }

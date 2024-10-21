@@ -22,6 +22,7 @@ import 'package:smart_shop/Screens/SignUp/sign_up.dart';
 import 'package:smart_shop/screens/Product/product_catalogue.dart';
 import 'package:smart_shop/screens/SignIn/sign_in.dart';
 import 'package:smart_shop/screens/Login/forgot_password.dart';
+import 'package:smart_shop/screens/chat/chatrealtime.dart';
 
 import '../../screens/Catalogue/province_catalogue.dart';
 import '../../screens/Chatbot/chatbot.dart';
@@ -60,6 +61,10 @@ class AppConstants {
     ShippingAddress.routeName: (_) => const ShippingAddress(),
     SignIn.routeName: (_) => const SignIn(),
     ChatbotApp.routeName: (_) => ChatbotApp(),
+    ChatRealTime.routeName: (context) {
+      final int storeId = ModalRoute.of(context)!.settings.arguments as int; // Get storeId from arguments
+      return ChatRealTime(storeId: storeId); // Pass the storeId to ChatRealTime
+    },
     ForgotPasswordScreen.routeName: (_) => const ForgotPasswordScreen(),
   };
 

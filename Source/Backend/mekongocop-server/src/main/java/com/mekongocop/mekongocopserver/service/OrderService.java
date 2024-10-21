@@ -42,7 +42,7 @@ public class OrderService {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
-    private VNPayService vnPayService;
+    private VietQRService vietQRService;
     @Autowired
     private StoreRepository storeRepository;
 
@@ -53,7 +53,8 @@ public class OrderService {
         orderDTO.setPayment(order.getPayment());
         orderDTO.setStatus(order.getStatus());
         orderDTO.setAddress(order.getAddress());
-        orderDTO.setShip(orderDTO.getShip());
+        orderDTO.setShip(order.getShip());
+        orderDTO.setQr_code_url(order.getQr_code_url());
         orderDTO.setCreated_at(order.getCreated_at());
         orderDTO.setUpdated_at(order.getUpdated_at());
 
@@ -73,6 +74,7 @@ public class OrderService {
         order.setStatus(orderDTO.getStatus());
         order.setAddress(orderDTO.getAddress());
         order.setShip(orderDTO.getShip());
+        order.setQr_code_url(orderDTO.getQr_code_url());
         order.setCreated_at(orderDTO.getCreated_at());
         order.setUpdated_at(orderDTO.getUpdated_at());
 
@@ -168,34 +170,10 @@ public class OrderService {
             orderItemDTO.setPrice(cartItem.getPrice());
             return orderItemDTO;
         }).collect(Collectors.toList()));
-        orderDTO.setCreated_at((Timestamp) new Date());
-        orderDTO.setUpdated_at((Timestamp) new Date());
+        orderDTO.setCreated_at(new Timestamp(new Date().getTime()));
+        orderDTO.setUpdated_at(new Timestamp(new Date().getTime()));
         return orderDTO;
     }
-
-    private void processPayment(OrderDTO orderDTO, BigDecimal totalPrice) {
-        if (orderDTO.getPayment().equals("Cash")) {
-            orderDTO.setStatus("Request");
-        } else if (orderDTO.getPayment().equals("VNPay")) {
-            boolean paymentSuccess = vnPayService.processVNPayPayment(totalPrice);
-            if (paymentSuccess) {
-                orderDTO.setStatus("Pending");
-            } else {
-                throw new RuntimeException("VNPay payment failed.");
-            }
-        } else {
-            throw new IllegalArgumentException("Invalid payment method: " + orderDTO.getPayment());
-        }
-    }
-
-    private Order createOrder(OrderDTO orderDTO, User user) {
-        Order order = convertToEntity(orderDTO);
-        order.setUser(user);
-        orderRepository.save(order);
-        orderItemService.saveAll(order.getItems());
-        return order;
-    }
-
     @Transactional
     public OrderDTO createOrder(String token, String address, String paymentMethod) {
         try {
@@ -210,8 +188,13 @@ public class OrderService {
             OrderDTO orderDTO = createOrderDTO(userId, cart, totalPrice);
             orderDTO.setAddress(address);
             orderDTO.setPayment(paymentMethod);
-            processPayment(orderDTO, totalPrice);
+
+            // Tạo đơn hàng trước khi gọi processPayment
             Order order = createOrder(orderDTO, user);
+            orderDTO.setOrder_id(order.getOrder_id());
+
+            // Gọi processPayment và cập nhật qr_code_url, status
+            processPayment(orderDTO, order);
 
             // Xóa giỏ hàng khỏi Redis sau khi tạo đơn hàng
             cartService.clearCart(token);
@@ -223,6 +206,33 @@ public class OrderService {
         }
     }
 
+    private Order createOrder(OrderDTO orderDTO, User user) {
+        Order order = convertToEntity(orderDTO);
+        order.setUser(user);
+        order.setStatus("Request");
+        orderRepository.save(order);
+        orderItemService.saveAll(order.getItems());
+        return order;
+    }
+
+    private void processPayment(OrderDTO orderDTO, Order order) {
+        if (orderDTO.getPayment().equals("Cash")) {
+            order.setStatus("Request");
+        } else if (orderDTO.getPayment().equals("VietQR")) {
+            String qrCodeUrl = vietQRService.processVietQRPayment(orderDTO.getTotal_price(), "PHAN PHAT TAI", "0349413880", "Thanh toan MekongOCOP "+ orderDTO.getOrder_id());
+            if (qrCodeUrl != null) {
+                order.setStatus("Request");
+                order.setQr_code_url(qrCodeUrl);
+            } else {
+                throw new RuntimeException("VietQR payment failed.");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid payment method: " + orderDTO.getPayment());
+        }
+        orderRepository.save(order);
+        orderDTO.setQr_code_url(order.getQr_code_url());
+        orderDTO.setStatus(order.getStatus());
+    }
     private BigDecimal calculateTotalPrice(List<CartItemDTO> cartItems) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (CartItemDTO cartItem : cartItems) {

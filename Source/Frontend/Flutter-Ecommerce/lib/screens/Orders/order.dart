@@ -20,7 +20,9 @@ class Orders extends StatefulWidget {
 class _OrdersState extends State<Orders> {
   final OrderService _orderService = OrderService();
   Future<Map<String, dynamic>>? _orderFuture;
-
+  int _selectedProductId = 0; // Lưu productId khi chọn từ dropdown
+  int _rating = 0; // Lưu số sao đánh giá
+  final TextEditingController _reviewContentController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -92,7 +94,6 @@ class _OrdersState extends State<Orders> {
       ),
     );
   }
-
   Widget _buildOrdersCard(Map<String, dynamic> order) {
     return Card(
       elevation: 4,
@@ -130,22 +131,29 @@ class _OrdersState extends State<Orders> {
               ],
             ),
             SizedBox(height: 10.h),
-            Text(
-              'Phương thức: ${order['payment'] == 'Cash' ? 'Tiền mặt' : 'Chuyển khoản'}',
-              style: TextStyle(fontSize: 14.sp),
-            ),
-            Text(
-              'Ship: 30.000 đ',
-              style: TextStyle(fontSize: 14.sp),
-            ),
-            SizedBox(height: 10.h),
             _buildOrderItemsList(order['items']),
+            // Hiển thị nút "Viết đánh giá" nếu trạng thái là "Success"
+            if (order['status'] == 'Success')
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () => _showReviewModal(context, order['items']),
+                  child: Text('Viết đánh giá', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.r),
+                    ),
+                  ),
+                ),
+              ),
+            // Hiển thị nút "Huỷ đơn hàng" nếu trạng thái là "Pending"
             if (order['status'] == 'Request')
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
                   onPressed: () => _cancelOrder(order['order_id']),
-                  child: Text('Huỷ đơn hàng', style: TextStyle(color: Colors.black),),
+                  child: Text('Huỷ đơn hàng', style: TextStyle(color: Colors.black)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey,
                     shape: RoundedRectangleBorder(
@@ -159,6 +167,7 @@ class _OrdersState extends State<Orders> {
       ),
     );
   }
+
 
   Widget _buildStatusText(String status) {
     Color textColor;
@@ -204,7 +213,137 @@ class _OrdersState extends State<Orders> {
         return "Không xác định";
     }
   }
+  void _showReviewModal(BuildContext context, List<dynamic> items) async {
+    // Fetch product details before showing the modal
+    List<Map<String, dynamic>> productDetails = await _fetchProductDetails(items);
 
+    if (productDetails.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không có sản phẩm nào để đánh giá')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder( // Use StatefulBuilder to update the UI dynamically
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text("Viết đánh giá"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Bọc DropdownButton trong Container để tránh lỗi tràn
+                    Container(
+                      width: double.infinity, // Đảm bảo DropdownButton chiếm hết chiều rộng có thể
+                      child: DropdownButton<int>(
+                        hint: Text("Chọn sản phẩm"),
+                        value: _selectedProductId != 0 ? _selectedProductId : null,
+                        isExpanded: true, // Đảm bảo DropdownButton sẽ giãn toàn bộ chiều rộng
+                        items: productDetails.map((item) {
+                          return DropdownMenuItem<int>(
+                            value: item['productId'],
+                            child: Text(
+                              item['productName'] ?? 'Sản phẩm không rõ',
+                              overflow: TextOverflow.ellipsis, // Giới hạn tên và thêm "..." nếu quá dài
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (int? newValue) {
+                          setState(() {
+                            _selectedProductId = newValue!;
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    // Hệ thống đánh giá bằng sao
+                    Text("Đánh giá:"),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (index) {
+                        return IconButton(
+                          icon: Icon(
+                            index < _rating ? Icons.star : Icons.star_border,
+                            color: Colors.yellow,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _rating = index + 1;
+                            });
+                          },
+                        );
+                      }),
+                    ),
+                    // Ô nhập nội dung đánh giá
+                    TextField(
+                      controller: _reviewContentController,
+                      decoration: InputDecoration(
+                        labelText: "Nội dung đánh giá",
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                // Nút hủy
+                TextButton(
+                  child: Text("Hủy"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                // Nút gửi đánh giá
+                ElevatedButton(
+                  child: Text("Gửi đánh giá"),
+                  onPressed: () async {
+                    if (_selectedProductId != 0 && _rating > 0) {
+                      await _submitReview();
+                      Navigator.of(context).pop();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Vui lòng chọn sản phẩm và đánh giá")),
+                      );
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+
+  // Gửi đánh giá sản phẩm
+  Future<void> _submitReview() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final accessToken = sharedPreferences.getString('accessToken') ?? '';
+
+    if (accessToken.isNotEmpty) {
+      try {
+        await _orderService.writeReview(
+          accessToken,
+          _selectedProductId,
+          _rating,
+          _reviewContentController.text,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gửi đánh giá thành công')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi gửi đánh giá: $e')),
+        );
+      }
+    }
+  }
   Future<void> _cancelOrder(int orderId) async {
     final sharedPreferences = await SharedPreferences.getInstance();
     final accessToken = sharedPreferences.getString('accessToken') ?? '';

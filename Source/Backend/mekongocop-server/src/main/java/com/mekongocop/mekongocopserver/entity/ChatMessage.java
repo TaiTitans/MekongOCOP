@@ -1,5 +1,6 @@
 package com.mekongocop.mekongocopserver.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -18,8 +19,12 @@ public class ChatMessage {
     @JoinColumn(name = "session_id", nullable = false)
     private ChatSessions chatSession;
 
-    private int sender_id;
+    @ManyToOne
+    @JoinColumn(name = "sender_id", nullable = false)
+    private User sender;
     private String message_content;
+    @Temporal(TemporalType.TIMESTAMP)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private Timestamp created_at;
     private Boolean is_read;
 

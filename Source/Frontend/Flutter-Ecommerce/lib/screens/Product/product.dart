@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_shop/Common/Widgets/shimmer_effect.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
+import 'package:smart_shop/screens/chat/chatrealtime.dart';
 
 
 import '../../model/product.dart';
@@ -128,6 +129,7 @@ class _ProductState extends State<Product> {
         onTap: (quantity) {
           _addToCart(quantity, _accessToken!);
         },
+        storeId: _product!.store,
       ),
     );
   }
@@ -426,7 +428,11 @@ class _ProductState extends State<Product> {
 
 
 
-  Widget _buildBottomSheet({required BuildContext context, required Function(int) onTap}) {
+  Widget _buildBottomSheet({
+    required BuildContext context,
+    required Function(int) onTap,
+    required int storeId, // Pass the storeId here
+  }) {
     int quantity = 1;
     return Container(
       height: 80.0,
@@ -451,19 +457,20 @@ class _ProductState extends State<Product> {
           ),
           Expanded(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // This aligns buttons evenly
               children: [
                 // Ô nhập số lượng sản phẩm
                 SizedBox(
                   width: 80.0,
-                  height: 52.0,// Đặt chiều rộng cố định cho ô nhập số lượng
+                  height: 52.0,
                   child: TextField(
                     keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center, // Căn giữa hintText
+                    textAlign: TextAlign.center,
                     onChanged: (value) {
                       quantity = int.tryParse(value) ?? 1;
                     },
                     decoration: InputDecoration(
-                      hintText: '1', // Đặt giá trị hintText là '1'
+                      hintText: '1',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -472,12 +479,13 @@ class _ProductState extends State<Product> {
                 ),
                 SizedBox(width: 16.0),
 
-                // Nút thêm vào giỏ hàng
-                Expanded(
+                // Nút thêm vào giỏ hàng with reduced width
+                SizedBox(
+                  width: 150.0, // Set the width of the button
                   child: ElevatedButton(
                     onPressed: () => onTap(quantity),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
+                      backgroundColor: Colors.deepPurple,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -489,6 +497,33 @@ class _ProductState extends State<Product> {
                     ),
                   ),
                 ),
+                SizedBox(width: 2.0),
+
+                // Nút Liên hệ with reduced width
+                SizedBox(
+                  width: 80.0, // Set the width of the button
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Pass storeId to ChatRealTime screen
+                      Navigator.pushNamed(
+                        context,
+                        ChatRealTime.routeName,
+                        arguments: storeId,  // Pass the storeId here
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(
+                      'Liên hệ',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -496,6 +531,8 @@ class _ProductState extends State<Product> {
       ),
     );
   }
+
+
 
   void _showCustomSnackbar(String message, Color backgroundColor) {
     final overlay = Overlay.of(context);

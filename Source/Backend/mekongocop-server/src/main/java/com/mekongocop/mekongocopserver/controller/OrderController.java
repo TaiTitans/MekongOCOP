@@ -28,7 +28,7 @@ public class OrderController {
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
     private OrderRepository orderRepository;
-    @PostMapping("/common/order")
+    @PostMapping("common/order")
     public ResponseEntity<StatusResponse<OrderDTO>> addOrder(@RequestHeader("Authorization") String token, @RequestParam String address, @RequestParam String payment) {
         try {
             String validToken = TokenExtractor.extractToken(token);
