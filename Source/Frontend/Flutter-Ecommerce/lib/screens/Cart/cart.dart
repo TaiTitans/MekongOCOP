@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -140,9 +141,9 @@ class _CartState extends State<Cart> {
                     ),
                   ),
                   ListTile(
-                    title: Text("VNPay"),
+                    title: Text("VietQR"),
                     leading: Radio<String>(
-                      value: "VNPay",
+                      value: "VietQR",
                       groupValue: _selectedPaymentMethod,
                       onChanged: (value) {
                         setState(() {
@@ -180,9 +181,19 @@ class _CartState extends State<Cart> {
 
   // Create order
   Future<void> _createOrder(String address, String paymentMethodId) async {
-    await _cartService.createOrder(address, paymentMethodId, accessToken);
-    // After creating the order, you can navigate the user to a confirmation page
+    final response = await _cartService.createOrder(address, paymentMethodId, accessToken);
+
+    if (response['status'] == 'Success') {
+      // Extract QR code URL
+      String qrCodeUrl = response['data']['qr_code_url'];
+
+      // Show QR code dialog or modal
+      _showQRCodeDialog(qrCodeUrl);
+    } else {
+      _showErrorSnackbar(response['message']);
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -338,6 +349,33 @@ class _CartState extends State<Cart> {
           ),
         ],
       ),
+    );
+  }
+  void _showQRCodeDialog(String qrCodeUrl) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("QR Code thanh toán"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Hiển thị hình ảnh QR code
+              Image.memory(base64Decode(qrCodeUrl.split(',')[1])),
+              SizedBox(height: 20),
+              Text("Scan QR code để hoàn tất thanh toán"),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Đóng"),
+            ),
+          ],
+        );
+      },
     );
   }
   String formatCurrency(double price) {

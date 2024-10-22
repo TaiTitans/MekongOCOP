@@ -93,7 +93,7 @@ class CartService {
   }
 
   // Create order
-  Future<void> createOrder(String addressId, String paymentMethodId, String accessToken) async {
+  Future<Map<String, dynamic>> createOrder(String addressId, String paymentMethodId, String accessToken) async {
     try {
       final response = await _dio.post(
         createOrderUrl(addressId, paymentMethodId),
@@ -105,11 +105,16 @@ class CartService {
         ),
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode == 200) {
+        // Trả về dữ liệu phản hồi dưới dạng Map
+        return response.data; // Giả sử server trả về một đối tượng JSON
+      } else {
         throw Exception('Failed to create order');
       }
     } catch (e) {
       print('Error: $e');
+      return {'status': 'Error', 'message': e.toString()}; // Trả về thông điệp lỗi
     }
   }
+
 }

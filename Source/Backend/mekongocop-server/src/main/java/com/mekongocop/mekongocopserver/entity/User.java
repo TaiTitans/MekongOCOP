@@ -80,18 +80,18 @@ public class User implements UserDetails {
         this.roles.add(role);
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer user_id;
-    private String username;
-    private String password;
-    private String email;
-    private String oauth_provider;
-    private String oauth_id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Integer user_id;
+        private String username;
+        private String password;
+        private String email;
+        private String oauth_provider;
+        private String oauth_id;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name="users_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name="role_id"))
-    private Set<Role> roles = new HashSet<>();
+        @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+        @JoinTable(name="users_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name="role_id"))
+        private Set<Role> roles = new HashSet<>();
 
 
     @Override
