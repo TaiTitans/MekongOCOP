@@ -22,7 +22,7 @@ class PrivacyPolicy extends StatelessWidget {
       child: CustomAppBar(
         isHome: false,
         title: 'Chính sách bảo mật',
-        fixedHeight: 88.0,
+        fixedHeight: 100.0,
         enableSearchField: false,
         leadingIcon: Icons.arrow_back,
         leadingOnTap: () {

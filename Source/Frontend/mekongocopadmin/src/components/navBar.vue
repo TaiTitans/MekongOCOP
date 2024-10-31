@@ -68,7 +68,7 @@
         this.$router.push({ name: 'OrderList' });
       },
       goToAmThuc() {
-        this.$router.push({ name: 'ProductAdmin' });
+        this.$router.push({ name: 'Chat' });
       },
       goToFeedback() {
         this.$router.push({ name: 'ChartDashboard' });

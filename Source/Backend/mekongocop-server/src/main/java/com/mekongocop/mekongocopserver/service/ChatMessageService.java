@@ -1,8 +1,6 @@
 package com.mekongocop.mekongocopserver.service;
 
-import com.mekongocop.mekongocopserver.dto.ChatAttachmentDTO;
 import com.mekongocop.mekongocopserver.dto.ChatMessageDTO;
-import com.mekongocop.mekongocopserver.entity.ChatAttachment;
 import com.mekongocop.mekongocopserver.entity.ChatMessage;
 import com.mekongocop.mekongocopserver.entity.ChatSessions;
 import com.mekongocop.mekongocopserver.entity.User;
@@ -23,8 +21,6 @@ public class ChatMessageService {
     @Autowired
     private ChatMessageRepository chatMessageRepository;
     @Autowired
-    private ChatAttachmentService chatAttachmentService;
-    @Autowired
     @Lazy
     private ChatSessionsRepository chatSessionsRepository;
     @Autowired
@@ -34,39 +30,26 @@ public class ChatMessageService {
 
     public ChatMessage convertToEntity(ChatMessageDTO messageDTO, ChatSessions chatSession, User sender) {
         ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setMessage_id(messageDTO.getMessage_id());
+        chatMessage.setMessageId(messageDTO.getMessage_id());
         chatMessage.setChatSession(chatSession);  // ChatSession entity từ service hoặc repository
         chatMessage.setSender(sender);            // User entity của người gửi
-        chatMessage.setMessage_content(messageDTO.getMessage_content());
-        chatMessage.setCreated_at(messageDTO.getCreated_at());
-        chatMessage.setIs_read(messageDTO.is_read());
+        chatMessage.setMessageContent(messageDTO.getMessage_content());
+        chatMessage.setCreatedAt(messageDTO.getCreated_at());
+        chatMessage.setIsRead(messageDTO.isIs_read());
 
-        // Sửa lỗi tại đây
-        List<ChatAttachment> attachments = messageDTO.getAttachments().stream()
-                .map(attachmentDTO -> chatAttachmentService.convertToEntity(attachmentDTO, chatMessage))// Gọi hàm convertToEntity cho ChatAttachment
-                .collect(Collectors.toList());
-
-
-        chatMessage.setAttachments(attachments);
         return chatMessage;
     }
 
 
     public ChatMessageDTO convertToDTO(ChatMessage chatMessage) {
         ChatMessageDTO messageDTO = new ChatMessageDTO();
-        messageDTO.setMessage_id(chatMessage.getMessage_id());
-        messageDTO.setSession_id(chatMessage.getChatSession().getSession_id());
+        messageDTO.setMessage_id(chatMessage.getMessageId());
+        messageDTO.setSession_id(chatMessage.getChatSession().getSessionId());
         messageDTO.setSender_id(chatMessage.getSender().getUser_id());
-        messageDTO.setMessage_content(chatMessage.getMessage_content());
-        messageDTO.setCreated_at(chatMessage.getCreated_at());
-        messageDTO.set_read(chatMessage.getIs_read());
+        messageDTO.setMessage_content(chatMessage.getMessageContent());
+        messageDTO.setCreated_at(chatMessage.getCreatedAt());
+        messageDTO.setIs_read(chatMessage.getIsRead());
 
-        // Chuyển đổi các file đính kèm (nếu có)
-        List<ChatAttachmentDTO> attachmentDTOs = chatMessage.getAttachments().stream()
-                .map(attachment -> chatAttachmentService.convertToDTO(attachment)) // Correct method reference
-                .collect(Collectors.toList());
-
-        messageDTO.setAttachments(attachmentDTOs);
         return messageDTO;
     }
 
@@ -87,15 +70,15 @@ public class ChatMessageService {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setChatSession(chatSession);
         chatMessage.setSender(sender);
-        chatMessage.setMessage_content(messageDto.getMessage_content());
-        chatMessage.setCreated_at(new Timestamp(System.currentTimeMillis()));
-        chatMessage.setIs_read(false);
+        chatMessage.setMessageContent(messageDto.getMessage_content());
+        chatMessage.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        chatMessage.setIsRead(false);
 
         // Lưu tin nhắn vào database
         chatMessageRepository.save(chatMessage);
 
         // Cập nhật thời gian mới nhất cho ChatSession
-        chatSession.setUpdated_at(new Timestamp(System.currentTimeMillis()));
+        chatSession.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         chatSessionsService.save(chatSession);
     }
 

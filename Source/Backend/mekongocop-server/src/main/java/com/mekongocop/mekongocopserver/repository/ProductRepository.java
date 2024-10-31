@@ -2,6 +2,7 @@ package com.mekongocop.mekongocopserver.repository;
 
 import com.mekongocop.mekongocopserver.entity.Product;
 import com.mekongocop.mekongocopserver.entity.Store;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,4 +32,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT COUNT(p) FROM Product p WHERE p.store.store_id = :storeId")
     Long countProductsByStore(@Param("storeId") int storeId);
+
+    @Query("SELECT p FROM Product p WHERE LOWER(p.product_name) LIKE LOWER(CONCAT('%', :productName, '%'))")
+    Page<Product> findByProductNameContainingIgnoreCase(@Param("productName") String productName, Pageable pageable);
 }

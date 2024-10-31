@@ -1,11 +1,13 @@
 package com.mekongocop.mekongocopserver.config;
 
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOServer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
+
+
+@org.springframework.context.annotation.Configuration
 public class SocketIOConfig {
 
     @Value("${socket-server.host}")
@@ -22,5 +24,4 @@ public class SocketIOConfig {
         config.setOrigin("*");
         return new SocketIOServer(config);
     }
-
 }

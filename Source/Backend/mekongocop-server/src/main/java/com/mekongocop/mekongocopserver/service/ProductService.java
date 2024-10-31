@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -456,6 +458,50 @@ public class ProductService {
 
     private List<ProductDTO> convertProductListToProductDTOList(List<Product> products) {
         return products.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    public Page<ProductDTO> searchProducts(String productName, int page, int size) {
+        String redisKey = "product_search::" + productName.toLowerCase() + "::page::" + page + "::size::" + size;
+
+        // Try to get the product list from Redis cache
+        try (Jedis jedis = jedisPool.getResource()) {
+            String cachedProducts = jedis.get(redisKey);
+            if (cachedProducts != null) {
+                return deserializeProductDTOPage(cachedProducts, page, size);  // Thay đổi phần deserialization
+            }
+        }
+
+        // Fetch từ database nếu không có trong Redis
+        Page<Product> productsPage = productRepository.findByProductNameContainingIgnoreCase(productName, PageRequest.of(page, size));
+        List<ProductDTO> productDTOList = productsPage.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
+        // Serialize sản phẩm thành JSON và lưu vào Redis
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.setex(redisKey, 3600, serializeProductDTOList(productDTOList));  // Lưu dạng list thay vì page
+        }
+
+        return new PageImpl<>(productDTOList, PageRequest.of(page, size), productsPage.getTotalElements());
+    }
+
+    // Serialize ProductDTO list to JSON for Redis
+    private String serializeProductDTOList(List<ProductDTO> productDTOList) {
+        try {
+            return new ObjectMapper().writeValueAsString(productDTOList);
+        } catch (Exception e) {
+            throw new RuntimeException("Error serializing product DTO list", e);
+        }
+    }
+
+    // Deserialize list và tái tạo Page
+    private Page<ProductDTO> deserializeProductDTOPage(String data, int page, int size) {
+        try {
+            List<ProductDTO> productDTOList = new ObjectMapper().readValue(data, new TypeReference<List<ProductDTO>>() {});
+            return new PageImpl<>(productDTOList, PageRequest.of(page, size), productDTOList.size());
+        } catch (Exception e) {
+            throw new RuntimeException("Error deserializing product DTO list", e);
+        }
     }
 
 }

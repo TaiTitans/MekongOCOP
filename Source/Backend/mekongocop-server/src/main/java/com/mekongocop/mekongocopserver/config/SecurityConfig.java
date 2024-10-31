@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v*/otp/**").permitAll()
                         .requestMatchers("/api/v*/user/**").permitAll()
                         .requestMatchers("/api/v*/order").permitAll()
+                        .requestMatchers("/api/v*/chat/**").permitAll()
                         .requestMatchers("/api/v*/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/v*/seller/**").hasRole("SELLER")
                         .requestMatchers("/api/v*/common/**").hasAnyRole("ADMIN","BUYER", "SELLER")

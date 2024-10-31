@@ -12,12 +12,15 @@ import requests
 import os
 from dotenv import load_dotenv
 import re
+
 # Load biến môi trường từ file .env
 load_dotenv()
 
 # Lấy API key và CSE ID từ biến môi trường
 api_key = os.getenv('API_KEY')
 cse_id = os.getenv('CSE_ID')
+
+# Đảm bảo đầu ra tiêu chuẩn (stdout) sử dụng UTF-8
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8')
 else:
@@ -38,8 +41,49 @@ except Exception as e:
     logger.error(f"Không thể tải PhoBERT: {str(e)}")
     sys.exit(1)
 
-# Hàm bất đồng bộ tìm kiếm thông tin từ Google bằng Google Custom Search API
-async def google_search(query, api_key, cse_id, num_results=5):
+# Từ điển các viết tắt thông dụng
+abbreviation_dict = {
+    "i": "đi",
+    "s": "sao",
+    "k": "không",
+    "xc":"xin chào",
+    "ko": "không",
+    "tn": "tên",
+    "dc": "được",
+    "sdt": "số điện thoại",
+    "pls": "làm ơn",
+    "ns": "nói",
+    "sn": "sinh nhật",
+    "kh": "khách hàng",
+    "ad": "admin",
+    "nv": "nhân viên",
+    "bc": "báo cáo",
+    "vs": "vệ sinh",
+    "ht": "hỗ trợ",
+    "d/c": "địa chỉ",
+    "kb": "kết bạn",
+    "b": "bạn",
+    "r": "rồi",
+    "bt": "bình thường",
+    "bthg": "bình thường",
+    "tgd": "thời gian",
+    "t/g": "thời gian",
+    "tg": "thời gian",
+    "stt": "status",
+    "mng": "mọi người",
+    "z": "zalo",
+    "v": "vậy",
+    "ĐBSCL": "Đồng bằng sông Cửu Long",
+}
+
+# Hàm thay thế các từ viết tắt
+def expand_abbreviations(text):
+    words = text.split()
+    expanded_words = [abbreviation_dict.get(word.lower(), word) for word in words]
+    return " ".join(expanded_words)
+
+# Hàm đồng bộ tìm kiếm thông tin từ Google bằng Google Custom Search API
+def google_search(query, api_key, cse_id, num_results=5):
     url = "https://www.googleapis.com/customsearch/v1"
     params = {
         "q": query,
@@ -47,16 +91,14 @@ async def google_search(query, api_key, cse_id, num_results=5):
         "key": api_key,
         "num": num_results
     }
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url, params=params, timeout=5) as response:
-                results = await response.json()
-                return results.get('items', [])
-        except asyncio.TimeoutError:
-            logger.error("Google Custom Search API request timed out")
-            return []
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        results = response.json()
+        return results.get('items', [])
+    except requests.Timeout:
+        logger.error("Google Custom Search API request timed out")
+        return []
 
-\
 # Hàm sinh câu trả lời từ Google Search
 def generate_response_from_google_results(search_results):
     combined_text = " ".join([result['snippet'] for result in search_results if 'snippet' in result])
@@ -83,19 +125,19 @@ def load_data():
 # Tải dữ liệu từ file H5
 questions, answers, question_embeddings = load_data()
 
-# Hàm lấy embedding từ PhoBERT
+# Hàm lấy embedding từ PhoBERT, sử dụng hàm mở rộng từ viết tắt
 def get_phobert_embedding(text):
-    tokens = tokenizer(text, return_tensors='pt', padding=True, truncation=True, max_length=256)
+    # Mở rộng các từ viết tắt trong câu hỏi người dùng
+    expanded_text = expand_abbreviations(text)
+    
+    tokens = tokenizer(expanded_text, return_tensors='pt', padding=True, truncation=True, max_length=256)
     with torch.no_grad():
         outputs = phobert(**tokens)
     return outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
 
-
-
-
 # Endpoint trả lời câu hỏi
 @app.route('/ask', methods=['POST'])
-async def ask():
+def ask():
     data = request.json
     user_input = data.get('question', '')
     
@@ -117,8 +159,8 @@ async def ask():
     if max_similarity > 0.8:
         response = answers[most_similar_index]
     else:
-        # Tìm kiếm bất đồng bộ với Google Custom Search API
-        search_results = await google_search(user_input, api_key, cse_id)
+        # Tìm kiếm đồng bộ với Google Custom Search API
+        search_results = google_search(user_input, api_key, cse_id)
         response = generate_response_from_google_results(search_results)
 
     return jsonify({
@@ -126,6 +168,7 @@ async def ask():
         "response": response,
         "similarity": max_similarity
     })
+
 # Khởi chạy Flask app
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

@@ -15,4 +15,10 @@ public interface ChatSessionsRepository extends JpaRepository<ChatSessions, Inte
     List<ChatSessions> findByStore_StoreId(@Param("storeId") int storeId);
     @Query("SELECT cs FROM ChatSessions cs WHERE cs.user.user_id = :userId AND cs.store.store_id = :storeId")
     Optional<ChatSessions> findByUserIdAndStoreId(@Param("userId") int userId, @Param("storeId") int storeId);
+    @Query("SELECT cs FROM ChatSessions cs WHERE cs.user.user_id = :userId")
+    List<ChatSessions> findByUser_Id(@Param("userId") int userId);
+
+    @Query("SELECT cs FROM ChatSessions cs WHERE cs.store.store_id = :storeId")
+    List<ChatSessions> findByStore_Id(@Param("storeId") int storeId);
+
 }
