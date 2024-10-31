@@ -11,6 +11,7 @@ import com.mekongocop.mekongocopserver.service.UserService;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import com.mekongocop.mekongocopserver.util.TokenExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -183,6 +184,26 @@ public class ProductController {
     public Long countTotalProducts(@PathVariable int storeId) {
         return productRepository.countProductsByStore(storeId);
     }
+    @GetMapping("common/product/search")
+    public ResponseEntity<?> searchProducts(@RequestParam String productName,
+                                            @RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "10") int size) {
+        if (productName == null || productName.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Product name must be provided for searching.");
+        }
+
+        try {
+            Page<ProductDTO> products = productService.searchProducts(productName, page, size);
+            if (products.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("An error occurred while searching for products.");
+        }
+    }
+
+
 }
 
 

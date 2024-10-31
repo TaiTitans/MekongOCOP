@@ -16,34 +16,65 @@ class ChatSocketService {
 
   // Initialize the Socket.IO connection
   void initializeSocket() {
-    // Use the environment variable for the socket URL
-    final String socketUrl = dotenv.env['API_SOCKET_URL'] ?? '';
+    // Sử dụng URL từ .env hoặc mặc định
+    final String socketUrl = dotenv.env['API_SOCKET_URL'] ?? 'http://192.168.1.14:8080/ws';
+    print('Socket URL: $socketUrl'); // Log URL
+
     _socket = IO.io(
       socketUrl,
       IO.OptionBuilder()
-          .setTransports(['websocket'])
+          .setTransports(['polling', 'websocket']) // Đảm bảo 'polling' được sử dụng nếu WebSocket thất bại
           .enableForceNew()
-          .build(), // Loại bỏ phần extraHeaders
+          .setTimeout(5000) // Cấu hình timeout cho kết nối
+          .build(),
     );
 
+    // Kết nối thành công
     _socket?.onConnect((_) {
-      print('Socket connected');
+      print('Socket connected: ${_socket?.id}'); // Log id kết nối
     });
 
+    // Mất kết nối
     _socket?.onDisconnect((_) {
       print('Socket disconnected');
     });
 
-    // Listen for received messages
+    // Nhận lỗi kết nối
+    _socket?.on('connect_error', (error) {
+      print('Connection Error: $error');
+    });
+
+    // Quá thời gian kết nối
+    _socket?.on('connect_timeout', (data) {
+      print('Connection Timeout');
+    });
+
+    // Lắng nghe tin nhắn từ server
     _socket?.on('receive_message', (data) {
       print('Received message: $data');
     });
 
-    // Listen for new chat sessions broadcasted to the seller
+    // Lắng nghe sự kiện phiên trò chuyện mới
     _socket?.on('new_chat_session_to_seller', (data) {
       print('New chat session received: $data');
     });
+
+    // Thông tin thêm về trạng thái socket
+    _socket?.on('reconnect_attempt', (data) {
+      print('Reconnecting... Attempt: $data');
+    });
+
+    _socket?.on('reconnect', (attempt) {
+      print('Reconnected successfully after $attempt attempts');
+    });
+
+    _socket?.on('error', (error) {
+      print('General Error: $error');
+    });
+
+    print('Socket initialization completed'); // Log hoàn tất khởi tạo
   }
+
 
   // Emit message to backend
   void sendMessage(String messageContent, int senderId, int storeId) {
@@ -54,8 +85,9 @@ class ChatSocketService {
     };
 
     _socket?.emit('send_message', messageData);
-    print('Message sent: $messageData');
+    print('Message sent: $messageData to storeId: $storeId');
   }
+
 
   // Emit new chat session creation request to backend
   void createNewChatSession(int userId, int storeId) {

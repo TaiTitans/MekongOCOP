@@ -13,7 +13,8 @@ import java.util.List;
 public class ChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int message_id;
+    @Column(name = "message_id")
+    private int messageId;
 
     @ManyToOne
     @JoinColumn(name = "session_id", nullable = false)
@@ -22,13 +23,16 @@ public class ChatMessage {
     @ManyToOne
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
-    private String message_content;
+
+    @Column(name = "message_content")
+    private String messageContent;
+
+    @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private Timestamp created_at;
-    private Boolean is_read;
+    private Timestamp createdAt;
 
-    @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChatAttachment> attachments;
+    @Column(name = "is_read")
+    private Boolean isRead;
+
 }
-

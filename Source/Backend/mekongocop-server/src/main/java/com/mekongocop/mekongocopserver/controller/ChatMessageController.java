@@ -33,18 +33,18 @@ public class ChatMessageController {
         ChatMessage message = chatMessageService.findById(message_id)
                 .orElseThrow(() -> new RuntimeException("Message not found"));
 
-        message.setIs_read(true);
+        message.setIsRead(true);
         chatMessageService.save(message);
 
         return new ResponseEntity<>("Message marked as read", HttpStatus.OK);
     }
     private ChatMessageDTO convertToDto(ChatMessage chatMessage) {
         ChatMessageDTO dto = new ChatMessageDTO();
-        dto.setSession_id(chatMessage.getChatSession().getSession_id());
+        dto.setSession_id(chatMessage.getChatSession().getSessionId());
         dto.setSender_id(chatMessage.getSender().getUser_id());
-        dto.setMessage_content(chatMessage.getMessage_content());
-        dto.setCreated_at(chatMessage.getCreated_at());
-        dto.set_read(chatMessage.getIs_read());
+        dto.setMessage_content(chatMessage.getMessageContent());
+        dto.setCreated_at(chatMessage.getCreatedAt());
+        dto.setIs_read(chatMessage.getIsRead());
         return dto;
     }
 }

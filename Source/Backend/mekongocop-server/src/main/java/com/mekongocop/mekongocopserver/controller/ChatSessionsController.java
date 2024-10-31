@@ -28,10 +28,17 @@ public class ChatSessionsController {
     private StoreRepository storeRepository;
 
     @PostMapping("common/chatSessions/create")
-    public ResponseEntity<ChatSessions> createChatSession(@RequestParam int user_id, @RequestParam int store_id) {
+    public ResponseEntity<ChatSessionsDTO> createChatSession(@RequestParam int user_id, @RequestParam int store_id) {
+        // Tạo phiên chat
         ChatSessions session = chatSessionsService.createSession(user_id, store_id);
-        return new ResponseEntity<>(session, HttpStatus.CREATED);
+
+        // Chuyển đổi từ Entity sang DTO
+        ChatSessionsDTO sessionDTO = chatSessionsService.convertToDTO(session);
+
+        // Trả về DTO dưới dạng JSON với mã trạng thái 201 Created
+        return new ResponseEntity<>(sessionDTO, HttpStatus.CREATED);
     }
+
     @GetMapping("/user/chatSessions")
     public ResponseEntity<List<ChatSessionsDTO>> getUserChatSessions(@RequestHeader("Authorization") String token) {
         // Extract userId from the token

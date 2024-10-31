@@ -20,7 +20,7 @@ class OnBoarding extends StatelessWidget {
           child: Stack(
             children: [
               Image(
-                image: const AssetImage('assets/onBoarding/onboard.jpg'),
+                image: const AssetImage('assets/bg_1.png'),
                 color: const Color.fromRGBO(42, 3, 75, 0.35),
                 colorBlendMode: BlendMode.srcOver,
                 fit: BoxFit.fill,

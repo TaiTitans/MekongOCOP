@@ -60,6 +60,9 @@ dependencies:
   geolocator: ^13.0.1
   socket_io_client: ^3.0.0
   qr_flutter: ^4.1.0
+  url_launcher: ^6.3.1
+  web_socket_channel: ^3.0.1
+  stomp_dart_client: ^2.1.0
 
 
 dev_dependencies:

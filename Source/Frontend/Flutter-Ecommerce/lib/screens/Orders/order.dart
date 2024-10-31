@@ -59,7 +59,7 @@ class _OrdersState extends State<Orders> {
       child: CustomAppBar(
         isHome: false,
         title: 'Đơn hàng',
-        fixedHeight: 88.0,
+        fixedHeight: 100.0,
         enableSearchField: false,
         leadingIcon: Icons.arrow_back,
         leadingOnTap: () {

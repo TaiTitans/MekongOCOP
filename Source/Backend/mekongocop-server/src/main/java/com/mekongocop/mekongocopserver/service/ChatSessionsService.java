@@ -34,44 +34,44 @@ public class ChatSessionsService {
 
 
 
-    public ChatSessions convertToEntity(ChatSessionsDTO sessionDTO, User user, Store store) {
-        ChatSessions chatSession = new ChatSessions();
-        chatSession.setSession_id(sessionDTO.getSession_id());
-        chatSession.setUser(user);
-        chatSession.setStore(store);
-        chatSession.setCreated_at(sessionDTO.getCreated_at());
-        chatSession.setUpdated_at(sessionDTO.getUpdated_at());
+        public ChatSessions convertToEntity(ChatSessionsDTO sessionDTO, User user, Store store) {
+            ChatSessions chatSession = new ChatSessions();
+            chatSession.setSessionId(sessionDTO.getSession_id());
+            chatSession.setUser(user);
+            chatSession.setStore(store);
+            chatSession.setCreatedAt(sessionDTO.getCreated_at());
+            chatSession.setUpdatedAt(sessionDTO.getUpdated_at());
 
-        // Chuyển đổi danh sách messageDTOs thành entities
-        List<ChatMessage> messages = sessionDTO.getMessages().stream()
-                .map(messageDTO -> chatMessageService.convertToEntity(messageDTO, chatSession, user))
-                // Truyền đầy đủ các tham số cần thiết
-                .collect(Collectors.toList());
+            // Chuyển đổi danh sách messageDTOs thành entities
+            List<ChatMessage> messages = sessionDTO.getMessages().stream()
+                    .map(messageDTO -> chatMessageService.convertToEntity(messageDTO, chatSession, user))
+                    // Truyền đầy đủ các tham số cần thiết
+                    .collect(Collectors.toList());
 
-        chatSession.setMessages(messages);
-        return chatSession;
-    }
+            chatSession.setMessages(messages);
+            return chatSession;
+        }
 
 
 
-    public ChatSessionsDTO convertToDTO(ChatSessions chatSession) {
-        ChatSessionsDTO sessionDTO = new ChatSessionsDTO();
-        sessionDTO.setSession_id(chatSession.getSession_id());
-        sessionDTO.setUser_id(chatSession.getUser().getUser_id());
-        sessionDTO.setStore_id(chatSession.getStore().getStore_id());
-        sessionDTO.setCreated_at(chatSession.getCreated_at());
-        sessionDTO.setUpdated_at(chatSession.getUpdated_at());
+        public ChatSessionsDTO convertToDTO(ChatSessions chatSession) {
+            ChatSessionsDTO sessionDTO = new ChatSessionsDTO();
+            sessionDTO.setSession_id(chatSession.getSessionId());
+            sessionDTO.setUser_id(chatSession.getUser().getUser_id());
+            sessionDTO.setStore_id(chatSession.getStore().getStore_id());
+            sessionDTO.setCreated_at(chatSession.getCreatedAt());
+            sessionDTO.setUpdated_at(chatSession.getUpdatedAt());
 
-        // Check if messages are not null
-        List<ChatMessageDTO> messageDTOs = (chatSession.getMessages() != null)
-                ? chatSession.getMessages().stream()
-                .map(message -> chatMessageService.convertToDTO(message))
-                .collect(Collectors.toList())
-                : new ArrayList<>();
+            // Check if messages are not null
+            List<ChatMessageDTO> messageDTOs = (chatSession.getMessages() != null)
+                    ? chatSession.getMessages().stream()
+                    .map(message -> chatMessageService.convertToDTO(message))
+                    .collect(Collectors.toList())
+                    : new ArrayList<>();
 
-        sessionDTO.setMessages(messageDTOs);
-        return sessionDTO;
-    }
+            sessionDTO.setMessages(messageDTOs);
+            return sessionDTO;
+        }
 
 
 
@@ -91,8 +91,8 @@ public class ChatSessionsService {
             ChatSessions session = new ChatSessions();
             session.setUser(userRepository.findById(userId).orElseThrow());
             session.setStore(storeRepository.findById(storeId).orElseThrow());
-            session.setCreated_at(new Timestamp(System.currentTimeMillis()));
-            session.setUpdated_at(new Timestamp(System.currentTimeMillis()));
+            session.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+            session.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
             return chatSessionsRepository.save(session);
         }
     }

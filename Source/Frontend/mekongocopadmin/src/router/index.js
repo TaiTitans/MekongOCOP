@@ -12,6 +12,7 @@ import UserAdmin from '../views/Admin/UserAdmin.vue'
 import DashboardChart from '../views/Admin/DashboardChart.vue'
 import ProductAdmin from'../views/Admin/ProductAdmin.vue'
 import Store from '../views/Seller/Store.vue'
+import Chat from '../views/Seller/Chat.vue'
 const routes = [
   {
     path: '/login',
@@ -38,6 +39,11 @@ const routes = [
   path: 'product',
   name: 'Product',
   component: Product,
+},
+{
+  path: 'chat',
+  name: 'Chat',
+  component: Chat,
 },
 {
   path: 'chart',

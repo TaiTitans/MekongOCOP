@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,8 +24,10 @@ import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
 import 'package:smart_shop/dummy/dummy_data.dart';
 import 'package:smart_shop/service/seller_service.dart';
-
+import 'package:url_launcher/url_launcher.dart';
+import '../../model/product.dart';
 import '../../service/product_service.dart';
+import '../search/search_screen.dart';
 
 
 class Home extends StatefulWidget {
@@ -38,13 +41,44 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _key = GlobalKey();
   List<dynamic>? _products;
+  List<ProductModel> _searchResults = [];
+  bool _isLoading = false;
   DateTime? _lastProductsUpdateTime;
   final productService = ProductService();
+  final TextEditingController _searchController = TextEditingController();
   @override
   void initState() {
     super.initState();
     _loadCachedProducts();
   }
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+  Future<void> _fetchProductsBySearchTerm(String searchTerm) async {
+    setState(() {
+      _isLoading = true;
+      _searchResults = [];
+    });
+
+    try {
+      final results = await productService.fetchProductBySearchProductName(searchTerm);
+      setState(() {
+        _searchResults = results;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Có lỗi xảy ra khi tìm kiếm')),
+      );
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   Future<void> _submitSellerLicense(File? licenseFile) async {
     final sellerService = SellerService();
     if (licenseFile != null) {
@@ -122,28 +156,57 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       key: _key,
-      appBar: _buildCustomAppBar(context),
-      drawer: _buildDrawer(context,_showUploadLicenseDialog,),
-      body: _buildBody(context),
+      appBar: _buildCustomAppBar(context), // AppBar có thanh tìm kiếm
+      drawer: _buildDrawer(context, _showUploadLicenseDialog), // Drawer menu
+      body: _buildBody(context), // Nội dung chính của trang
       resizeToAvoidBottomInset: false,
     );
   }
 
+
   Widget _buildBody(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSellerCard(),
-          _buildCatalogue(),
-          _buildProductSuggestions(context),
-          _buildFeatured(context),
-        ],
-      ),
-    );
+    if (_isLoading) {
+      // Hiển thị loading khi đang tải dữ liệu
+      return Center(child: CircularProgressIndicator());
+    } else if (_searchResults.isNotEmpty) {
+      // Khi có kết quả tìm kiếm, hiển thị danh sách sản phẩm tìm thấy
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: _searchResults.length,
+        itemBuilder: (context, index) {
+          final product = _searchResults[index];
+          return ListTile(
+            title: Text(product.productName),
+            subtitle: Text('Giá: ${product.productPrice} VND'),
+            onTap: () {
+              // Xử lý khi nhấn vào sản phẩm, ví dụ điều hướng đến chi tiết sản phẩm
+            },
+          );
+        },
+      );
+    } else if (_searchResults.isEmpty && _searchController.text.isNotEmpty) {
+      // Nếu không tìm thấy kết quả tìm kiếm
+      return Center(
+        child: Text('Không tìm thấy sản phẩm nào khớp với từ khóa.'),
+      );
+    } else {
+      // Nếu chưa tìm kiếm hoặc chưa có kết quả, hiển thị nội dung gốc
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSellerCard(),
+            _buildCatalogue(),
+            _buildProductSuggestions(context),
+            _buildFeatured(context),
+          ],
+        ),
+      );
+    }
   }
+
 
   Widget _buildDrawer(BuildContext context, Future<void> Function(BuildContext) showUploadLicenseDialog) {
     return SizedBox(
@@ -181,7 +244,7 @@ class _HomeState extends State<Home> {
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width / 2,
-              height: MediaQuery.of(context).size.height / 3.0,
+              height: MediaQuery.of(context).size.height / 2.7,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,6 +274,22 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   ListTile(
+                    onTap: () async {
+                      Navigator.pop(context);
+                      String? apiUrl = "http://192.168.1.172:8081"; // Sử dụng biến API_URL từ file .env
+                      if (apiUrl != null && await canLaunch(apiUrl)) {
+                        await launch(apiUrl);
+                      } else {
+                        throw 'Không thể mở URL: $apiUrl';
+                      }
+                    },
+                    leading: const Icon(Icons.manage_accounts, color: AppColors.primaryLight),
+                    title: Text(
+                      'Quản lý bán hàng',
+                      style: FontStyles.montserratRegular18(),
+                    ),
+                  ),
+                  ListTile(
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.pushNamed(context, Settings.routeName);
@@ -219,17 +298,6 @@ class _HomeState extends State<Home> {
                         color: AppColors.primaryLight),
                     title: Text(
                       'Cài đặt',
-                      style: FontStyles.montserratRegular18(),
-                    ),
-                  ),
-                  ListTile(
-                    onTap: () {
-                      Navigator.pushNamed(context, Favorite.routeName);
-                    },
-                    leading: const Icon(Icons.help_outline,
-                        color: AppColors.primaryLight),
-                    title: Text(
-                      'Trợ giúp',
                       style: FontStyles.montserratRegular18(),
                     ),
                   ),
@@ -252,29 +320,31 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-
   PreferredSize _buildCustomAppBar(BuildContext context) {
     return PreferredSize(
-      preferredSize:
-          Size(double.infinity, MediaQuery.of(context).size.height * .20),
+      preferredSize: Size(double.infinity, MediaQuery.of(context).size.height * .20),
       child: CustomAppBar(
         isHome: true,
         enableSearchField: true,
         leadingIcon: Icons.menu,
-        leadingOnTap: () {},
-        trailingIcon: Icons.notifications_none_outlined,
+        leadingOnTap: () {
+          _key.currentState?.openDrawer();
+        },
         trailingOnTap: () {
           Navigator.of(context).pushNamed(NotificationScreen.routeName);
         },
+        trailingIcon: Icons.notifications_none_outlined,
         scaffoldKey: _key,
+        onSearchSubmitted: (String searchTerm) {
+          Navigator.pushNamed(context, SearchScreen.routeName);
+        },
       ),
     );
   }
-
   Widget _buildSellerCard() {
     var screenHeight = MediaQuery.of(context).size.height;
     return Container(
-      margin: EdgeInsets.only(left: 20.0.w, right: 20.w, top: 50.0.h),
+      margin: EdgeInsets.only(left: 20.0.w, right: 20.w, top: 15.0.h),
       height: 88.h,
       width: 343.w,
       decoration: BoxDecoration(

@@ -112,7 +112,7 @@ public class UserProfileController {
         return ResponseEntity.ok(userProfile.getUser_id() != null);
     }
 
-    @GetMapping("/admin/profile/{userId}")
+    @GetMapping("/seller/profile/{userId}")
     public ResponseEntity<UserProfileDTO> profileUser(@PathVariable int userId) {
         UserProfileDTO profile = userProfileService.getProfileByUserId(userId);
         return ResponseEntity.ok(profile);
