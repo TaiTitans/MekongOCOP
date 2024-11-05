@@ -76,8 +76,10 @@ public class SocketIOEventHandler {
             client.leaveRoom(roomId);
             System.out.println("Client left room: " + roomId);
         });
+    }
 
-
+    public void sendNotificationToUser(int userId, String message) {
+        server.getRoomOperations(String.valueOf(userId)).sendEvent("receive_notification", message);
     }
 
     @PostConstruct

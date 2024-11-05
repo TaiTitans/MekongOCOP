@@ -21,7 +21,8 @@ class CustomAppBar extends StatefulWidget {
     this.scaffoldKey,
     this.enableSearchField,
     this.fixedHeight,
-    this.onSearchSubmitted,  // Đảm bảo tham số này được khai báo
+    this.onSearchSubmitted,
+    this.notificationCount = 0, // Add this line
   }) : super(key: key);
 
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -33,11 +34,13 @@ class CustomAppBar extends StatefulWidget {
   final String? title;
   final bool? enableSearchField;
   final double? fixedHeight;
-  final Function(String)? onSearchSubmitted;  // Đây là nơi bạn định nghĩa onSearchSubmitted
+  final Function(String)? onSearchSubmitted;
+  final int notificationCount; // Add this line
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
 }
+
 
 class _CustomAppBarState extends State<CustomAppBar> {
   final TextEditingController _searchController = TextEditingController();
@@ -168,18 +171,48 @@ class _CustomAppBarState extends State<CustomAppBar> {
   }
 
   // Method to build the notification icon
+// Method to build the notification icon
   Widget _buildNotificationIcon(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 10.0),
       child: GestureDetector(
         onTap: widget.trailingOnTap,
-        child: Icon(
-          widget.trailingIcon,
-          color: Colors.white,
+        child: Stack(
+          children: [
+            Icon(
+              widget.trailingIcon,
+              color: Colors.white,
+            ),
+            if (widget.notificationCount > 0) // Check for unread notifications
+              Positioned(
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  constraints: BoxConstraints(
+                    maxWidth: 20,
+                    maxHeight: 20,
+                  ),
+                  child: Text(
+                    '${widget.notificationCount}', // Show notification count
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
+
 
   // Method to build the search field
 

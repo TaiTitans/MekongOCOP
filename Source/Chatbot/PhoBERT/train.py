@@ -2,7 +2,7 @@ import json
 import numpy as np
 import h5py
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.model_selection import KFold
 import torch
 from transformers import AutoModel, AutoTokenizer
@@ -115,7 +115,7 @@ for train_index, test_index in kf.split(question_embeddings):
     average_loss = total_loss / len(test_questions)
     accuracies.append(accuracy)
 
-    # Tính toán precision, recall, F1-score
+ # Tính toán precision, recall, F1-score
     y_true = [1 if ans == exp_ans else 0 for ans, exp_ans in zip(predicted_answers, test_answers)]
     y_pred = [1 if cosine_similarity(get_phobert_embedding(ans).reshape(1, -1), 
                                        get_phobert_embedding(test_answers[i]).reshape(1, -1))[0][0] > threshold else 0 
@@ -127,6 +127,12 @@ for train_index, test_index in kf.split(question_embeddings):
 
     print(f"Accuracy for this fold: {accuracy * 100:.2f}%")
     print(f"Precision: {precision:.4f}, Recall: {recall:.4f}, F1 Score: {f1:.4f}")
+
+    # Tính toán confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+    print("Confusion Matrix:")
+    print(cm)
+    logging.info(f"Confusion Matrix:\n{cm}")
 
 # Tính toán độ chính xác trung bình
 mean_accuracy = np.mean(accuracies)

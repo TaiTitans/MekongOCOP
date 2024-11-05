@@ -1,122 +1,75 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-
-import 'package:smart_shop/Common/Widgets/shimmer_effect.dart';
-import 'package:smart_shop/Utils/app_colors.dart';
-import 'package:smart_shop/Utils/font_styles.dart';
+import 'package:intl/intl.dart';
+import 'dart:convert';
 
 // ignore: must_be_immutable
-class NotificationItem extends StatefulWidget {
-  String? notificationImage;
-  String? notificationMessage;
-  DateTime? notificationTimestamp;
-  VoidCallback? onPressed;
-  bool? seen;
-  bool? isImageAvailable = true;
+class NotificationItem extends StatelessWidget {
+  final String? notificationMessage;
+  final DateTime? notificationTimestamp;
+  final VoidCallback? onPressed;
+  final bool seen;
 
-  NotificationItem(
-      {Key? key,
-        this.notificationImage,
-      this.notificationMessage,
-      this.notificationTimestamp,
-      this.onPressed,
-      this.seen,
-      this.isImageAvailable}): super(key: key);
-  @override
-  _NotificationItemState createState() => _NotificationItemState();
-}
+  NotificationItem({
+    Key? key,
+    required this.notificationMessage,
+    required this.notificationTimestamp,
+    required this.onPressed,
+    this.seen = false,
+  }) : super(key: key);
 
-class _NotificationItemState extends State<NotificationItem> {
   @override
   Widget build(BuildContext context) {
+    // Kiểm tra xem notificationTimestamp có null không trước khi định dạng
+    String formattedDate = notificationTimestamp != null
+        ? DateFormat('dd/MM/yyyy HH:mm').format(notificationTimestamp!)
+        : 'Unknown date'; // Giá trị mặc định nếu timestamp là null
+
     return InkWell(
-      onTap: widget.onPressed,
+      onTap: onPressed,
       child: Container(
-        color: Colors.white,
-        padding: const EdgeInsets.only(
-          top: 12,
-          bottom: 12,
-          left: 16,
+        decoration: BoxDecoration(
+          color: seen ? Colors.grey[200] : Colors.white,
+          borderRadius: BorderRadius.circular(8.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: Offset(0, 3), // Thay đổi vị trí của bóng
+            ),
+          ],
         ),
-        child: Row(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            widget.isImageAvailable!
-                ? CachedNetworkImage(
-                  imageUrl: widget.notificationImage ?? "",
-                  placeholder: (context, url) => const Center(
-                    child:  ShimmerEffect(
-                      height: 48,
-                      width: 48,
-                      isCircular: true,
+            Row(
+              children: [
+                Icon(
+                  Icons.notifications,
+                  color: seen ? Colors.grey : Colors.blue,
+                  size: 20,
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    notificationMessage ?? 'No message', // Sử dụng message trực tiếp
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-                  errorWidget: (context, url, error) => const Center(
-                    child: ShimmerEffect(
-                      height: 48,
-                      width: 48,
-                      isCircular: true,
-                    ),
-                  ),
-                  imageBuilder: (context, imageProvider) => Container(
-                    height: 48,
-                    width: 48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                )
-                : Container(),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 12,
-                      right: 16,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          widget.notificationMessage!,
-                          style: FontStyles.montserratRegular14().copyWith(
-                              fontSize: 14.0,
-                              color: AppColors.textLightColor,
-                              height: 2.0),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            top: 6,
-                          ),
-                          child: Text(
-                            "20 mints ago",
-                            style: FontStyles.montserratRegular14().copyWith(
-                                fontSize: 14.0,
-                                color: AppColors.textLightColor,
-                                height: 2.0),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12),
-                    child: Container(
-                      transform: Matrix4.translationValues(0.0, 12.0, 0.0),
-                      child: Container(
-                        height: 0.5,
-                        color: AppColors.lightGray,
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            )
+                ),
+              ],
+            ),
+            SizedBox(height: 4),
+            Text(
+              formattedDate, // Sử dụng ngày đã định dạng ở đây
+              style: TextStyle(fontSize: 12.0, color: Colors.grey),
+            ),
+            Divider(),
           ],
         ),
       ),

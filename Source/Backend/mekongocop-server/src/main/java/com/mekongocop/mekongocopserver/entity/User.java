@@ -1,6 +1,8 @@
 package com.mekongocop.mekongocopserver.entity;
 
+import com.mekongocop.mekongocopserver.entity.voucher.VoucherUsers;
 import jakarta.persistence.*;
+import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,76 +11,8 @@ import java.util.*;
 
 @Entity
 @Table(name="users")
+@Data
 public class User implements UserDetails {
-    public User(Integer user_id, String username, String password, String email, String oauth_provider, String oauth_id, Set<Role> roles) {
-        this.user_id = user_id;
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.oauth_provider = oauth_provider;
-        this.oauth_id = oauth_id;
-        this.roles = roles;
-    }
-
-    public User() {
-
-    }
-
-    public Integer getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(Integer user_id) {
-        this.user_id = user_id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getOauth_provider() {
-        return oauth_provider;
-    }
-
-    public void setOauth_provider(String oauth_provider) {
-        this.oauth_provider = oauth_provider;
-    }
-
-    public String getOauth_id() {
-        return oauth_id;
-    }
-
-    public void setOauth_id(String oauth_id) {
-        this.oauth_id = oauth_id;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Role role) {
-        this.roles.add(role);
-    }
 
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -89,10 +23,19 @@ public class User implements UserDetails {
         private String oauth_provider;
         private String oauth_id;
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Role role) {
+        this.roles.add(role);
+    }
+
         @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
         @JoinTable(name="users_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name="role_id"))
         private Set<Role> roles = new HashSet<>();
-
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        private Set<VoucherUsers> voucherUsers = new HashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

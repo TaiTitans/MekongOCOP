@@ -13,6 +13,7 @@ import DashboardChart from '../views/Admin/DashboardChart.vue'
 import ProductAdmin from'../views/Admin/ProductAdmin.vue'
 import Store from '../views/Seller/Store.vue'
 import Chat from '../views/Seller/Chat.vue'
+import EventAdmin from '../views/Admin/EventAdmin.vue'
 const routes = [
   {
     path: '/login',
@@ -81,6 +82,11 @@ const routes = [
         path: 'approve',
         name: 'ApproveAdmin',
         component: ApproveAdmin,
+      },
+      {
+        path: 'event',
+        name: 'EventAdmin',
+        component: EventAdmin,
       },
     ],
   }

@@ -157,8 +157,10 @@ public class UserController {
         ));
     }
     @GetMapping("/admin/users")
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> users = userService.getAllUsers();
+    public ResponseEntity<List<UserDTO>> getUsersWithPagination(
+            @RequestParam(defaultValue = "1") int page) {
+        // Gọi phương thức lấy dữ liệu phân trang từ service
+        List<UserDTO> users = userService.getUsersWithPagination(page);
         return ResponseEntity.ok(users);
     }
 }

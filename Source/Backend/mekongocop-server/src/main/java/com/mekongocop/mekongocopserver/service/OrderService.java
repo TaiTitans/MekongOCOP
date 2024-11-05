@@ -2,6 +2,8 @@ package com.mekongocop.mekongocopserver.service;
 
 import com.mekongocop.mekongocopserver.dto.*;
 import com.mekongocop.mekongocopserver.entity.*;
+import com.mekongocop.mekongocopserver.entity.voucher.Voucher;
+import com.mekongocop.mekongocopserver.entity.voucher.VoucherUsers;
 import com.mekongocop.mekongocopserver.repository.*;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import jakarta.transaction.Transactional;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +48,10 @@ public class OrderService {
     private VietQRService vietQRService;
     @Autowired
     private StoreRepository storeRepository;
+    @Autowired
+    private VoucherRepository voucherRepository;
+    @Autowired
+    private VoucherUsersRepository voucherUsersRepository;
 
     public OrderDTO convertToDTO(Order order) {
         OrderDTO orderDTO = new OrderDTO();
@@ -157,25 +164,67 @@ public class OrderService {
 
 
 // ORDER========================================================================================================
+private OrderDTO createOrderDTO(int userId, CartDTO cart, BigDecimal totalPrice) {
+    OrderDTO orderDTO = new OrderDTO();
+    orderDTO.setShip(BigDecimal.valueOf(30000));
+    orderDTO.setUser_id(userId);
+    orderDTO.setTotal_price(totalPrice.add(orderDTO.getShip())); // Cập nhật total_price sau khi áp dụng voucher
+    orderDTO.setItems(cart.getCartItemList().stream().map(cartItem -> {
+        OrderItemDTO orderItemDTO = new OrderItemDTO();
+        orderItemDTO.setProductId(cartItem.getProductId());
+        orderItemDTO.setQuantity(cartItem.getQuantity());
+        orderItemDTO.setPrice(cartItem.getPrice());
+        return orderItemDTO;
+    }).collect(Collectors.toList()));
+    orderDTO.setCreated_at(new Timestamp(new Date().getTime()));
+    orderDTO.setUpdated_at(new Timestamp(new Date().getTime()));
+    return orderDTO;
+}
+    private boolean isVoucherApplicable(Voucher voucher, BigDecimal totalPrice, int userId) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDate = voucher.getStart_date();
+        LocalDateTime endDate = voucher.getEnd_date();
 
-    private OrderDTO createOrderDTO(int userId, CartDTO cart, BigDecimal totalPrice) {
-        OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setShip(BigDecimal.valueOf(30000));
-        orderDTO.setUser_id(userId);
-        orderDTO.setTotal_price(totalPrice.add(orderDTO.getShip()));
-        orderDTO.setItems(cart.getCartItemList().stream().map(cartItem -> {
-            OrderItemDTO orderItemDTO = new OrderItemDTO();
-            orderItemDTO.setProductId(cartItem.getProductId());
-            orderItemDTO.setQuantity(cartItem.getQuantity());
-            orderItemDTO.setPrice(cartItem.getPrice());
-            return orderItemDTO;
-        }).collect(Collectors.toList()));
-        orderDTO.setCreated_at(new Timestamp(new Date().getTime()));
-        orderDTO.setUpdated_at(new Timestamp(new Date().getTime()));
-        return orderDTO;
+        log.info("Current time: " + now);
+        log.info("Voucher start time: " + startDate);
+        log.info("Voucher end time: " + endDate);
+        log.info("Voucher minimum spend: " + voucher.getMind_spend());
+        log.info("Total price: " + totalPrice);
+
+        // Kiểm tra thời gian và tổng giá trị đơn hàng
+        boolean isApplicable = !now.isBefore(startDate) && !now.isAfter(endDate) && totalPrice.compareTo(BigDecimal.valueOf(voucher.getMind_spend())) >= 0;
+
+        // Kiểm tra số lần sử dụng của người dùng
+        long usageCount = voucher.getVoucherUsers().stream()
+                .filter(vu -> vu.getUser().getUser_id() == userId)
+                .mapToLong(VoucherUsers::getUsage_count)
+                .sum();
+
+        log.info("User usage count: " + usageCount);
+        log.info("User limit: " + voucher.getUser_limit());
+        log.info("Total limit: " + voucher.getTotal_limit());
+
+        isApplicable = isApplicable && usageCount < voucher.getUser_limit() && voucher.getTotal_limit() > 0;
+
+        log.info("Is voucher applicable: " + isApplicable);
+
+        if (now.isBefore(startDate)) {
+            log.warn("Voucher is not yet applicable.");
+        } else if (now.isAfter(endDate)) {
+            log.warn("Voucher has expired.");
+        } else if (totalPrice.compareTo(BigDecimal.valueOf(voucher.getMind_spend())) < 0) {
+            log.warn("Total price does not meet the minimum spend requirement.");
+        } else if (usageCount >= voucher.getUser_limit()) {
+            log.warn("User has reached the usage limit for this voucher.");
+        } else if (voucher.getTotal_limit() <= 0) {
+            log.warn("Voucher has reached the total usage limit.");
+        }
+
+        return isApplicable;
     }
+
     @Transactional
-    public OrderDTO createOrder(String token, String address, String paymentMethod) {
+    public OrderDTO createOrder(String token, String address, String paymentMethod, String voucherCode) {
         try {
             int userId = jwtTokenProvider.getUserIdFromToken(token);
             User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -185,6 +234,34 @@ public class OrderService {
             }
 
             BigDecimal totalPrice = calculateTotalPrice(cart.getCartItemList());
+
+            // Xử lý voucher
+            if (voucherCode != null && !voucherCode.isEmpty()) {
+                Voucher voucher = voucherRepository.findByCode(voucherCode)
+                        .orElseThrow(() -> new RuntimeException("Invalid voucher code"));
+                log.info("Voucher details: " + voucher.toString());
+                if ("ACTIVE".equalsIgnoreCase(voucher.getStatus()) && isVoucherApplicable(voucher, totalPrice, userId)) {
+                    totalPrice = applyVoucherDiscount(totalPrice, voucher);
+
+                    // Trừ đi total_limit của voucher
+                    voucher.setTotal_limit(voucher.getTotal_limit() - 1);
+
+                    // Lưu thông tin vào bảng voucher_users
+                    VoucherUsers voucherUsers = voucher.getVoucherUsers().stream()
+                            .filter(vu -> vu.getUser().getUser_id() == userId)
+                            .findFirst()
+                            .orElse(new VoucherUsers());
+                    voucherUsers.setVoucher(voucher);
+                    voucherUsers.setUser(user);
+                    voucherUsers.setUsage_count(voucherUsers.getUsage_count() + 1);
+                    voucherRepository.save(voucher);
+                    voucherUsersRepository.save(voucherUsers); // Lưu voucherUsers vào cơ sở dữ liệu
+                } else {
+                    log.warn("Voucher status: " + voucher.getStatus());
+                    throw new RuntimeException("Voucher is not applicable or inactive");
+                }
+            }
+
             OrderDTO orderDTO = createOrderDTO(userId, cart, totalPrice);
             orderDTO.setAddress(address);
             orderDTO.setPayment(paymentMethod);
@@ -201,9 +278,26 @@ public class OrderService {
 
             return orderDTO;
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Error creating order: " + e.getMessage(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    private BigDecimal applyVoucherDiscount(BigDecimal totalPrice, Voucher voucher) {
+        BigDecimal discount = BigDecimal.ZERO;
+
+        // Chuyển đổi discount_value sang BigDecimal
+        BigDecimal discountValue = BigDecimal.valueOf(voucher.getDiscount_value());
+
+        if ("PERCENTAGE".equals(voucher.getDiscount_type())) {
+            // Chia cho 100 để tính phần trăm và nhân với totalPrice
+            discount = totalPrice.multiply(discountValue.divide(BigDecimal.valueOf(100)));
+        } else if ("FIXED".equals(voucher.getDiscount_type())) {
+            discount = discountValue;
+        }
+
+        // Đảm bảo discount không vượt quá totalPrice
+        return totalPrice.subtract(discount.min(totalPrice));
     }
 
     private Order createOrder(OrderDTO orderDTO, User user) {
