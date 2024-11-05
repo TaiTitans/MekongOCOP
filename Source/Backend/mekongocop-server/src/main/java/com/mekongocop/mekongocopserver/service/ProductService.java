@@ -87,6 +87,7 @@ public class ProductService {
         productDTO.setProductName(product.getProduct_name());
         productDTO.setProductDescription(product.getProduct_description());
         productDTO.setProductPrice(product.getProduct_price());
+        productDTO.setOriginalPrice(product.getOriginalPrice());
         productDTO.setProductQuantity(product.getProduct_quantity());
 
         // Ánh xạ province_id
@@ -131,6 +132,7 @@ public class ProductService {
         product.setProduct_name(productDTO.getProductName());
         product.setProduct_description(productDTO.getProductDescription());
         product.setProduct_price(productDTO.getProductPrice());
+        product.setOriginalPrice(productDTO.getOriginalPrice());
         product.setProduct_quantity(productDTO.getProductQuantity());
 
         // Ánh xạ province nếu tồn tại
@@ -336,7 +338,13 @@ public class ProductService {
             throw new RuntimeException(e);
         }
     }
-
+    public void updatePrice2(int productId, BigDecimal newPrice) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setOriginalPrice(product.getProduct_price());
+        product.setProduct_price(newPrice);
+        productRepository.save(product);
+    }
     @Transactional
     public void updateQuantity(int productId, int quantity, String token) {
         try{

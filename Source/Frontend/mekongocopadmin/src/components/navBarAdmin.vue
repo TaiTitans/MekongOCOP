@@ -57,6 +57,15 @@
                 <svg class="w-6 h-6 text-blue-600 mr-8" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Artboard 22</title><path d="M21.81,5.28l.77-2.38a1.44,1.44,0,0,0-.48-1.59,1.42,1.42,0,0,0-1.63-.1l-6.6,4.07H1V23H23V5.28ZM21,21H3V7.28H14.44l5.77-3.56L19.06,7.28H21Z"></path><path d="M6.4,13a1.4,1.4,0,1,0,1.4,1.4A1.4,1.4,0,0,0,6.4,13Z"></path><path d="M12,13a1.4,1.4,0,1,0,1.4,1.4A1.4,1.4,0,0,0,12,13Z"></path><path d="M17.6,13A1.4,1.4,0,1,0,19,14.4,1.4,1.4,0,0,0,17.6,13Z"></path></svg>
                Yêu cầu
               </div>
+              <div @click="goToEvent" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+                <svg class="w-6 h-6 text-blue-600 mr-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <g>
+        <path fill="none" d="M0 0h24v24H0z"></path>
+        <path d="M17 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4V1h2v2h6V1h2v2zM4 9v10h16V9H4zm2 4h5v4H6v-4z"></path>
+    </g>
+</svg>
+               Sự kiện
+              </div>
               <div @click="logout" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-blue-600 mr-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
@@ -93,6 +102,9 @@
         },
         goToFeedback() {
           this.$router.push({ name: 'ApproveAdmin' });
+        },
+        goToEvent() {
+          this.$router.push({ name: 'EventAdmin' });
         },
         goToAdminDashboard() {
           this.$router.push({ path: '/admin' });

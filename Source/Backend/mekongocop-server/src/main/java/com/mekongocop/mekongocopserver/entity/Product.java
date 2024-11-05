@@ -11,10 +11,11 @@ import java.util.Set;
 public class Product {
 
 
-    public Product(int product_id, String product_name, String product_description, BigDecimal product_price, int product_quantity, ProductCategory productCategory, Province province, Set<ProductImage> product_images, Set<Review> reviews, Store store) {
+    public Product(int product_id, String product_name, String product_description, BigDecimal originalPrice, BigDecimal product_price, int product_quantity, ProductCategory productCategory, Province province, Set<ProductImage> product_images, Set<Review> reviews, Store store) {
         this.product_id = product_id;
         this.product_name = product_name;
         this.product_description = product_description;
+        this.originalPrice = originalPrice;
         this.product_price = product_price;
         this.product_quantity = product_quantity;
         this.productCategory = productCategory;
@@ -46,6 +47,14 @@ public class Product {
 
     public void setProduct_description(String product_description) {
         this.product_description = product_description;
+    }
+
+    public BigDecimal getOriginalPrice() {
+        return originalPrice;
+    }
+
+    public void setOriginalPrice(BigDecimal originalPrice) {
+        this.originalPrice = originalPrice;
     }
 
     public BigDecimal getProduct_price() {
@@ -109,6 +118,7 @@ public class Product {
     private int product_id;
     private String product_name;
     private String product_description;
+    private BigDecimal originalPrice;
     private BigDecimal product_price;
     private int product_quantity;
 

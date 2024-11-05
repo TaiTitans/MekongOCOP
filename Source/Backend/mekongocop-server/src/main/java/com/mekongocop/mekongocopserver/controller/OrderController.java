@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("api/v1")
 public class OrderController {
     @Autowired
     private OrderService orderService;
@@ -29,19 +29,25 @@ public class OrderController {
     @Autowired
     private OrderRepository orderRepository;
     @PostMapping("common/order")
-    public ResponseEntity<StatusResponse<OrderDTO>> addOrder(@RequestHeader("Authorization") String token, @RequestParam String address, @RequestParam String payment) {
+    public ResponseEntity<StatusResponse<OrderDTO>> addOrder(
+            @RequestHeader("Authorization") String token,
+            @RequestParam String address,
+            @RequestParam String payment,
+            @RequestParam(required = false) String voucherCode) {
         try {
             String validToken = TokenExtractor.extractToken(token);
-            if(!jwtTokenProvider.validateToken(token)){
+            if (!jwtTokenProvider.validateToken(token)) {
                 return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Error token", null));
             }
-          OrderDTO orderDTO = orderService.createOrder(validToken, address, payment);
+            // Truyền voucherCode vào createOrder
+            OrderDTO orderDTO = orderService.createOrder(validToken, address, payment, voucherCode);
             return ResponseEntity.ok().body(new StatusResponse<>("Success", "Order created", orderDTO));
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Create Order Failed", null));
         }
     }
+
 
     @GetMapping("/common/order")
     public ResponseEntity<StatusResponse<List<OrderDTO>>> getOrder(@RequestHeader("Authorization") String token) {

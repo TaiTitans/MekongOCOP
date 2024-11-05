@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -28,7 +31,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../model/product.dart';
 import '../../service/product_service.dart';
 import '../search/search_screen.dart';
-
+import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -40,6 +44,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _key = GlobalKey();
+  int unreadNotifications = 0;
+  late IO.Socket socket;
   List<dynamic>? _products;
   List<ProductModel> _searchResults = [];
   bool _isLoading = false;
@@ -50,11 +56,45 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _loadCachedProducts();
+    connectToSocket();
   }
+  void connectToSocket() {
+    // Get the Socket URL from the environment variable
+    String socketUrl = dotenv.env['API_SOCKET_URL'] ?? 'http://localhost:3000'; // Provide a default URL if needed
+
+    // Create a socket connection
+    socket = IO.io(socketUrl, <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+    });
+
+    // Listen for incoming notifications
+    socket.on('receive_notification', (data) {
+      // Handle incoming notification messages
+      updateUnreadNotifications();
+      print("Received notification: $data");
+    });
+
+    // Handle connection status
+    socket.onConnect((_) {
+      print("Connected to socket server");
+    });
+
+    socket.onDisconnect((_) {
+      print("Disconnected from socket server");
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    socket.dispose();
     super.dispose();
+  }
+  void updateUnreadNotifications() {
+    setState(() {
+      unreadNotifications++;
+    });
   }
   Future<void> _fetchProductsBySearchTerm(String searchTerm) async {
     setState(() {
@@ -157,7 +197,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _key,
-      appBar: _buildCustomAppBar(context), // AppBar có thanh tìm kiếm
+      appBar: _buildCustomAppBar(context, unreadNotifications),  // AppBar có thanh tìm kiếm
       drawer: _buildDrawer(context, _showUploadLicenseDialog), // Drawer menu
       body: _buildBody(context), // Nội dung chính của trang
       resizeToAvoidBottomInset: false,
@@ -198,6 +238,7 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSellerCard(),
+            _buildFlashSaleWidget(),
             _buildCatalogue(),
             _buildProductSuggestions(context),
             _buildFeatured(context),
@@ -320,7 +361,7 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-  PreferredSize _buildCustomAppBar(BuildContext context) {
+  PreferredSize _buildCustomAppBar(BuildContext context, int unreadNotifications) {
     return PreferredSize(
       preferredSize: Size(double.infinity, MediaQuery.of(context).size.height * .20),
       child: CustomAppBar(
@@ -338,7 +379,118 @@ class _HomeState extends State<Home> {
         onSearchSubmitted: (String searchTerm) {
           Navigator.pushNamed(context, SearchScreen.routeName);
         },
+        notificationCount: unreadNotifications, // Pass the notification count here
       ),
+    );
+  }
+
+
+  Widget _buildFlashSaleWidget() {
+    DateTime now = DateTime.now().toLocal(); // Lấy thời gian địa phương
+    List<int> flashSaleHours = [9, 12, 15, 18, 21, 0];
+
+    // Tính thời gian flash sale tiếp theo
+    DateTime nextFlashSaleTime = flashSaleHours
+        .map((hour) {
+      // Xử lý giờ 0h (midnight)
+      if (hour == 0) {
+        return DateTime(now.year, now.month, now.day + 1, hour);
+      } else {
+        return DateTime(now.year, now.month, now.day, hour);
+      }
+    })
+        .firstWhere((time) => time.isAfter(now), orElse: () {
+      return DateTime(now.year, now.month, now.day + 1, 9); // Nếu không có giờ nào trong hôm nay, lấy 9h của ngày mai
+    });
+
+    Duration timeRemaining = nextFlashSaleTime.difference(now);
+
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setState) {
+        Timer.periodic(Duration(seconds: 1), (timer) {
+          setState(() {
+            now = DateTime.now().toLocal(); // Cập nhật thời gian hiện tại
+            timeRemaining = nextFlashSaleTime.difference(now);
+
+            if (timeRemaining.isNegative) {
+              timer.cancel(); // Dừng bộ đếm khi thời gian đã qua
+              nextFlashSaleTime = flashSaleHours
+                  .map((hour) {
+                // Xử lý giờ 0h (midnight)
+                if (hour == 0) {
+                  return DateTime(now.year, now.month, now.day + 1, hour);
+                } else {
+                  return DateTime(now.year, now.month, now.day, hour);
+                }
+              })
+                  .firstWhere((time) => time.isAfter(DateTime.now().toLocal()), orElse: () {
+                return DateTime(now.year, now.month, now.day + 1, 9);
+              });
+              timeRemaining = nextFlashSaleTime.difference(DateTime.now().toLocal());
+            }
+          });
+        });
+
+        bool isFlashSaleActive = timeRemaining.inMinutes >= 0 && timeRemaining.inMinutes < 60;
+        final timeFormat = DateFormat('HH:mm:ss');
+
+        return Card(
+          margin: EdgeInsets.all(14.0),
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.flash_on, color: Colors.orange, size: 30),
+                    SizedBox(width: 8.0),
+                    AnimatedTextKit(
+                      animatedTexts: [
+                        ColorizeAnimatedText(
+                          'Flash Sale',
+                          textStyle: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          colors: [
+                            Colors.red,
+                            Colors.orange,
+                            Colors.yellow,
+                            Colors.red,
+                          ],
+                        ),
+                      ],
+                      isRepeatingAnimation: true,
+                      repeatForever: true,
+                    ),
+                    SizedBox(width: 8.0),
+                    if (isFlashSaleActive)
+                      Text(
+                        'đang diễn ra!',
+                        style: TextStyle(fontSize: 18, color: Colors.red),
+                      )
+                    else
+                      Row(
+                        children: [
+                          Text(
+                            'tiếp theo sau:',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          SizedBox(width: 8.0),
+                          Text(
+                            timeFormat.format(DateTime.fromMillisecondsSinceEpoch(timeRemaining.inMilliseconds + DateTime.now().millisecondsSinceEpoch)),
+                            style: TextStyle(fontSize: 18, color: Colors.blue),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
   Widget _buildSellerCard() {
@@ -394,7 +546,7 @@ class _HomeState extends State<Home> {
         Navigator.pushNamed(context, Catalogue.routeName, arguments: [true, true]);
       },
       child: Container(
-        margin: EdgeInsets.only(top: 25.0.h, left: 20.h, right: 20.0.h, bottom: 17.h),
+        margin: EdgeInsets.only(top: 10.0.h, left: 20.h, right: 20.0.h, bottom: 17.h),
         child: Column(
           children: [
             Row(

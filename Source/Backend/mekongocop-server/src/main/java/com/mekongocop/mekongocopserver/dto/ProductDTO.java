@@ -6,11 +6,12 @@ import java.util.List;
 public class ProductDTO {
 
 
-    public ProductDTO(int productId, String productName, String productDescription, BigDecimal productPrice, int productQuantity, int categoryId, String categoryName, int provinceId, String provinceName, List<ProductImageDTO> productImages, List<ReviewDTO> reviews, int store) {
+    public ProductDTO(int productId, String productName, String productDescription, BigDecimal productPrice, BigDecimal originalPrice, int productQuantity, int categoryId, String categoryName, int provinceId, String provinceName, List<ProductImageDTO> productImages, List<ReviewDTO> reviews, int store) {
         this.productId = productId;
         this.productName = productName;
         this.productDescription = productDescription;
         this.productPrice = productPrice;
+        this.originalPrice = originalPrice;
         this.productQuantity = productQuantity;
         this.categoryId = categoryId;
         this.categoryName = categoryName;
@@ -51,6 +52,14 @@ public class ProductDTO {
 
     public void setProductPrice(BigDecimal productPrice) {
         this.productPrice = productPrice;
+    }
+
+    public BigDecimal getOriginalPrice() {
+        return originalPrice;
+    }
+
+    public void setOriginalPrice(BigDecimal originalPrice) {
+        this.originalPrice = originalPrice;
     }
 
     public int getProductQuantity() {
@@ -101,14 +110,6 @@ public class ProductDTO {
         this.productImages = productImages;
     }
 
-    public int getStore() {
-        return store;
-    }
-
-    public void setStore(int store) {
-        this.store = store;
-    }
-
     public List<ReviewDTO> getReviews() {
         return reviews;
     }
@@ -117,10 +118,19 @@ public class ProductDTO {
         this.reviews = reviews;
     }
 
+    public int getStore() {
+        return store;
+    }
+
+    public void setStore(int store) {
+        this.store = store;
+    }
+
     private int productId;
     private String productName;
     private String productDescription;
     private BigDecimal productPrice;
+    private BigDecimal originalPrice;
     private int productQuantity;
     private int categoryId;
     private String categoryName;
