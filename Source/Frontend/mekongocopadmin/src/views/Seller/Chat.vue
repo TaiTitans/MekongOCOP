@@ -71,6 +71,13 @@
           </button>
         </div>
       </div>
+      
+      <!-- Scroll to bottom button -->
+      <div v-if="hasNewMessages" class="absolute bottom-10 right-10">
+        <button @click="scrollToBottom" class="bg-indigo-500 text-white p-3 rounded-full shadow-lg">
+          <i class="fas fa-arrow-down"></i>
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -89,54 +96,48 @@ export default {
       messages: [],
       selectedSession: null,
       newMessage: '',
-      storeId: null, // Store ID for the current session
-      userId: null,  // User ID of the current user
+      storeId: null,
+      userId: null,
+      hasNewMessages: false, // Flag to detect new messages
     };
   },
   async mounted() {
-    // Fetch userId and storeId before connecting to Socket.IO
     await this.getUserId();
     await this.getStoreId();
 
-    // Connect to Socket.IO server
     this.socket = io('ws://localhost:8888', {
-      query: { userId: this.storeId }, // Send storeId for identification
+      query: { sessionId: this.storeId },
     });
 
-    // Handle Socket.IO connection
-  // Kết nối tới Socket.IO server và gửi userId lên server
-this.socket = io('ws://localhost:8888', {
-  query: { userId: this.storeId }  // Gửi storeId hoặc userId lên server
-});
-
-// Lắng nghe sự kiện nhận tin nhắn
-this.socket.on('receive_message', (messageData) => {
-  console.log('Received new message:', messageData);
-  if (messageData.session_id === this.selectedSession?.session_id) {
-    this.messages.push(messageData);
-    this.$nextTick(() => {
-      const messageContainer = document.querySelector('.message-container');
-      if (messageContainer) {
-        messageContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      }
+    this.socket.on('connect', () => {
+      console.log('Connected to Socket.IO server');
     });
-  }
-});
 
-
-    // Handle Socket.IO disconnection
     this.socket.on('disconnect', () => {
       console.log('Socket.IO connection closed');
     });
 
-    // Fetch chat sessions
+    // Handle receiving messages
+    this.socket.on('receive_message', (messageData) => {
+      console.log('Received new message:', messageData);
+      if (messageData.session_id === this.selectedSession?.session_id) {
+        this.messages.push(messageData);
+        this.hasNewMessages = true; // Mark as new message received
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
+      } else {
+        console.log('Message received for a different session:', messageData.session_id);
+      }
+    });
+
     await this.getChatSessions();
   },
   methods: {
     async getUserId() {
       try {
         const response = await api.get('api/v1/user/profile');
-        this.userId = response.data.data.user_id; // Store user_id
+        this.userId = response.data.data.user_id;
       } catch (err) {
         console.error('Failed to fetch user_id.', err);
       }
@@ -144,7 +145,7 @@ this.socket.on('receive_message', (messageData) => {
     async getStoreId() {
       try {
         const response = await api.get('api/v1/seller/store');
-        this.storeId = response.data.data.store_id; // Store store_id
+        this.storeId = response.data.data.store_id;
       } catch (err) {
         console.error('Failed to fetch store_id.', err);
       }
@@ -166,63 +167,52 @@ this.socket.on('receive_message', (messageData) => {
         return response.data;
       } catch (err) {
         console.error('Failed to fetch profile.', err);
-        return { 
-          full_name: userId, 
-          user_profile_image: defaultAvatar // Use imported avatar
-        };
+        return { full_name: userId, user_profile_image: defaultAvatar };
       }
     },
     selectSession(session) {
-    // Nếu session được chọn khác với session hiện tại, thì mới xử lý
-    if (!this.selectedSession || this.selectedSession.session_id !== session.session_id) {
-      // Rời khỏi room hiện tại nếu có
-      if (this.selectedSession?.session_id) {
-        this.socket.emit('leave_room', this.selectedSession.session_id.toString());
-      }
+      if (!this.selectedSession || this.selectedSession.session_id !== session.session_id) {
+        if (this.selectedSession?.session_id) {
+          this.socket.emit('leave_room', `chat_room_${this.selectedSession.session_id}`);
+        }
 
-      // Cập nhật session và tham gia room mới
-      this.selectedSession = session;
-      this.socket.emit('join_room', session.session_id.toString());
-      this.getMessages(session.session_id);
-    }
-  },
-  async getMessages(sessionId) {
-    try {
-      const response = await api.get(`api/v1/common/chatMessage/session/${sessionId}`);
-      this.messages = response.data;
-    } catch (err) {
-      console.error('Failed to load messages.', err);
-    }
-  },
+        this.selectedSession = session;
+        this.socket.emit('join_room', `chat_room_${session.session_id}`);
+        this.getMessages(session.session_id);
+      }
+    },
+    async getMessages(sessionId) {
+      try {
+        const response = await api.get(`api/v1/common/chatMessage/session/${sessionId}`);
+        this.messages = response.data;
+      } catch (err) {
+        console.error('Failed to load messages.', err);
+      }
+    },
     sendMessage() {
       if (this.newMessage.trim() === '' || !this.selectedSession || !this.storeId) return;
 
       const messageData = {
         session_id: this.selectedSession.session_id,
-        sender_id: this.storeId, // Use store_id as sender_id
+        sender_id: this.storeId,
         message_content: this.newMessage,
         created_at: new Date(),
       };
 
-      // Emit the message to the server via Socket.IO
       this.socket.emit('send_message', messageData);
-
-      // Temporarily show the message in the UI
-      this.messages.push({ ...messageData, full_name: 'Tôi', user_profile_image: defaultAvatar });
       this.newMessage = '';
-
-      // Scroll to the latest message
-      this.$nextTick(() => {
-        const messageContainer = document.querySelector('.message-container');
-        if (messageContainer) {
-          messageContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }
-      });
+    },
+    scrollToBottom() {
+      const messageContainer = document.querySelector('.message-container');
+      if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      }
+      this.hasNewMessages = false; // Reset the new message flag
     },
   },
   beforeDestroy() {
     if (this.socket) {
-      this.socket.disconnect(); // Disconnect from Socket.IO when the component is destroyed
+      this.socket.disconnect();
     }
   },
 };
@@ -249,5 +239,8 @@ this.socket.on('receive_message', (messageData) => {
 
 img {
   object-fit: cover;
+}
+.message-container {
+  padding-bottom: 80px; /* Adjust to allow for the input field */
 }
 </style>

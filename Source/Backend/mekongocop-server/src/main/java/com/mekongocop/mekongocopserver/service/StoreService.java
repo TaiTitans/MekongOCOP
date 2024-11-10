@@ -259,6 +259,23 @@ public StoreDTO convertJsonToDTO(String json)throws IOException {
         }
     }
 
+    public Store getStoreData(int storeId){
+        try{
+            Optional<Store> store = storeRepository.findById(storeId);
+            if (store.isPresent()) {
+                Store storeResult =  store.get();
+                return storeResult;
+
+            }else {
+                throw new Exception("Store not found");
+            }
+
+        }catch (Exception e){
+            log.error("Error in getting store data", e);
+            throw new RuntimeException("Error retrieving store data");
+        }
+    }
+
     public List<StoreDTO> getAllStore(){
         List<Store> stores = storeRepository.findAll();
         return convertStoreListToStoreDTOList(stores);

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ChatRealTime extends StatefulWidget {
   final int storeId;
@@ -18,10 +18,12 @@ class ChatRealTime extends StatefulWidget {
 
 class _ChatRealTimeState extends State<ChatRealTime> {
   final TextEditingController _messageController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = []; // Danh sách tin nhắn với kiểu Map
+  final List<Map<String, dynamic>> _messages = [];
+  final ScrollController _scrollController = ScrollController();
   IO.Socket? _socket;
   int? userId;
   int? sessionId;
+  bool _hasNewMessages = false; // Flag to track new messages
 
   @override
   void initState() {
@@ -29,85 +31,60 @@ class _ChatRealTimeState extends State<ChatRealTime> {
     _initializeChat();
   }
 
-  Future<void> _fetchChatHistory() async {
-    String apiBaseUrl = dotenv.env['API_URL'] ?? ''; // Lấy URL từ .env
-    String apiUrl = '$apiBaseUrl/common/chatMessage/session/$sessionId'; // API lấy lịch sử tin nhắn
-
-    // Lấy accessToken từ SharedPreferences
-    String? accessToken = await _getAccessToken();
-    print('Access Token: $accessToken'); // Kiểm tra accessToken
-
-    if (accessToken == null) {
-      print('AccessToken không tồn tại');
-      return;
-    }
-
-    try {
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $accessToken', // Thêm accessToken vào headers
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        // Giải mã UTF-8 và sau đó decode JSON
-        final decodedResponse = utf8.decode(response.bodyBytes);
-        final List<dynamic> data = jsonDecode(decodedResponse);
-
-        setState(() {
-          // Đảm bảo rằng 'sender_id' là int và 'message_content' là String
-          _messages.addAll(data.map((msg) => {
-            'sender_id': msg['sender_id'] is int
-                ? msg['sender_id']
-                : int.parse(msg['sender_id'].toString()),  // Chuyển đổi về int nếu cần
-            'message_content': msg['message_content'].toString() // Đảm bảo message_content là String
-          }).toList());
-        });
-      } else {
-        print('Lỗi khi tải lịch sử tin nhắn: ${response.statusCode}');
-        print('Nội dung phản hồi: ${response.body}');  // In ra nội dung phản hồi nếu có lỗi
-      }
-    } catch (e) {
-      print('Lỗi khi kết nối API để lấy lịch sử tin nhắn: $e');
-    }
-  }
-
   Future<void> _initializeChat() async {
-    await _getUserIdFromAccessToken(); // Lấy userId từ Access Token
-
+    await _getUserIdFromAccessToken();
     if (userId != null) {
-      await _createChatSession(userId!, widget.storeId); // Tạo phiên chat
-
+      await _createChatSession(userId!, widget.storeId);
       if (sessionId != null) {
-        await _fetchChatHistory(); // Lấy lịch sử tin nhắn
-        _connectWebSocket(); // Kết nối với WebSocket
+        await _fetchChatHistory();
+        _connectWebSocket();
       }
     } else {
       print('User ID không hợp lệ.');
     }
   }
 
-  // Hàm để tạo phiên chat
+  Future<void> _fetchChatHistory() async {
+    String apiBaseUrl = dotenv.env['API_URL'] ?? '';
+    String apiUrl = '$apiBaseUrl/common/chatMessage/session/$sessionId';
+    String? accessToken = await _getAccessToken();
+
+    if (accessToken == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {'Authorization': 'Bearer $accessToken', 'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        final List<dynamic> data = jsonDecode(decodedResponse);
+        setState(() {
+          _messages.addAll(data.map((msg) => {
+            'sender_id': int.parse(msg['sender_id'].toString()),
+            'message_content': msg['message_content'].toString()
+          }).toList());
+        });
+      } else {
+        print('Lỗi khi tải lịch sử tin nhắn: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Lỗi khi kết nối API để lấy lịch sử tin nhắn: $e');
+    }
+  }
+
   Future<void> _createChatSession(int userId, int storeId) async {
     String apiBaseUrl = dotenv.env['API_URL'] ?? '';
     String apiUrl = '$apiBaseUrl/common/chatSessions/create?user_id=$userId&store_id=$storeId';
-
     String? accessToken = await _getAccessToken();
 
-    if (accessToken == null) {
-      print('AccessToken không tồn tại');
-      return;
-    }
+    if (accessToken == null) return;
 
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
+        headers: {'Authorization': 'Bearer $accessToken', 'Content-Type': 'application/json'},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -115,7 +92,6 @@ class _ChatRealTimeState extends State<ChatRealTime> {
         setState(() {
           sessionId = data['session_id'];
         });
-        print('Tạo phiên chat thành công: Session ID = $sessionId');
       } else {
         print('Lỗi khi tạo phiên chat: ${response.statusCode}');
       }
@@ -124,48 +100,66 @@ class _ChatRealTimeState extends State<ChatRealTime> {
     }
   }
 
-  // Hàm để kết nối WebSocket
   Future<void> _connectWebSocket() async {
     String? apiSocketUrl = dotenv.env['API_SOCKET_URL'];
     String? accessToken = await _getAccessToken();
 
     if (apiSocketUrl != null && accessToken != null) {
       _socket = IO.io(
-        apiSocketUrl,
+        '$apiSocketUrl?sessionId=$sessionId', // Ensure sessionId is passed in the URL
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .enableAutoConnect()
             .setExtraHeaders({'Authorization': 'Bearer $accessToken'})
-            .setQuery({'userId': userId})
             .setTimeout(10000)
             .build(),
       );
 
-      // Lắng nghe khi kết nối thành công
       _socket?.on('connect', (_) {
         print('Kết nối thành công');
-        _joinRoom(sessionId!); // Tham gia phòng chat
-        _socket?.on('receive_message', (data) {
-          final message = jsonDecode(data);
-          print('Received message: $message');
-          setState(() {
-            _messages.add({
-              'sender_id': message['sender_id'],
-              'message_content': message['message_content']
-            });
-          });
-        });
+        _joinRoom(sessionId!);
       });
 
-      // Xử lý lỗi kết nối
+      _socket?.on('receive_message', (data) {
+        try {
+          final message = data is String ? jsonDecode(data) : data;
+
+          // Check if the message is already in the list before adding
+          setState(() {
+            if (!_messages.any((msg) => msg['message_content'] == message['message_content'] && msg['sender_id'] == message['sender_id'])) {
+              _messages.add({
+                'sender_id': message['sender_id'] ?? -1,
+                'message_content': message['message_content'] ?? 'No content',
+              });
+              _hasNewMessages = true; // Set the flag when new message is received
+            }
+          });
+
+          // Scroll to the bottom when a new message is received
+          Future.delayed(Duration.zero, () {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          });
+        } catch (e) {
+          print('Failed to decode incoming message: $e');
+        }
+      });
+
       _socket?.on('connect_error', (error) {
         print('Lỗi kết nối: $error');
       });
 
-      // Lắng nghe sự kiện reconnect (kết nối lại)
+      _socket?.on('reconnect_attempt', (attempt) {
+        print('Đang thử kết nối lại, lần thử: $attempt');
+      });
+
       _socket?.on('reconnect', (_) {
         print('Socket reconnected');
         if (sessionId != null) {
+          _socket?.emit('leave_room', sessionId.toString());
           _joinRoom(sessionId!);
         }
       });
@@ -174,25 +168,59 @@ class _ChatRealTimeState extends State<ChatRealTime> {
     }
   }
 
-  // Hàm để tham gia phòng chat
   void _joinRoom(int sessionId) {
     _socket?.emit('join_room', sessionId.toString());
-    print('Tham gia phòng: $sessionId');
   }
 
-  // Hàm để rời phòng chat
-  void _leaveRoom(int sessionId) {
-    _socket?.emit('leave_room', sessionId.toString());
-    print('Rời khỏi phòng: $sessionId');
+  void _sendMessage(String messageContent) {
+    if (messageContent.isNotEmpty && userId != null && sessionId != null) {
+      final message = {
+        'session_id': sessionId,
+        'sender_id': userId,
+        'message_content': messageContent,
+      };
+
+      // Send the message via WebSocket
+      _socket?.emit('send_message', message);
+
+      // Add the message to the local list, only if it's not already there
+      setState(() {
+        // Prevent duplicate messages by checking sender_id and content
+        if (!_messages.any((msg) => msg['message_content'] == messageContent && msg['sender_id'] == userId)) {
+          _messages.add({
+            'sender_id': userId,
+            'message_content': messageContent,
+          });
+        }
+      });
+      _messageController.clear();
+
+      // Scroll to the bottom when a new message is sent
+      Future.delayed(Duration.zero, () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+
+      // Lắng nghe phản hồi từ server (nếu cần)
+      _socket?.on('message_sent', (data) {
+        print('Message sent successfully: $data');
+      });
+
+      _socket?.on('message_error', (error) {
+        print('Error sending message: $error');
+        // Có thể thêm logic xử lý lỗi ở đây
+      });
+    }
   }
 
-  // Lấy Access Token từ SharedPreferences
   Future<String?> _getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('accessToken');
   }
 
-  // Lấy userId từ Access Token
   Future<void> _getUserIdFromAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
@@ -205,44 +233,24 @@ class _ChatRealTimeState extends State<ChatRealTime> {
     }
   }
 
-  // Helper để giải mã JWT Token
   Map<String, dynamic> _parseJwtPayload(String token) {
     final parts = token.split('.');
     final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
     return jsonDecode(payload);
   }
 
-  // Hàm để gửi tin nhắn qua WebSocket
-  void _sendMessage(String messageContent) {
-    if (messageContent.isNotEmpty && userId != null && sessionId != null) {
-      final message = {
-        'session_id': sessionId,
-        'sender_id': userId,
-        'message_content': messageContent,
-      };
-
-      _socket?.emit('send_message', message); // Gửi tin nhắn qua WebSocket
-
-      // Hiển thị tin nhắn của chính mình
-      setState(() {
-        _messages.add({
-          'sender_id': userId,
-          'message_content': messageContent
-        });
-      });
-
-      _messageController.clear(); // Xóa nội dung sau khi gửi
-    }
-  }
-
   @override
   void dispose() {
     if (sessionId != null) {
-      _leaveRoom(sessionId!); // Rời khỏi phòng khi đóng màn hình
+      _leaveRoom(sessionId!);
     }
     _socket?.disconnect();
     _messageController.dispose();
     super.dispose();
+  }
+
+  void _leaveRoom(int sessionId) {
+    _socket?.emit('leave_room', sessionId.toString());
   }
 
   @override
@@ -257,6 +265,7 @@ class _ChatRealTimeState extends State<ChatRealTime> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
@@ -287,6 +296,20 @@ class _ChatRealTimeState extends State<ChatRealTime> {
               },
             ),
           ),
+          if (_hasNewMessages)
+            IconButton(
+              icon: Icon(Icons.arrow_downward),
+              onPressed: () {
+                _scrollController.animateTo(
+                  _scrollController.position.maxScrollExtent,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                );
+                setState(() {
+                  _hasNewMessages = false; // Reset the flag after scrolling
+                });
+              },
+            ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -296,29 +319,21 @@ class _ChatRealTimeState extends State<ChatRealTime> {
                     controller: _messageController,
                     decoration: InputDecoration(
                       hintText: 'Nhập tin nhắn...',
-                      contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                      filled: true,
-                      fillColor: Colors.white,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: Colors.grey.shade400),
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: Colors.grey.shade400),
-                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
                     ),
+                    onSubmitted: (messageContent) => _sendMessage(messageContent),
                   ),
                 ),
-                SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: Colors.grey,
-                  child: IconButton(
-                    icon: Icon(Icons.send, color: Colors.white),
-                    onPressed: () {
-                      _sendMessage(_messageController.text);
-                    },
-                  ),
+                IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: () {
+                    _sendMessage(_messageController.text);
+                  },
                 ),
               ],
             ),
