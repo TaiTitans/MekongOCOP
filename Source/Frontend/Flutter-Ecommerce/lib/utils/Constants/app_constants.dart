@@ -26,6 +26,7 @@ import 'package:smart_shop/screens/chat/chatrealtime.dart';
 import 'package:smart_shop/screens/search/search_screen.dart';
 import '../../screens/Catalogue/province_catalogue.dart';
 import '../../screens/Chatbot/chatbot.dart';
+import 'package:smart_shop/screens/chat/listchat.dart';
 class AppConstants {
   static Map<String, Widget Function(dynamic)> appRoutes = {
     '/': (_) => const BottomNavigatorBar(),
@@ -62,6 +63,7 @@ class AppConstants {
     SignIn.routeName: (_) => const SignIn(),
     ChatbotApp.routeName: (_) => ChatbotApp(),
     SearchScreen.routeName: (_) => SearchScreen(),
+    ChatListScreen.routeName: (_) => ChatListScreen(),
     ChatRealTime.routeName: (context) {
       final int storeId = ModalRoute.of(context)!.settings.arguments as int; // Get storeId from arguments
       return ChatRealTime(storeId: storeId); // Pass the storeId to ChatRealTime

@@ -130,6 +130,17 @@ public class StoreController {
     }
 
 
+    @GetMapping("/common/store/data")
+    public ResponseEntity<StatusResponse<Store>> getStoreData(@RequestParam int storeId) {
+        try{
+Store store = storeService.getStoreData(storeId);
+return ResponseEntity.ok(new StatusResponse<>("Success", "Store data retrieved successfully", store));
+        }catch (Exception e){
+            log.error("Failed to retrieve store data", e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new StatusResponse<>("Error", "Store not found", null));
+        }
+    }
+
     @GetMapping("/admin/stores")
     public ResponseEntity<List<StoreDTO>> getAllStores(){
         List<StoreDTO> stores = storeService.getAllStore();

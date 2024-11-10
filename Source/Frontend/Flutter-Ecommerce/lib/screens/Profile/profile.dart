@@ -13,6 +13,7 @@ import 'package:smart_shop/Screens/ShippingAddress/shipping_address.dart';
 import 'package:smart_shop/Screens/SignUp/sign_up.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
+import 'package:smart_shop/screens/chat/listchat.dart';
 import 'package:smart_shop/service/auth_service.dart';
 
 
@@ -86,6 +87,9 @@ class _ProfileState extends State<Profile> {
           _buildProfileTile(Icons.location_on_outlined, 'Địa chỉ giao hàng', () {
             Navigator.pushNamed(context, ShippingAddress.routeName);
           }),
+          _buildListChat(Icons.mark_unread_chat_alt_outlined, 'Danh sách trò chuyện', () {
+            Navigator.pushNamed(context, ChatListScreen.routeName);
+          }),
           _buildProfileTile(Icons.border_all, 'Đơn hàng', () {
             Navigator.pushNamed(context, Orders.routeName);
           }),
@@ -101,6 +105,28 @@ class _ProfileState extends State<Profile> {
   }
 
   Widget _buildProfileTile(IconData icon, String title, Function() onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 20.0.w, vertical: 10.0.h),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0.r),
+          color: AppColors.white,
+        ),
+        child: ListTile(
+          leading: Icon(
+            icon,
+            color: AppColors.primaryLight,
+          ),
+          title: Text(
+            title,
+            style: FontStyles.montserratSemiBold17(),
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildListChat(IconData icon, String title, Function() onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

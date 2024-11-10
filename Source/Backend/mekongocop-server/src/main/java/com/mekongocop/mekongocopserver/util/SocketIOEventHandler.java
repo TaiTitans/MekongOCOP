@@ -18,6 +18,7 @@ import java.sql.Timestamp;
 
 @Component
 public class SocketIOEventHandler {
+
     private final SocketIOServer server;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatSessionsRepository chatSessionRepository;
@@ -37,36 +38,41 @@ public class SocketIOEventHandler {
         this.userRepository = userRepository;
 
         server.addConnectListener(client -> {
-            String userId = client.getHandshakeData().getSingleUrlParam("userId");
-            System.out.println("Client connected: " + client.getSessionId() + " UserID: " + userId);
-            client.joinRoom(userId);
+            String sessionId = client.getHandshakeData().getSingleUrlParam("sessionId");
+            if (sessionId != null) {
+                System.out.println("Client connected: " + client.getSessionId() + " SessionID: " + sessionId);
+                client.joinRoom("chat_room_" + sessionId);  // Join room based on sessionId
+            } else {
+                System.out.println("Client connected: " + client.getSessionId() + " but SessionID is null");
+            }
         });
 
         server.addEventListener("send_message", ChatMessageDTO.class, (client, data, ackRequest) -> {
-            // Lấy thông tin session và user từ cơ sở dữ liệu
-            ChatSessions session = chatSessionRepository.findById(data.getSession_id())
-                    .orElseThrow(() -> new RuntimeException("Session not found"));
-            User sender = userRepository.findById(data.getSender_id())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            try {
+                // Fetch session and user from the database
+                ChatSessions session = chatSessionRepository.findById(data.getSession_id())
+                        .orElseThrow(() -> new RuntimeException("Session not found"));
+                User sender = userRepository.findById(data.getSender_id())
+                        .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // Sử dụng convertToEntity để chuyển đổi ChatMessageDTO thành ChatMessage
-            ChatMessage message = chatMessageService.convertToEntity(data, session, sender);
+                // Convert ChatMessageDTO to ChatMessage
+                ChatMessage message = chatMessageService.convertToEntity(data, session, sender);
+                message.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
-            // Thêm giá trị created_at bằng thời gian hiện tại
-            message.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-
-            // Lưu tin nhắn vào database
-            ChatMessage savedMessage = chatMessageRepository.save(message);
-
-            System.out.println("Sending message to room: " + session.getStore().toString());
-            System.out.println("Sending message to room: " + session.getUser().getUser_id().toString());
-            server.getRoomOperations(session.getStore().toString())
-                    .sendEvent("receive_message", savedMessage);
-            server.getRoomOperations(session.getUser().getUser_id().toString())
-                    .sendEvent("receive_message", savedMessage);
-
+                // Save message to the database
+                ChatMessage savedMessage = chatMessageRepository.save(message);
+                ChatMessageDTO chatMessageDTO = chatMessageService.convertToDTO(savedMessage);
+                // Broadcast message to the chat room based on sessionId
+                // Broadcast message to the chat room based on sessionId
+                String roomId = "chat_room_" + session.getSessionId();
+                System.out.println("Sending message to room: " + roomId);
+                System.out.println("Sending message : " + chatMessageDTO);
+                server.getRoomOperations(roomId).sendEvent("receive_message", chatMessageDTO);
+            } catch (Exception e) {
+                System.err.println("Error handling send_message event: " + e.getMessage());
+                e.printStackTrace();
+            }
         });
-
         server.addEventListener("join_room", String.class, (client, roomId, ackRequest) -> {
             client.joinRoom(roomId);
             System.out.println("Client joined room: " + roomId);

@@ -28,6 +28,7 @@ import 'package:smart_shop/Utils/font_styles.dart';
 import 'package:smart_shop/dummy/dummy_data.dart';
 import 'package:smart_shop/service/seller_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../common/Widgets/flash_sale.dart';
 import '../../model/product.dart';
 import '../../service/product_service.dart';
 import '../search/search_screen.dart';
@@ -56,34 +57,34 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _loadCachedProducts();
-    connectToSocket();
+    // connectToSocket();
   }
-  void connectToSocket() {
-    // Get the Socket URL from the environment variable
-    String socketUrl = dotenv.env['API_SOCKET_URL'] ?? 'http://localhost:3000'; // Provide a default URL if needed
-
-    // Create a socket connection
-    socket = IO.io(socketUrl, <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': true,
-    });
-
-    // Listen for incoming notifications
-    socket.on('receive_notification', (data) {
-      // Handle incoming notification messages
-      updateUnreadNotifications();
-      print("Received notification: $data");
-    });
-
-    // Handle connection status
-    socket.onConnect((_) {
-      print("Connected to socket server");
-    });
-
-    socket.onDisconnect((_) {
-      print("Disconnected from socket server");
-    });
-  }
+  // void connectToSocket() {
+  //   // Get the Socket URL from the environment variable
+  //   String socketUrl = dotenv.env['API_SOCKET_URL'] ?? 'http://localhost:3000'; // Provide a default URL if needed
+  //
+  //   // Create a socket connection
+  //   socket = IO.io(socketUrl, <String, dynamic>{
+  //     'transports': ['websocket'],
+  //     'autoConnect': true,
+  //   });
+  //
+  //   // Listen for incoming notifications
+  //   socket.on('receive_notification', (data) {
+  //     // Handle incoming notification messages
+  //     updateUnreadNotifications();
+  //     print("Received notification: $data");
+  //   });
+  //
+  //   // Handle connection status
+  //   socket.onConnect((_) {
+  //     print("Connected to socket server");
+  //   });
+  //
+  //   socket.onDisconnect((_) {
+  //     print("Disconnected from socket server");
+  //   });
+  // }
 
   @override
   void dispose() {
@@ -238,7 +239,7 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSellerCard(),
-            _buildFlashSaleWidget(),
+            FlashSaleWidget(),
             _buildCatalogue(),
             _buildProductSuggestions(context),
             _buildFeatured(context),
@@ -385,114 +386,7 @@ class _HomeState extends State<Home> {
   }
 
 
-  Widget _buildFlashSaleWidget() {
-    DateTime now = DateTime.now().toLocal(); // Lấy thời gian địa phương
-    List<int> flashSaleHours = [9, 12, 15, 18, 21, 0];
 
-    // Tính thời gian flash sale tiếp theo
-    DateTime nextFlashSaleTime = flashSaleHours
-        .map((hour) {
-      // Xử lý giờ 0h (midnight)
-      if (hour == 0) {
-        return DateTime(now.year, now.month, now.day + 1, hour);
-      } else {
-        return DateTime(now.year, now.month, now.day, hour);
-      }
-    })
-        .firstWhere((time) => time.isAfter(now), orElse: () {
-      return DateTime(now.year, now.month, now.day + 1, 9); // Nếu không có giờ nào trong hôm nay, lấy 9h của ngày mai
-    });
-
-    Duration timeRemaining = nextFlashSaleTime.difference(now);
-
-    return StatefulBuilder(
-      builder: (BuildContext context, StateSetter setState) {
-        Timer.periodic(Duration(seconds: 1), (timer) {
-          setState(() {
-            now = DateTime.now().toLocal(); // Cập nhật thời gian hiện tại
-            timeRemaining = nextFlashSaleTime.difference(now);
-
-            if (timeRemaining.isNegative) {
-              timer.cancel(); // Dừng bộ đếm khi thời gian đã qua
-              nextFlashSaleTime = flashSaleHours
-                  .map((hour) {
-                // Xử lý giờ 0h (midnight)
-                if (hour == 0) {
-                  return DateTime(now.year, now.month, now.day + 1, hour);
-                } else {
-                  return DateTime(now.year, now.month, now.day, hour);
-                }
-              })
-                  .firstWhere((time) => time.isAfter(DateTime.now().toLocal()), orElse: () {
-                return DateTime(now.year, now.month, now.day + 1, 9);
-              });
-              timeRemaining = nextFlashSaleTime.difference(DateTime.now().toLocal());
-            }
-          });
-        });
-
-        bool isFlashSaleActive = timeRemaining.inMinutes >= 0 && timeRemaining.inMinutes < 60;
-        final timeFormat = DateFormat('HH:mm:ss');
-
-        return Card(
-          margin: EdgeInsets.all(14.0),
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.flash_on, color: Colors.orange, size: 30),
-                    SizedBox(width: 8.0),
-                    AnimatedTextKit(
-                      animatedTexts: [
-                        ColorizeAnimatedText(
-                          'Flash Sale',
-                          textStyle: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          colors: [
-                            Colors.red,
-                            Colors.orange,
-                            Colors.yellow,
-                            Colors.red,
-                          ],
-                        ),
-                      ],
-                      isRepeatingAnimation: true,
-                      repeatForever: true,
-                    ),
-                    SizedBox(width: 8.0),
-                    if (isFlashSaleActive)
-                      Text(
-                        'đang diễn ra!',
-                        style: TextStyle(fontSize: 18, color: Colors.red),
-                      )
-                    else
-                      Row(
-                        children: [
-                          Text(
-                            'tiếp theo sau:',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          SizedBox(width: 8.0),
-                          Text(
-                            timeFormat.format(DateTime.fromMillisecondsSinceEpoch(timeRemaining.inMilliseconds + DateTime.now().millisecondsSinceEpoch)),
-                            style: TextStyle(fontSize: 18, color: Colors.blue),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
   Widget _buildSellerCard() {
     var screenHeight = MediaQuery.of(context).size.height;
     return Container(
