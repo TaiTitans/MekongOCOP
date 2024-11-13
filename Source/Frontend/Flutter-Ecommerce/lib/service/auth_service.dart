@@ -47,6 +47,28 @@ class AuthService {
     final String apiUrl = dotenv.env['API_URL'] ?? '';
     return '$apiUrl/user/password/renew?email=$email&otp=$otp&newPassword=$newPassword';
   }
+
+  Future<void> init() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    String? token = sharedPreferences.getString('accessToken');
+
+    if (token != null && !isTokenNotExpired(token)) {
+      await refreshAccessTokenIfNeeded();
+    }
+  }
+
+  // Kiểm tra và làm mới token nếu hết hạn
+  Future<void> refreshAccessTokenIfNeeded() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    String? accessToken = sharedPreferences.getString('accessToken');
+
+    // Kiểm tra nếu accessToken hết hạn
+    if (accessToken != null && !isTokenNotExpired(accessToken)) {
+      await refreshAccessToken();
+    }
+  }
+
+
   String getNewAccessToken() {
     final String apiUrl = dotenv.env['API_URL'] ?? '';
     return '$apiUrl/user/refresh-token';
@@ -69,36 +91,45 @@ class AuthService {
     return now.isBefore(expirationDate); // Trả về true nếu token chưa hết hạn
   }
   Future<String?> refreshAccessToken() async {
-    final String url = getNewAccessToken(); // Thay đổi đường dẫn API
+    final sharedPreferences = await SharedPreferences.getInstance();
+    String? refreshToken = sharedPreferences.getString('refreshToken'); // Lấy refreshToken từ SharedPreferences
+
+    if (refreshToken == null) {
+      print('Refresh token is missing');
+      return null;
+    }
+
+    final String url = getNewAccessToken();
     final dio = Dio();
+
     try {
       final response = await dio.post(
         url,
         options: Options(
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer $refreshToken', // Gửi refreshToken qua header Authorization
           },
         ),
       );
 
       if (response.statusCode == 200) {
-        // Nhận access token mới từ phản hồi
-        String newAccessToken = response.data['accessToken']; // Giả sử bạn nhận được token từ phản hồi
+        // Giả sử server trả về accessToken mới
+        String newAccessToken = response.data['accessToken'];
 
-        // Lưu access token mới vào SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', newAccessToken);
+        // Cập nhật accessToken trong SharedPreferences
+        await sharedPreferences.setString('accessToken', newAccessToken);
+
         return newAccessToken;
       } else {
-        print('Error refreshing token: ${response.data['error']}');
+        print('Error refreshing token: ${response.data}');
       }
     } catch (e) {
       print('Error: $e');
     }
 
-    return null; // Trả về null nếu không có token mới
+    return null;
   }
-
 
   Future<Map<String, dynamic>> signIn(String username, String password) async {
     final String url = loginUrl();

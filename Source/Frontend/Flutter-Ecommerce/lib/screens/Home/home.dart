@@ -45,8 +45,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _key = GlobalKey();
-  int unreadNotifications = 0;
-  late IO.Socket socket;
   List<dynamic>? _products;
   List<ProductModel> _searchResults = [];
   bool _isLoading = false;
@@ -56,68 +54,13 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    _loadCachedProducts();
-    // connectToSocket();
+    _loadProducts();
   }
-  // void connectToSocket() {
-  //   // Get the Socket URL from the environment variable
-  //   String socketUrl = dotenv.env['API_SOCKET_URL'] ?? 'http://localhost:3000'; // Provide a default URL if needed
-  //
-  //   // Create a socket connection
-  //   socket = IO.io(socketUrl, <String, dynamic>{
-  //     'transports': ['websocket'],
-  //     'autoConnect': true,
-  //   });
-  //
-  //   // Listen for incoming notifications
-  //   socket.on('receive_notification', (data) {
-  //     // Handle incoming notification messages
-  //     updateUnreadNotifications();
-  //     print("Received notification: $data");
-  //   });
-  //
-  //   // Handle connection status
-  //   socket.onConnect((_) {
-  //     print("Connected to socket server");
-  //   });
-  //
-  //   socket.onDisconnect((_) {
-  //     print("Disconnected from socket server");
-  //   });
-  // }
 
   @override
   void dispose() {
     _searchController.dispose();
-    socket.dispose();
     super.dispose();
-  }
-  void updateUnreadNotifications() {
-    setState(() {
-      unreadNotifications++;
-    });
-  }
-  Future<void> _fetchProductsBySearchTerm(String searchTerm) async {
-    setState(() {
-      _isLoading = true;
-      _searchResults = [];
-    });
-
-    try {
-      final results = await productService.fetchProductBySearchProductName(searchTerm);
-      setState(() {
-        _searchResults = results;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('Error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra khi tìm kiếm')),
-      );
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   Future<void> _submitSellerLicense(File? licenseFile) async {
@@ -137,16 +80,8 @@ class _HomeState extends State<Home> {
       }
     }
   }
-  Future<void> _loadCachedProducts() async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    final cachedProducts = sharedPreferences.getString('cachedProducts');
-    if (cachedProducts != null) {
-      _products = jsonDecode(cachedProducts);
-      _lastProductsUpdateTime = DateTime.now().subtract(Duration(minutes: 29)); // Gán thời gian gần nhất
-      setState(() {});
-    } else {
-      await _fetchProducts(context); // Nếu không có dữ liệu cached, gọi API
-    }
+  Future<void> _loadProducts() async {
+    await _fetchProducts(context);
   }
 
 
@@ -162,15 +97,15 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _fetchProducts(BuildContext context) async {
-    // Fetch latest products
+    // Fetch latest products từ API
     final sharedPreferences = await SharedPreferences.getInstance();
     final accessToken = sharedPreferences.getString('accessToken') ?? '';
     _products = await productService.fetchProductsNewFeed(accessToken);
     _lastProductsUpdateTime = DateTime.now();
-    await sharedPreferences.setString('cachedProducts', jsonEncode(_products));
 
     setState(() {});
   }
+
 
   Future<void> _handleFavorite(BuildContext context, int productId) async {
     // Lấy accessToken từ SharedPreferences
@@ -198,7 +133,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _key,
-      appBar: _buildCustomAppBar(context, unreadNotifications),  // AppBar có thanh tìm kiếm
+      appBar: _buildCustomAppBar(context),  // AppBar có thanh tìm kiếm
       drawer: _buildDrawer(context, _showUploadLicenseDialog), // Drawer menu
       body: _buildBody(context), // Nội dung chính của trang
       resizeToAvoidBottomInset: false,
@@ -362,7 +297,7 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-  PreferredSize _buildCustomAppBar(BuildContext context, int unreadNotifications) {
+  PreferredSize _buildCustomAppBar(BuildContext context) {
     return PreferredSize(
       preferredSize: Size(double.infinity, MediaQuery.of(context).size.height * .20),
       child: CustomAppBar(
@@ -375,12 +310,11 @@ class _HomeState extends State<Home> {
         trailingOnTap: () {
           Navigator.of(context).pushNamed(NotificationScreen.routeName);
         },
-        trailingIcon: Icons.notifications_none_outlined,
+        trailingIcon: Icons.notifications_active_outlined,
         scaffoldKey: _key,
         onSearchSubmitted: (String searchTerm) {
           Navigator.pushNamed(context, SearchScreen.routeName);
         },
-        notificationCount: unreadNotifications, // Pass the notification count here
       ),
     );
   }
@@ -516,7 +450,7 @@ class _HomeState extends State<Home> {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                mainAxisExtent: 250.0.h,
+                mainAxisExtent: 210.0.h,
                 crossAxisSpacing: 10.0.w,
                 mainAxisSpacing: 8.0.h,
               ),
@@ -601,7 +535,7 @@ class _HomeState extends State<Home> {
         } else if (snapshot.hasError) {
           return Center(child: Text('Lỗi khi tải sản phẩm: ${snapshot.error}'));
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          _products = snapshot.data!.take(4).toList(); // Giới hạn 4 sản phẩm
+          _products = snapshot.data!.take(4).toList();
           _lastProductsUpdateTime = DateTime.now();
           return Container(
             margin: EdgeInsets.only(
@@ -647,7 +581,7 @@ class _HomeState extends State<Home> {
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      mainAxisExtent: 250.0.h,
+                      mainAxisExtent: 210.0.h,
                       crossAxisSpacing: 10.0.w,
                       mainAxisSpacing: 8.0.h,
                     ),
@@ -693,7 +627,7 @@ class _HomeState extends State<Home> {
 
     if (cachedProductSuggestions != null && lastUpdateTime != null) {
       DateTime lastUpdate = DateTime.parse(lastUpdateTime);
-      if (DateTime.now().difference(lastUpdate).inMinutes < 30) {
+      if (DateTime.now().difference(lastUpdate).inMinutes < 5) {
         return jsonDecode(cachedProductSuggestions); // Trả về dữ liệu cache
       }
     }
@@ -800,33 +734,6 @@ class _HomeState extends State<Home> {
     } else {
       return -1; // Không xác định được
     }
-  }
-
-
-  Future<void> _loadCachedProductsProvince() async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    final provinceId = await _getCurrentProvinceId();
-    final cachedProducts = sharedPreferences.getString('cachedProductSuggestions$provinceId');
-    if (cachedProducts != null) {
-      _products = jsonDecode(cachedProducts);
-      _lastProductsUpdateTime = DateTime.now().subtract(Duration(minutes: 29)); // Gán thời gian gần nhất
-      setState(() {});
-    } else {
-      await _fetchProductsProvince(context); // Nếu không có dữ liệu cached, gọi API
-    }
-  }
-
-  Future<void> _fetchProductsProvince(BuildContext context) async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    final accessToken = sharedPreferences.getString('accessToken') ?? '';
-    final provinceId = await _getCurrentProvinceId();
-    final suggestionProducts = await _fetchProductsByProvince(provinceId);
-    // Tải sản phẩm mới và lưu cache
-    _products = await productService.fetchProductsByProvince(provinceId, accessToken);
-    await sharedPreferences.setString('cachedProductSuggestions$provinceId', jsonEncode(suggestionProducts));
-    _lastProductsUpdateTime = DateTime.now();
-
-    setState(() {});
   }
 
 

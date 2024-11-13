@@ -27,6 +27,7 @@ import 'package:smart_shop/screens/search/search_screen.dart';
 import '../../screens/Catalogue/province_catalogue.dart';
 import '../../screens/Chatbot/chatbot.dart';
 import 'package:smart_shop/screens/chat/listchat.dart';
+import 'package:smart_shop/screens/Profile/changeaccount.dart';
 class AppConstants {
   static Map<String, Widget Function(dynamic)> appRoutes = {
     '/': (_) => const BottomNavigatorBar(),
@@ -69,6 +70,7 @@ class AppConstants {
       return ChatRealTime(storeId: storeId); // Pass the storeId to ChatRealTime
     },
     ForgotPasswordScreen.routeName: (_) => const ForgotPasswordScreen(),
+    ChangeAccountScreen.routeName: (_)=> const ChangeAccountScreen()
   };
 
   static setSystemStyling() {

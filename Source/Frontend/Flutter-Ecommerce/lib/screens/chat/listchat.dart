@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
+import '../../Common/Widgets/custom_app_bar.dart';
 import '../../model/chatsession.dart';
 import '../../model/storedata.dart';
 import 'chatrealtime.dart';
@@ -130,10 +131,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trò chuyện', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepPurple,
-      ),
+      appBar: _buildAppBar(context),
       body: RefreshIndicator(
         onRefresh: _refreshChats,
         child: isLoading
@@ -226,6 +224,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+  PreferredSize _buildAppBar(BuildContext context) {
+    return PreferredSize(
+      preferredSize: Size(double.infinity, MediaQuery.of(context).size.height * .20),
+      child: CustomAppBar(
+        isHome: false,
+        title: 'Trò chuyện',
+        fixedHeight: 120.0,
+        enableSearchField: false,
+        leadingIcon: Icons.arrow_back,
+        leadingOnTap: () {
+          Navigator.pop(context);
+        },
       ),
     );
   }

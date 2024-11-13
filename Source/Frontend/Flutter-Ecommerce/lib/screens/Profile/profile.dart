@@ -13,6 +13,7 @@ import 'package:smart_shop/Screens/ShippingAddress/shipping_address.dart';
 import 'package:smart_shop/Screens/SignUp/sign_up.dart';
 import 'package:smart_shop/Utils/app_colors.dart';
 import 'package:smart_shop/Utils/font_styles.dart';
+import 'package:smart_shop/screens/Profile/changeaccount.dart';
 import 'package:smart_shop/screens/chat/listchat.dart';
 import 'package:smart_shop/service/auth_service.dart';
 
@@ -94,6 +95,7 @@ class _ProfileState extends State<Profile> {
             Navigator.pushNamed(context, Orders.routeName);
           }),
           _buildProfileTile(Icons.settings, 'Cài đặt', () {
+            Navigator.pushNamed(context, ChangeAccountScreen.routeName);
           }),
           _buildProfileTile(Icons.login_outlined, 'Đăng xuất', () async {
             await _logout(context);

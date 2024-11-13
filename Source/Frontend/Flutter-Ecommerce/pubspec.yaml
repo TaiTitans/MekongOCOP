@@ -18,13 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 
-flutter_icons:
-  android: true,
-  ios: true,
-  image_path_android: "assets/mekongocop_logo.png"
-  image_path: "assets/mekongocop_logo.png"
-
-
+# Nếu bạn không muốn splash screen cho web
 environment:
   sdk: ">=2.12.0 <4.0.0"
 
@@ -65,6 +59,10 @@ dependencies:
   stomp_dart_client: ^2.1.0
   flutter_svg: ^2.0.11
   animated_text_kit: ^4.2.2
+  flutter_native_splash: ^2.4.2
+  pdf: ^3.8.0
+  path_provider: ^2.0.15
+  open_file: ^3.3.2
 
 dev_dependencies:
   flutter_test:
@@ -93,7 +91,6 @@ flutter:
     - assets/province/
     - assets/cate/
     - assets/cursel/
-    - assets/
     - assets/images/
     - assets/catalogue/
     - assets/featured/
@@ -101,8 +98,22 @@ flutter:
     - assets/product/
     - assets/checkOut/
     - assets/onBoarding/
+    - assets/fonts/
     - .env
   #   - images/a_dot_ham.jpeg
+flutter_icons:
+  android: true
+  ios: true
+  image_path_android: "assets/mekongocop_logo.png"
+  image_path: "assets/mekongocop_logo.png"
+
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: "assets/mekongocop_logo.png"  # Đường dẫn tới logo của bạn
+  android: true
+  ios: true
+  web: false
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -124,11 +135,10 @@ flutter:
            weight: 700
          - asset: assets/fonts/Montserrat-ExtraBold.ttf
            weight: 800
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
+     - family: NotoSans
+       fonts:
+         - asset: fonts/NotoSans.ttf
+           weight: 400
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

@@ -99,10 +99,12 @@ public class UserService {
         return modelMapper.map(userDTO, User.class);
     }
 
-    public void updateEmail(UserDTO userDTO, String otpInput, int id) {
+    public void updateEmail(String token,UserDTO userDTO, String otpInput) {
         try {
-            if (userRepository.existsById(id)) {
-                Optional<User> optionalUser = userRepository.findById(id);
+            int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+            if (userRepository.existsById(userId)) {
+                Optional<User> optionalUser = userRepository.findById(userId);
                 if (!optionalUser.isPresent()) {
                     throw new IllegalArgumentException("User not found");
                 }
@@ -253,7 +255,13 @@ public class UserService {
         }
     }
     public String refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = getRefreshTokenFromCookies(request.getCookies());
+        // Lấy refresh token từ header Authorization
+        String refreshToken = request.getHeader("Authorization");
+        if (refreshToken != null && refreshToken.startsWith("Bearer ")) {
+            refreshToken = refreshToken.substring(7);  // Lấy token sau "Bearer "
+        }
+
+        System.out.println("Received refresh token: " + refreshToken);
 
         if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
             String username = jwtTokenProvider.getUsernameFromToken(refreshToken);

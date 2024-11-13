@@ -84,7 +84,7 @@
   
           <button
             type="submit"
-            class="w-full px-4 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="w-full px-4 py-3 bg-cyan-500 text-white rounded-md hover:bg-white hover:text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             Thêm sản phẩm
           </button>

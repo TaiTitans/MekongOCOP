@@ -85,7 +85,7 @@ public class OrderController {
             if(!jwtTokenProvider.validateToken(token)){
                 return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Error token", null));
             }
-            List<OrderDTO> orderDTOList = orderService.getAllOrdersByUserId(validToken);
+            List<OrderDTO> orderDTOList = orderService.getOrderByStore(validToken);
             return ResponseEntity.ok().body(new StatusResponse<>("Success", "Order list", orderDTOList));
         }catch (Exception e) {
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Get Order Failed", null));
@@ -112,7 +112,19 @@ public class OrderController {
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Update Order Failed", null));
         }
     }
-
+    @PatchMapping("/common/order/{id}/success")
+    public ResponseEntity<StatusResponse<Void>> updateOrderSuccess(@RequestHeader("Authorization") String token,@PathVariable int id) {
+        try{
+            String validToken = TokenExtractor.extractToken(token);
+            if(!jwtTokenProvider.validateToken(token)){
+                return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Error token", null));
+            }
+            orderService.updateOrderStatusToSuccess(validToken, id);
+            return ResponseEntity.ok().body(new StatusResponse<>("Success", "Order updated", null));
+        }catch (Exception e){
+            return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Update Order Failed", null));
+        }
+    }
     @PatchMapping("/common/order/{id}/cancel")
     public ResponseEntity<StatusResponse<Void>> updateOrderCancelRequest(@PathVariable int id) {
         try{

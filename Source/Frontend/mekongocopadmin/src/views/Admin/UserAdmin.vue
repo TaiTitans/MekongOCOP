@@ -2,12 +2,12 @@
   <NavbarS title="Người dùng" />
   <div class="flex flex-col h-screen bg-gray-100">
     <div class="h-16"></div>
-    <div class="flex-1 overflow-hidden relative pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full mb-10">
-      <div class="bg-white shadow-xl rounded-lg overflow-hidden w-full mx-auto flex flex-col h-full">
+    <div class="flex-1 overflow-hidden relative pt-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full mb-10 justify-center items-center">
+      <div class="bg-white shadow-xl rounded-lg overflow-hidden w-full mx-auto flex flex-col h-full justify-center">
         <div class="p-10 flex-shrink-0">
           <div class="sm:flex sm:items-center">
             <div class="sm:flex-auto">
-              <h1 class="text-2xl font-semibold text-gray-900">Users</h1>
+              <h1 class="text-2xl font-semibold text-gray-900">Người dùng</h1>
               <p class="mt-2 text-sm text-gray-700">Danh sách tất cả người dùng trong tài khoản bao gồm tên, chức danh, email và vai trò của họ.</p>
             </div>
             <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none w-full sm:w-64">

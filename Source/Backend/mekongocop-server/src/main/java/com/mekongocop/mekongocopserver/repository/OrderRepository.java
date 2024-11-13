@@ -9,12 +9,16 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     // Lấy tất cả đơn hàng của người dùng
     @Query("SELECT o FROM Order o WHERE o.user.user_id = :userId")
     List<Order> findByUserId(@Param("userId") int userId);
+
+    @Query("SELECT o FROM Order o WHERE o.user.user_id = :userId AND o.order_id = :orderId")
+    Optional<Order> findByUserIdAndOrderId(@Param("userId") int userId, @Param("orderId") int orderId);
 
     @Query("SELECT o FROM Order o JOIN o.items oi JOIN oi.product p WHERE p.store.store_id = :storeId")
     List<Order> findOrdersByStoreId(@Param("storeId") int storeId);

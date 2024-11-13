@@ -47,7 +47,6 @@ class _CartState extends State<Cart> {
     final sharedPreferences = await SharedPreferences.getInstance();
     accessToken = sharedPreferences.getString('accessToken') ?? '';
     _cartItemsFuture = _fetchCartItems();
-    // Ensure that the state is updated after initializing the future.
     setState(() {});
   }
 

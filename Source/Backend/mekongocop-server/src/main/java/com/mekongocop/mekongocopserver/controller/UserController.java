@@ -50,15 +50,15 @@ public class UserController {
     }
 
 
-    @PatchMapping("/user/email/{id}")
-    public ResponseEntity<StatusResponse<UserDTO>> updateEmail(@RequestHeader("Authorization") String authHeader, @PathVariable int id, @RequestBody UserDTO userDTO, @RequestParam String otp){
+    @PatchMapping("/user/email")
+    public ResponseEntity<StatusResponse<UserDTO>> updateEmail(@RequestHeader("Authorization") String authHeader, @RequestBody UserDTO userDTO, @RequestParam String otp){
         try{
             String token = TokenExtractor.extractToken(authHeader);
             if (token == null) {
                 return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Invalid token format", null));
             }
-            if(jwtTokenProvider.validateToken(token)) {
-                userService.updateEmail(userDTO, otp, id);
+            if(jwtTokenProvider.validateToken(authHeader)) {
+                userService.updateEmail(token ,userDTO, otp);
                 return ResponseEntity.ok(new StatusResponse<>("Success", "User updated successfully", userDTO));
             }else{
                 return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Token is not valid", null));
@@ -77,7 +77,7 @@ public class UserController {
             if (token == null) {
                 return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Invalid token format", null));
             }
-            if (jwtTokenProvider.validateToken(token)) {
+            if (jwtTokenProvider.validateToken(authHeader)) {
                 userService.resetPassword(token, oldPassword, newPassword);
                 return ResponseEntity.ok(new StatusResponse<>("Success", "Password updated successfully", null));
             } else {

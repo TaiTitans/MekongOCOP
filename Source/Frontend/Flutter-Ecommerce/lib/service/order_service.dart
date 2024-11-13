@@ -13,7 +13,10 @@ class OrderService{
     return '$apiUrl/common/product/$product_id/review';
   }
 
-
+String updateSuccesUrl(int orderId){
+    final String apiUrl = dotenv.env['API_URL'] ?? '';
+    return '$apiUrl/common/order/$orderId/success';
+}
   String cancelOrderUrl(int orderId) {
     final String apiUrl = dotenv.env['API_URL'] ?? '';
     return '$apiUrl/common/order/$orderId/cancel';
@@ -95,7 +98,27 @@ class OrderService{
       throw Exception('Failed to cancel order: $e');
     }
   }
+  Future<Map<String, dynamic>> successOrder(String accessToken, int orderId) async {
+    final String url = updateSuccesUrl(orderId);
+    try {
+      Response response = await _dio.patch(
+        url,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+          },
+        ),
+      );
 
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to cancel order: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to cancel order: $e');
+    }
+  }
   Future<Map<String, dynamic>> writeReview(String accessToken, int productId, int rating, String reviewContent) async {
     final String url = writeReviewUrl(productId);
     final Map<String, dynamic> body = {

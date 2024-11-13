@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col min-h-screen mx-auto w-fit">
       <!-- Phần tiêu đề -->
-      <div class="bg-white p-3 rounded-sm shadow-md text-center font-semibold text-[20px] mt-4">
+      <div class="bg-cyan-500 text-white p-3 rounded-sm shadow-md text-center font-semibold text-[20px] mt-4">
         THỐNG KÊ
       </div>
       
