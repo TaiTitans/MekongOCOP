@@ -12,7 +12,7 @@
                 v-model="newSpecialDay"
                 class="border border-gray-300 rounded-md p-2 w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button @click="addSpecialDay" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 flex items-center justify-center w-full sm:w-auto">
+              <button @click="addSpecialDay" class="bg-cyan-500 text-white shadow-md px-4 py-2 rounded-md hover:bg-gray-300 hover:text-white transition duration-300 flex items-center justify-center w-full sm:w-auto">
                 <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -56,7 +56,7 @@
                 placeholder="Nhập thông điệp thông báo"
                 class="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500"
               />
-              <button @click="sendNotification" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-300 flex items-center justify-center w-full">
+              <button @click="sendNotification" class="bg-cyan-500 text-white px-4 py-2 rounded-md hover:bg-gray-300 hover:text-white transition duration-300 flex items-center justify-center w-full shadow-md">
                 <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                 </svg>

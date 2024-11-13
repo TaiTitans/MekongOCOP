@@ -41,6 +41,7 @@ public class SecurityConfig {
         // Cấu hình CORS ở đây
         http.cors(cors -> cors.configurationSource(corsConfigurationSource())) // Sử dụng nguồn cấu hình CORS
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v*/user/refresh-token").permitAll()
                         .requestMatchers("/api/v*/login").permitAll()
                         .requestMatchers("/api/v*/register").permitAll()
                         .requestMatchers("/api/v*/otp/**").permitAll()

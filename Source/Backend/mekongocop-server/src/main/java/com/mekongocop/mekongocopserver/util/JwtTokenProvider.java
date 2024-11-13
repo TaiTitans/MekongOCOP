@@ -3,6 +3,7 @@ package com.mekongocop.mekongocopserver.util;
 import com.mekongocop.mekongocopserver.dto.UserDTO;
 import com.mekongocop.mekongocopserver.entity.Role;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,9 +44,13 @@ public class JwtTokenProvider {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 
-    private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
+    public boolean isTokenExpired(String token) {
+        try {
+            Date expirationDate = parseClaims(token).getExpiration();
+            return expirationDate.before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
     }
 
 

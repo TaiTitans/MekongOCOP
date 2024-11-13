@@ -10,6 +10,7 @@ import com.mekongocop.mekongocopserver.entity.User;
 import com.mekongocop.mekongocopserver.repository.UserNotificationRepository;
 import com.mekongocop.mekongocopserver.repository.UserRepository;
 import com.mekongocop.mekongocopserver.util.SocketIOEventHandler;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,23 @@ public class NotificationConsumer {
     private SocketIOEventHandler socketIOEventHandler;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    @Transactional
+    public void sendNotificationForUser(int userId, String message) {
+        // Tìm user theo ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        // Tạo đối tượng thông báo mới
+        UserNotification notification = new UserNotification();
+        notification.setUserId(user); // Set user liên kết
+        notification.setMessage(message);
+        notification.setSent_at(LocalDateTime.now());
+
+        // Lưu thông báo vào database
+        userNotificationRepository.save(notification);
+    }
+
 
     @KafkaListener(topics = "notifications", groupId = "notification-group")
     public void listen(String message) {

@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../../Common/Widgets/custom_app_bar.dart';
+
 class ChatRealTime extends StatefulWidget {
   final int storeId;
 
@@ -256,11 +258,7 @@ class _ChatRealTimeState extends State<ChatRealTime> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Trò chuyện'),
-        backgroundColor: Colors.grey,
-        elevation: 0,
-      ),
+      appBar: _buildAppBar(context),
       body: Column(
         children: [
           Expanded(
@@ -339,6 +337,21 @@ class _ChatRealTimeState extends State<ChatRealTime> {
             ),
           ),
         ],
+      ),
+    );
+  }
+  PreferredSize _buildAppBar(BuildContext context) {
+    return PreferredSize(
+      preferredSize: Size(double.infinity, MediaQuery.of(context).size.height * .20),
+      child: CustomAppBar(
+        isHome: false,
+        title: '',
+        fixedHeight: 120.0,
+        enableSearchField: false,
+        leadingIcon: Icons.arrow_back,
+        leadingOnTap: () {
+          Navigator.pop(context);
+        },
       ),
     );
   }

@@ -1,22 +1,22 @@
 <template>
     <div>
       
-      <div class="flex bg-gray-100 h-full">
+      <div class="flex bg-gray-100 h-full mt-2 ml-2 rounded-md">
         <!-- Sidebar -->
         <div v-if="isNavbarVisible" class="hidden md:flex flex-col w-60 bg-gray-800 shadow-xl">
-          <div class="flex items-center justify-center h-16 bg-white">
+          <div class="flex items-center justify-center h-16 bg-white mt-[2px]">
             <span class="text-black font-bold text-l uppercase">MekongTravel Admin</span>
           </div>
           <div class="flex flex-col flex-1 overflow-y-auto">
             <nav class="flex-1 px-2 py-4 bg-gray-200 shadow-inner">
-                <div @click="goToAdminDashboard" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+                <router-link  to="/admin"  exact-active-class="bg-cyan-600 text-white rounded-full" class="flex items-center px-4 py-3 mt-2 text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                     <svg class="w-6 h-6 text-gray-600 mr-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 12 8-8 8 8M6 10.5V19a1 1 0 0 0 1 1h3v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h3a1 1 0 0 0 1-1v-8.5" />
                 </svg>
 
                 Trang chủ
-              </div>
-              <div @click="goToTinhThanh" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+                </router-link>
+              <router-link  to="/admin/user"  active-class="bg-cyan-600 text-white rounded-full" class="flex items-center px-4 py-3 mt-2 text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-gray-600 mr-8" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100.353 100.353" style="enable-background:new 0 0 100.353 100.353;" xml:space="preserve">
 <g>
 	<path d="M49.106,50.437c-12.167,0-22.066,9.898-22.066,22.065c0,0.828,0.671,1.5,1.5,1.5h41.131c0.828,0,1.5-0.672,1.5-1.5
@@ -41,23 +41,23 @@
 </svg>
 
                 Người Dùng
-              </div>
-              <div @click="goToDiaDiem" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+              </router-link>
+              <router-link  to="/admin/store"  active-class="bg-cyan-600 text-white rounded-full" class="flex items-center px-4 py-3 mt-2 text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-gray-600 mr-8" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M48 38H31C30.7348 38 30.4804 38.1054 30.2929 38.2929C30.1054 38.4804 30 38.7348 30 39V54C30 54.2652 30.1054 54.5196 30.2929 54.7071C30.4804 54.8946 30.7348 55 31 55H48C48.2652 55 48.5196 54.8946 48.7071 54.7071C48.8946 54.5196 49 54.2652 49 54V39C49 38.7348 48.8946 38.4804 48.7071 38.2929C48.5196 38.1054 48.2652 38 48 38ZM47 53H32V40H47V53Z" fill="black"></path>
 <path d="M60 57H53V35.91C54.3971 35.6739 55.6655 34.9509 56.5806 33.8692C57.4958 32.7875 57.9986 31.4169 58 30V26C58.0047 25.9368 58.0047 25.8732 58 25.81C58.0093 25.7739 58.0093 25.7361 58 25.7L53 9.7C52.934 9.48929 52.8001 9.30635 52.6192 9.17972C52.4383 9.0531 52.2206 8.9899 52 9H41V6C41 5.73478 40.8946 5.48043 40.7071 5.29289C40.5196 5.10536 40.2652 5 40 5H24C23.7348 5 23.4804 5.10536 23.2929 5.29289C23.1054 5.48043 23 5.73478 23 6V9H12C11.7879 9.00084 11.5815 9.0691 11.4107 9.19494C11.24 9.32077 11.1136 9.49765 11.05 9.7L6.05 25.7C6.04069 25.7361 6.04069 25.7739 6.05 25.81C6.02853 25.872 6.01181 25.9355 6 26V30C6.00144 31.4169 6.50425 32.7875 7.41939 33.8692C8.33452 34.9509 9.60294 35.6739 11 35.91V57H4C3.73478 57 3.48043 57.1054 3.29289 57.2929C3.10536 57.4804 3 57.7348 3 58C3 58.2652 3.10536 58.5196 3.29289 58.7071C3.48043 58.8946 3.73478 59 4 59H60C60.2652 59 60.5196 58.8946 60.7071 58.7071C60.8946 58.5196 61 58.2652 61 58C61 57.7348 60.8946 57.4804 60.7071 57.2929C60.5196 57.1054 60.2652 57 60 57ZM52 34C51.1137 33.9993 50.2528 33.7044 49.5523 33.1614C48.8519 32.6184 48.3516 31.8581 48.13 31H55.87C55.6484 31.8581 55.1481 32.6184 54.4477 33.1614C53.7472 33.7044 52.8863 33.9993 52 34ZM37 29H8V27H56V29H37ZM45.87 31C45.6463 31.856 45.1451 32.6137 44.4448 33.1544C43.7445 33.6952 42.8848 33.9885 42 33.9885C41.1152 33.9885 40.2555 33.6952 39.5552 33.1544C38.8549 32.6137 38.3537 31.856 38.13 31H45.87ZM35.87 31C35.6397 31.8474 35.137 32.5954 34.4394 33.1287C33.7418 33.6621 32.8881 33.951 32.01 33.951C31.1319 33.951 30.2782 33.6621 29.5806 33.1287C28.883 32.5954 28.3803 31.8474 28.15 31H35.87ZM25.87 31C25.6397 31.8474 25.137 32.5954 24.4394 33.1287C23.7418 33.6621 22.8881 33.951 22.01 33.951C21.1319 33.951 20.2782 33.6621 19.5806 33.1287C18.883 32.5954 18.3803 31.8474 18.15 31H25.87ZM25 7H39V13H25V7ZM12.74 11H23V14C23 14.2652 23.1054 14.5196 23.2929 14.7071C23.4804 14.8946 23.7348 15 24 15H40C40.2652 15 40.5196 14.8946 40.7071 14.7071C40.8946 14.5196 41 14.2652 41 14V11H51.26L55.64 25H8.36L12.74 11ZM8.14 31H15.86C15.6297 31.8474 15.127 32.5954 14.4294 33.1287C13.7318 33.6621 12.8781 33.951 12 33.951C11.1219 33.951 10.2682 33.6621 9.5706 33.1287C8.873 32.5954 8.37028 31.8474 8.14 31V31ZM17 57V40H26V57H17ZM28 57V39C28 38.7348 27.8946 38.4804 27.7071 38.2929C27.5196 38.1054 27.2652 38 27 38H16C15.7348 38 15.4804 38.1054 15.2929 38.2929C15.1054 38.4804 15 38.7348 15 39V57H13V35.91C13.8091 35.7732 14.5815 35.4719 15.2695 35.0247C15.9575 34.5774 16.5465 33.9939 17 33.31C17.5473 34.1351 18.2903 34.8119 19.1627 35.2801C20.0351 35.7483 21.0099 35.9934 22 35.9934C22.9901 35.9934 23.9649 35.7483 24.8373 35.2801C25.7097 34.8119 26.4527 34.1351 27 33.31C27.5473 34.1351 28.2903 34.8119 29.1627 35.2801C30.0351 35.7483 31.0099 35.9934 32 35.9934C32.9901 35.9934 33.9649 35.7483 34.8373 35.2801C35.7097 34.8119 36.4527 34.1351 37 33.31C37.5473 34.1351 38.2903 34.8119 39.1627 35.2801C40.0351 35.7483 41.0099 35.9934 42 35.9934C42.9901 35.9934 43.9649 35.7483 44.8373 35.2801C45.7097 34.8119 46.4527 34.1351 47 33.31C47.4535 33.9939 48.0425 34.5774 48.7305 35.0247C49.4185 35.4719 50.1909 35.7732 51 35.91V57H28Z" fill="black"></path>
 </svg>
                 Cửa hàng
-              </div>
-              <div @click="goToAmThuc" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+              </router-link>
+              <router-link  to="/admin/product"  active-class="bg-cyan-600 text-white rounded-full" class="flex items-center px-4 py-3 mt-2 text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-gray-600 mr-8" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>New Product</title><path d="M455.839,137.354,402.292,60.867a42.688,42.688,0,0,0-34.953-18.2H144.661a42.692,42.692,0,0,0-34.953,18.2l-53.547,76.49a74.308,74.308,0,0,0-13.495,42.82V416A53.4,53.4,0,0,0,96,469.333H416A53.4,53.4,0,0,0,469.333,416V180.174A74.31,74.31,0,0,0,455.839,137.354ZM384.813,73.1l53.368,76.234h-120.1L301.01,64h66.329A21.334,21.334,0,0,1,384.813,73.1ZM213.333,170.667h85.333V224H213.333ZM279.257,64l17.065,85.333H215.678L232.743,64ZM127.188,73.1A21.339,21.339,0,0,1,144.661,64H210.99l-17.067,85.333H73.819ZM448,416a32.035,32.035,0,0,1-32,32H96a32.035,32.035,0,0,1-32-32V180.174a53.592,53.592,0,0,1,.88-9.508H192v64a10.667,10.667,0,0,0,10.667,10.667H309.333A10.667,10.667,0,0,0,320,234.667v-64H447.12a53.592,53.592,0,0,1,.88,9.508Z"></path><path d="M192,298.667a10.667,10.667,0,0,0-10.667,10.667v41.38l-33.984-47.578a10.668,10.668,0,0,0-19.349,6.2V384a10.667,10.667,0,1,0,21.333,0V342.62L183.318,390.2a10.668,10.668,0,0,0,19.349-6.2V309.333A10.667,10.667,0,0,0,192,298.667Z"></path><path d="M272,320a10.667,10.667,0,1,0,0-21.333H229.333a10.667,10.667,0,0,0-10.667,10.667V384a10.667,10.667,0,0,0,10.667,10.667H272a10.667,10.667,0,0,0,0-21.333H240v-16h21.333a10.667,10.667,0,1,0,0-21.333H240V320Z"></path><path d="M386.1,298.875a10.67,10.67,0,0,0-12.557,8.359l-9.047,45.026-11.036-21.187a10.663,10.663,0,0,0-18.917,0L323.505,352.26l-9.047-45.026a10.667,10.667,0,1,0-20.917,4.2l15,74.667a10.664,10.664,0,0,0,19.917,2.828L344,359.094l15.542,29.833a10.659,10.659,0,0,0,9.453,5.74,11.307,11.307,0,0,0,1.505-.1,10.67,10.67,0,0,0,8.958-8.464l15-74.667A10.666,10.666,0,0,0,386.1,298.875Z"></path></svg>
                 Sản phẩm
-              </div>
-              <div @click="goToFeedback" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+              </router-link>
+              <router-link  to="/admin/approve"  active-class="bg-cyan-600 text-white rounded-full" class="flex items-center px-4 py-3 mt-2 text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-blue-600 mr-8" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Artboard 22</title><path d="M21.81,5.28l.77-2.38a1.44,1.44,0,0,0-.48-1.59,1.42,1.42,0,0,0-1.63-.1l-6.6,4.07H1V23H23V5.28ZM21,21H3V7.28H14.44l5.77-3.56L19.06,7.28H21Z"></path><path d="M6.4,13a1.4,1.4,0,1,0,1.4,1.4A1.4,1.4,0,0,0,6.4,13Z"></path><path d="M12,13a1.4,1.4,0,1,0,1.4,1.4A1.4,1.4,0,0,0,12,13Z"></path><path d="M17.6,13A1.4,1.4,0,1,0,19,14.4,1.4,1.4,0,0,0,17.6,13Z"></path></svg>
                Yêu cầu
-              </div>
-              <div @click="goToEvent" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+              </router-link>
+              <router-link  to="/admin/event"  active-class="bg-cyan-600 text-white rounded-full" class="flex items-center px-4 py-3 mt-2 text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-blue-600 mr-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
     <g>
         <path fill="none" d="M0 0h24v24H0z"></path>
@@ -65,8 +65,8 @@
     </g>
 </svg>
                Sự kiện
-              </div>
-              <div @click="logout" class="flex items-center px-4 py-3 mt-2 bg-white rounded-sm text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
+              </router-link>
+              <div @click="logout" class="flex items-center px-4 py-3 mt-2  text-gray-800 hover:bg-cyan-600 hover:text-yellow-400 transition-colors duration-300">
                 <svg class="w-6 h-6 text-blue-600 mr-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2" />
                 </svg>
