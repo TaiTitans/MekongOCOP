@@ -99,6 +99,7 @@ flutter:
     - assets/checkOut/
     - assets/onBoarding/
     - assets/fonts/
+    - assets/
     - .env
   #   - images/a_dot_ham.jpeg
 flutter_icons:

@@ -293,24 +293,24 @@ public class OrderService {
     }
 
 
-        private BigDecimal applyVoucherDiscount(BigDecimal totalPrice, Voucher voucher) {
-            if ("Percentage".equalsIgnoreCase(voucher.getType())) {
-                // Áp dụng giảm giá phần trăm
-                BigDecimal discount = totalPrice.multiply(BigDecimal.valueOf(voucher.getDiscount_value())).divide(BigDecimal.valueOf(100));
-                totalPrice = totalPrice.subtract(discount);
-            } else if ("Fixed".equalsIgnoreCase(voucher.getType())) {
-                // Áp dụng giảm giá cố định
-                totalPrice = totalPrice.subtract(BigDecimal.valueOf(voucher.getDiscount_value()));
-            }
-
-            // Đảm bảo totalPrice không âm
-            if (totalPrice.compareTo(BigDecimal.ZERO) < 0) {
-                totalPrice = BigDecimal.ZERO;
-            }
-
-            return totalPrice;
+    private BigDecimal applyVoucherDiscount(BigDecimal totalPrice, Voucher voucher) {
+        BigDecimal discountedPrice = totalPrice;
+        if ("Percentage".equalsIgnoreCase(voucher.getType())) {
+            // Áp dụng giảm giá phần trăm
+            BigDecimal discount = totalPrice.multiply(BigDecimal.valueOf(voucher.getDiscount_value())).divide(BigDecimal.valueOf(100));
+            discountedPrice = totalPrice.subtract(discount);
+        } else if ("Fixed".equalsIgnoreCase(voucher.getType())) {
+            // Áp dụng giảm giá cố định
+            discountedPrice = totalPrice.subtract(BigDecimal.valueOf(voucher.getDiscount_value()));
         }
 
+        // Đảm bảo discountedPrice không âm
+        if (discountedPrice.compareTo(BigDecimal.ZERO) < 0) {
+            discountedPrice = BigDecimal.ZERO;
+        }
+
+        return discountedPrice;
+    }
 
         private Order createOrder(OrderDTO orderDTO, User user) {
             Order order = convertToEntity(orderDTO);
