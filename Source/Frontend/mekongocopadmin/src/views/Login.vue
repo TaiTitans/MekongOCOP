@@ -27,6 +27,43 @@
           <div v-if="successMessage" class="text-green-600 font-semibold">{{ successMessage }}</div>
           <hr>
 
+  <!-- Modal tạo cửa hàng -->
+  <div v-if="showCreateStoreModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-75">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+              <h2 class="text-xl font-semibold mb-4">Tạo cửa hàng</h2>
+              <form @submit.prevent="createStore">
+                <div class="mb-4">
+                  <label class="block text-gray-700 font-medium">Tên cửa hàng</label>
+                  <input type="text" v-model="storeName" class="w-full p-2 border rounded">
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 font-medium">Địa chỉ cửa hàng</label>
+                  <input type="text" v-model="storeAddress" class="w-full p-2 border rounded">
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 font-medium">Mô tả cửa hàng</label>
+                  <textarea v-model="storeDescription" class="w-full p-2 border rounded"></textarea>
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 font-medium">Logo</label>
+                  <input type="file" @change="handleLogoUpload">
+                  <div v-if="storeLogoName" class="truncate">{{ storeLogoName }}</div>
+                </div>
+                <div class="mb-4">
+                  <label class="block text-gray-700 font-medium">Banner</label>
+                  <input type="file" @change="handleBannerUpload">
+                  <div v-if="storeBannerName" class="truncate">{{ storeBannerName }}</div>
+                </div>
+                <div class="flex justify-end space-x-2">
+                  <button type="button" @click="showCreateStoreModal = false" class="bg-gray-500 text-white px-4 py-2 rounded">Hủy</button>
+                  <button type="submit" class="bg-cyan-500 text-white px-4 py-2 rounded">Tạo cửa hàng</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+
+
           <div class="shadow-inner bg-gray-100 rounded-lg p-4">
             <span class="block font-semibold">Ví dụ:</span>
             <span class="block">Seller: seller - ******</span>
@@ -101,23 +138,28 @@
 import api from '../services/api.service';
 import router from "../router/index";
 import authService from '@/services/auth.service';
-import axios from 'axios';
 
 export default {
   data() {
-    return {
-      username: "",
-      password: "",
-      errorMessage: null,
-      successMessage: null,
-      accessToken: null,
-      refreshToken: null,
-      captchaText: "",
-      captchaInput: "",
-      showPassword: false,
-      rememberMe: false,
-    };
-  },
+  return {
+    username: "",
+    password: "",
+    errorMessage: null,
+    successMessage: null,
+    accessToken: null,
+    refreshToken: null,
+    captchaText: "",
+    captchaInput: "",
+    showPassword: false,
+    rememberMe: false,
+    showCreateStoreModal: false,
+    storeName: "",
+    storeAddress: "",
+    storeDescription: "",
+    storeLogo: null,
+    storeBanner: null,
+  };
+},
   mounted() {
     this.generateCaptcha();
   },
@@ -126,6 +168,36 @@ export default {
     this.refreshToken = authService.getRefreshToken();
   },
   methods: {
+    handleLogoUpload(event) {
+    this.storeLogo = event.target.files[0];
+  },
+  handleBannerUpload(event) {
+    this.storeBanner = event.target.files[0];
+  },
+  createStore() {
+    const formData = new FormData();
+    formData.append("dto", JSON.stringify({
+      store_name: this.storeName,
+      store_address: this.storeAddress,
+      store_description: this.storeDescription,
+    }));
+    formData.append("logo", this.storeLogo);
+    formData.append("banner", this.storeBanner);
+
+    api.post("/api/v1/seller/store", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    })
+    .then(() => {
+      this.successMessage = "Tạo cửa hàng thành công";
+      this.showCreateStoreModal = false;
+      router.push("/seller");
+    })
+    .catch(error => {
+      this.errorMessage = error.response?.data?.message || "Lỗi khi tạo cửa hàng";
+    });
+  },
     togglePassword() {
       this.showPassword = !this.showPassword;
     },
@@ -195,7 +267,7 @@ export default {
             if (userRoles.includes('ROLE_ADMIN')) {
               this.$router.push({ path: '/admin' });
             } else if (userRoles.includes('ROLE_SELLER')) {
-              this.$router.push({ path: '/seller' });
+              this.checkStore()
             } else {
               this.errorMessage = "Tài khoản không có quyền truy cập!";
             }
@@ -208,8 +280,46 @@ export default {
           this.captchaInput = "";
         });
     },
+
+checkStore() {
+  api.get("/api/v1/seller/store/check")
+    .then(response => {
+      if (response.data === false) {
+        // Hiển thị modal nếu chưa có cửa hàng
+        console.log("Chưa có cửa hàng");
+        this.showCreateStoreModal = true;
+      } else if (response.data === true) {
+        // Chuyển hướng đến trang quản lý cửa hàng nếu đã có cửa hàng
+        this.$router.push({ path: '/seller' });
+      } else {
+        // Trường hợp response không rõ ràng
+        this.errorMessage = "Phản hồi không hợp lệ từ máy chủ.";
+      }
+    })
+    .catch(error => {
+      console.error("Lỗi API:", error);
+      this.errorMessage = "Lỗi khi kiểm tra cửa hàng. Vui lòng thử lại.";
+    });
+},
+
+
   },
+  computed: {
+    storeLogoName() {
+      return this.storeLogo ? this.storeLogo.name : '';
+    },
+    storeBannerName() {
+      return this.storeBanner ? this.storeBanner.name : '';
+    }
+  }
 };
 </script>
 
-  <style></style>
+<style scoped>
+  .truncate {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;}
+</style>

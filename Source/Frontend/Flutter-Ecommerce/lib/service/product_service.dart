@@ -52,7 +52,57 @@ class ProductService{
     final String apiUrl = dotenv.env['API_URL'] ?? '';
     return '$apiUrl/common/product/search';
   }
+  String getProductSearchPriceUrl(){
+    final String apiUrl = dotenv.env['API_URL'] ?? '';
+    return '$apiUrl/common/product/price-range';
+  }
 
+  Future<List<ProductModel>> fetchProductBySearchPrice(String priceRange, {int page = 0, int size = 10}) async {
+    try {
+      final sharedPreferences = await SharedPreferences.getInstance();
+      final accessToken = sharedPreferences.getString('accessToken') ?? '';
+
+      if (accessToken.isEmpty) {
+        throw Exception('Access token not found in SharedPreferences');
+      }
+
+      Map<String, dynamic> queryParameters = {
+        'priceRange': priceRange,
+        'page': page.toString(),
+        'size': size.toString(),
+      };
+
+      final response = await _dio.get(
+        getProductSearchPriceUrl(),
+        queryParameters: queryParameters,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
+          validateStatus: (status) {
+            return status != null && status < 500; // Chỉ ném lỗi với status >= 500
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> content = response.data['content'] as List<dynamic>;
+        // Chuyển đổi dữ liệu thành ProductModel
+        print('Response data: ${response.data}');
+        return content.map((json) => ProductModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load products');
+      }
+    } catch (e) {
+      print('Error: $e');
+      if (e is DioError) {
+        print('Error response status: ${e.response?.statusCode}');
+        print('Error response data: ${e.response?.data}');
+      }
+      return [];
+    }
+  }
   Future<List<ProductModel>> fetchProductBySearchProductName(String productName, {int page = 0, int size = 10}) async {
     try {
       final sharedPreferences = await SharedPreferences.getInstance();

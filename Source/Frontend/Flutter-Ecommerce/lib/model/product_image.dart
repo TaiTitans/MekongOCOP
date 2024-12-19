@@ -19,4 +19,5 @@ class ProductImage {
       primary: json['primary'],
     );
   }
+
 }

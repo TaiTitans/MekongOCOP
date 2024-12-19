@@ -119,17 +119,15 @@ export default {
 
     // Handle receiving messages
     this.socket.on('receive_message', (messageData) => {
-      console.log('Received new message:', messageData);
-      if (messageData.session_id === this.selectedSession?.session_id) {
-        this.messages.push(messageData);
-        this.hasNewMessages = true; // Mark as new message received
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
-      } else {
-        console.log('Message received for a different session:', messageData.session_id);
-      }
+  if (messageData.session_id === this.selectedSession?.session_id) {
+    this.messages.push(messageData);
+    this.messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    this.$nextTick(() => {
+      this.scrollToBottom();
     });
+  }
+});
+
 
     await this.getChatSessions();
   },
@@ -182,13 +180,13 @@ export default {
       }
     },
     async getMessages(sessionId) {
-      try {
-        const response = await api.get(`api/v1/common/chatMessage/session/${sessionId}`);
-        this.messages = response.data;
-      } catch (err) {
-        console.error('Failed to load messages.', err);
-      }
-    },
+  try {
+    const response = await api.get(`api/v1/common/chatMessage/session/${sessionId}`);
+    this.messages = response.data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  } catch (err) {
+    console.error('Failed to load messages.', err);
+  }
+},
     sendMessage() {
       if (this.newMessage.trim() === '' || !this.selectedSession || !this.storeId) return;
 

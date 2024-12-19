@@ -481,7 +481,7 @@ class _ProductState extends State<Product> {
 
                 // Nút thêm vào giỏ hàng with reduced width
                 SizedBox(
-                  width: 150.0, // Set the width of the button
+                  width: 130.0, // Set the width of the button
                   child: ElevatedButton(
                     onPressed: () => onTap(quantity),
                     style: ElevatedButton.styleFrom(

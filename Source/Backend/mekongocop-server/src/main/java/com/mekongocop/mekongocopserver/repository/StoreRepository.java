@@ -12,4 +12,7 @@ import java.util.Optional;
 public interface StoreRepository extends JpaRepository<Store, Integer> {
     @Query("SELECT s FROM Store s WHERE s.user_id.user_id = :user_id")
     Optional<Store> findByUserId(@Param("user_id") Integer user_id);
+
+    @Query("SELECT s.store_id FROM Store s WHERE s.user_id.user_id = :userId")
+    Integer findStoreIdByUserId(@Param("userId") Integer userId);
 }

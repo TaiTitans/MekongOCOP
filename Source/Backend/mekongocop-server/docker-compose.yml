@@ -1,4 +1,4 @@
-version: '2'
+version: '2.30.3'
 services:
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -22,15 +22,3 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       - zookeeper
-
-  kafdrop:
-    image: obsidiandynamics/kafdrop
-    restart: "no"
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "kafka:9092"
-      JVM_OPTS: "-Xms32M -Xmx64M"
-      SERVER_SERVLET_CONTEXTPATH: "/"
-    depends_on:
-      - kafka

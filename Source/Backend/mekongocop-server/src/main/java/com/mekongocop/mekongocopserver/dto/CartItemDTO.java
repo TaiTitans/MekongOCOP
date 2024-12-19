@@ -8,11 +8,12 @@ public class CartItemDTO {
     }
 
 
-    public CartItemDTO(int productId, int quantity, String productName, BigDecimal price) {
+    public CartItemDTO(int productId, int quantity, String productName, BigDecimal price, int storeId) {
         this.productId = productId;
         this.quantity = quantity;
         this.productName = productName;
         this.price = price;
+        this.storeId = storeId;
     }
 
     public int getProductId() {
@@ -47,8 +48,17 @@ public class CartItemDTO {
         this.price = price;
     }
 
+    public int getStoreId() {
+        return storeId;
+    }
+
+    public void setStoreId(int storeId) {
+        this.storeId = storeId;
+    }
+
     private int productId;
     private int quantity;
     private String productName;
     private BigDecimal price;
+    private int storeId;
 }

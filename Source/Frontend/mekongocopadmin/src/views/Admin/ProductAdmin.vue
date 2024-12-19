@@ -5,16 +5,43 @@
       <div class="container mx-auto px-4 py-6">
         <h1 class="text-3xl font-semibold text-gray-900 mb-6">Danh sách sản phẩm</h1>
   
-        <!-- Tìm kiếm -->
-        <div class="mb-4">
-          <input
-            type="text"
-            v-model="searchQuery"
-            @input="searchProducts"
-            placeholder="Tìm kiếm sản phẩm..."
-            class="w-full p-2 border border-gray-300 rounded-lg"
-          />
-        </div>
+<!-- Tìm kiếm và bộ lọc -->
+<div class="mb-4 flex flex-wrap gap-4">
+  <!-- Ô tìm kiếm -->
+  <input
+    type="text"
+    v-model="searchQuery"
+    @input="searchProducts"
+    placeholder="Tìm kiếm sản phẩm..."
+    class="w-full sm:w-1/3 p-2 border border-gray-300 rounded-lg"
+  />
+
+  <!-- Lọc theo tỉnh -->
+  <select v-model="selectedProvince" @change="filterProducts" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg">
+    <option value="">Tất cả tỉnh</option>
+    <option v-for="province in uniqueProvinces" :key="province" :value="province">
+      {{ province }}
+    </option>
+  </select>
+
+  <!-- Lọc theo danh mục -->
+  <select v-model="selectedCategory" @change="filterProducts" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg">
+    <option value="">Tất cả danh mục</option>
+    <option v-for="category in uniqueCategories" :key="category" :value="category">
+      {{ category }}
+    </option>
+  </select>
+
+  <!-- Lọc theo giá tiền -->
+  <select v-model="selectedPriceRange" @change="filterProducts" class="w-full sm:w-1/4 p-2 border border-gray-300 rounded-lg">
+    <option value="">Tất cả giá</option>
+    <option value="0-500000">Dưới 500.000 VNĐ</option>
+    <option value="500000-1000000">500.000 - 1.000.000 VNĐ</option>
+    <option value="1000000-5000000">1.000.000 - 5.000.000 VNĐ</option>
+    <option value="5000000">Trên 5.000.000 VNĐ</option>
+  </select>
+</div>
+
   
         <!-- Danh sách sản phẩm -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -71,18 +98,32 @@
     data() {
       return {
         products: [],         // Danh sách sản phẩm
-        searchQuery: '',      // Giá trị tìm kiếm
+        searchQuery: '',  
+        selectedProvince: '',  // Lọc theo tỉnh
+       selectedCategory: '',  // Lọc theo danh mục
+    selectedPriceRange: '', // Lọc theo khoảng giá    // Giá trị tìm kiếm
         currentPage: 1,      // Trang hiện tại
         itemsPerPage: 6,     // Số sản phẩm trên mỗi trang
       };
     },
     computed: {
-      // Lọc sản phẩm theo tìm kiếm
-      filteredProducts() {
-        return this.products.filter(product => 
-          product.productName.toLowerCase().includes(this.searchQuery.toLowerCase())
-        );
-      },
+      uniqueProvinces() {
+    return [...new Set(this.products.map(product => product.provinceName))];
+  },
+  uniqueCategories() {
+    return [...new Set(this.products.map(product => product.categoryName))];
+  },
+  // Lọc sản phẩm theo tìm kiếm và các bộ lọc
+  filteredProducts() {
+    return this.products.filter(product => {
+      const matchesSearch = product.productName.toLowerCase().includes(this.searchQuery.toLowerCase());
+      const matchesProvince = this.selectedProvince === '' || product.provinceName === this.selectedProvince;
+      const matchesCategory = this.selectedCategory === '' || product.categoryName === this.selectedCategory;
+      const matchesPrice = this.matchesPriceRange(product.productPrice);
+
+      return matchesSearch && matchesProvince && matchesCategory && matchesPrice;
+    });
+  },
       // Tính toán sản phẩm trên mỗi trang
       paginatedProducts() {
         const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -97,6 +138,16 @@
       this.fetchProducts();
     },
     methods: {
+      matchesPriceRange(price) {
+    if (!this.selectedPriceRange) return true;
+
+    const [min, max] = this.selectedPriceRange.split('-').map(Number);
+
+    if (max) {
+      return price >= min && price <= max;
+    }
+    return price >= min;
+  },
       async fetchProducts() {
         try {
           const response = await api.get('/api/v1/admin/products');

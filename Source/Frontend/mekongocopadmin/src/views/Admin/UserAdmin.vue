@@ -19,12 +19,26 @@
                   @input="filterUsers"
                   class="block w-full pr-10 sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 h-8 ml-2"
                 />
+
                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                   </svg>
                 </div>
               </div>
+                              <!-- Dropdown lọc Role -->
+  <div class="ml-4 w-full sm:w-64">
+    <select
+      v-model="selectedRole"
+      @change="filterUsers"
+      class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 h-8 mt-2"
+    >
+      <option value="">All Roles</option>
+      <option value="ROLE_BUYER">ROLE_BUYER</option>
+      <option value="ROLE_SELLER">ROLE_SELLER</option>
+      <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+    </select>
+  </div>
             </div>
           </div>
         </div>
@@ -120,6 +134,7 @@ export default {
         { text: 'Email', value: 'email' },
         { text: 'Roles', value: 'roles' },
       ],
+      selectedRole: ''
     };
   },
   computed: {
@@ -135,42 +150,47 @@ export default {
     },
   },
   methods: {
-    async fetchUsers() {
-      this.loading = true;
-      try {
-        const response = await api.get(`/api/v1/admin/users?page=${this.currentPage}`);
-        console.log('API Response:', response.data); // Log the API response
-        this.users = response.data || []; // Ensure it's always an array
-        this.filteredUsers = [...this.users]; // Clone the array for filtering
-        this.totalUsers = this.users.length; // Update total users count
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        this.errorMessage = 'Unable to load users. Please try again later.';
-      } finally {
-        this.loading = false;
-      }
-    },
-    filterUsers() {
-      const query = this.searchQuery.toLowerCase();
-      this.filteredUsers = this.users.filter(user =>
-        user.username.toLowerCase().includes(query) || 
-        user.email.toLowerCase().includes(query)
-      );
-      this.currentPage = 1; // Reset to first page after filtering
-    },
-    prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-        this.fetchUsers(); // Fetch previous page data
-      }
-    },
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-        this.fetchUsers(); // Fetch next page data
-      }
-    },
+  async fetchUsers() {
+    this.loading = true;
+    try {
+      const response = await api.get(`/api/v1/admin/users?page=${this.currentPage}`);
+      console.log('API Response:', response.data);
+      this.users = response.data || [];
+      this.sortUsersById(); // Gọi hàm sắp xếp sau khi nhận dữ liệu
+      this.filteredUsers = [...this.users];
+      this.totalUsers = this.users.length;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      this.errorMessage = 'Unable to load users. Please try again later.';
+    } finally {
+      this.loading = false;
+    }
   },
+  sortUsersById() {
+    this.users.sort((a, b) => a.user_id - b.user_id);
+  },
+  filterUsers() {
+  const query = this.searchQuery.toLowerCase();
+  this.filteredUsers = this.users.filter(user =>
+    (user.username.toLowerCase().includes(query) || 
+     user.email.toLowerCase().includes(query)) &&
+    (this.selectedRole === '' || user.roles.includes(this.selectedRole))
+  );
+  this.currentPage = 1;
+},
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.fetchUsers();
+    }
+  },
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.fetchUsers();
+    }
+  },
+},
   mounted() {
     this.fetchUsers(); // Fetch users when the component mounts
   },

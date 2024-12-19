@@ -122,9 +122,9 @@
         }
       },
       formatDate(specialDayArray) {
-        const [year, month, day] = specialDayArray;
-        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      },
+  const [year, month, day] = specialDayArray;
+  return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+},
     },
     mounted() {
       this.fetchSpecialDays();

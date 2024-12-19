@@ -364,31 +364,37 @@ public class ProductService {
     }
 
     public List<ProductDTO> getNewFeedProduct() {
-        try {
-            Jedis jedis = jedisPool.getResource();
+        try (Jedis jedis = jedisPool.getResource()) {  // Lấy kết nối từ JedisPool
             String key = "newfeed_product";
 
-            String valueKey = jedis.get("newfeed_product");
-            if(valueKey != null){
-
+            // Kiểm tra dữ liệu trong Redis cache
+            String valueKey = jedis.get(key);
+            if (valueKey != null) {
                 return convertFromJson(valueKey);
             }
-            Pageable pageable = PageRequest.of(0, 10); // Lấy 10 sản phẩm mới nhất
-            List<Product> products = productRepository.findTop10Products(pageable);
 
+            // Truy vấn 6 sản phẩm mới nhất từ cơ sở dữ liệu bằng Native Query
+            List<Product> products = productRepository.findTop6Products();
 
-            List<ProductDTO> productDTOs = products.stream().map(this::convertToDTO).collect(Collectors.toList());
+            // Chuyển đổi thành DTO
+            List<ProductDTO> productDTOs = products.stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
 
+            // Lưu kết quả vào Redis cache
             String jsonProductsDTO = convertToJson(productDTOs);
             jedis.set(key, jsonProductsDTO);
-            jedis.expire(key, 3600);
+            jedis.expire(key, 3600); // Đặt thời gian hết hạn cache (1 giờ)
+
             return productDTOs;
 
-
-        }catch (Exception e){
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving products", e);
         }
     }
+
+
+
 
     public List<ProductDTO> getAllProductsOfStore(int storeId) {
         try {
@@ -510,6 +516,34 @@ public class ProductService {
         } catch (Exception e) {
             throw new RuntimeException("Error deserializing product DTO list", e);
         }
+    }
+
+    public Page<ProductDTO> getProductsByPriceRange(String priceRange, Pageable pageable){
+        try{
+            Page<Product> productPage;
+            switch(priceRange){
+                case "0-100000":
+                    productPage = productRepository.findProductsByPriceRange0To100(pageable);
+                    break;
+                case "100000-200000":
+                    productPage = productRepository.findProductsByPriceRange100To200(pageable);
+                    break;
+                case "200000-500000":
+                    productPage = productRepository.findProductsByPriceRange200To500(pageable);
+                    break;
+                case "500000+":
+                    productPage = productRepository.findProductsByPriceAbove500(pageable);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid price range: "+ priceRange);
+            }
+            return productPage.map(this::convertToDTO);
+        }catch (IllegalArgumentException e){
+            throw e;
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+
     }
 
 }

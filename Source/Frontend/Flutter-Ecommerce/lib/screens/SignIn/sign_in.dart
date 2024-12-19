@@ -190,10 +190,10 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
           if (_errorMessage != null)
             Padding(
               padding: const EdgeInsets.only(top: 20.0),
-              child: Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              // child: Text(
+              //   _errorMessage!,
+              //   style: const TextStyle(color: Colors.red),
+              // ),
             ),
         ],
       ),

@@ -11,7 +11,9 @@ import com.mekongocop.mekongocopserver.service.UserService;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
 import com.mekongocop.mekongocopserver.util.TokenExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -203,6 +205,23 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/common/product/price-range")
+    public ResponseEntity<?> getProductsByPriceRange(
+            @RequestParam String priceRange,
+            Pageable pageable) {
+        try {
+            Page<ProductDTO> products = productService.getProductsByPriceRange(priceRange, pageable);
+            return ResponseEntity.ok(products);
+        } catch (IllegalArgumentException e) {
+            // Xử lý lỗi do tham số không hợp lệ
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid price range: " + e.getMessage());
+        } catch (Exception e) {
+            // Xử lý lỗi chung
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while fetching products: " + e.getMessage());
+        }
+    }
 
 }
 

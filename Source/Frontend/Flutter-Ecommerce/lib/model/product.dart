@@ -73,5 +73,6 @@ class ProductModel {
       store: json['store'],
     );
   }
+
 }
 

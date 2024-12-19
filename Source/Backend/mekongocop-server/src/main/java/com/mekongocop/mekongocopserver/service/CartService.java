@@ -8,11 +8,13 @@ import com.mekongocop.mekongocopserver.entity.User;
 import com.mekongocop.mekongocopserver.repository.ProductRepository;
 import com.mekongocop.mekongocopserver.repository.UserRepository;
 import com.mekongocop.mekongocopserver.util.JwtTokenProvider;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.UUID;
 
 
 @Service
@@ -31,124 +33,125 @@ public class CartService {
     }
 
     public void addCart(String token, CartItemDTO cartItemDTO) {
-        try{
-            int userId = jwtTokenProvider.getUserIdFromToken(token);
-            User user = userRepository.findById(userId).orElseThrow(()-> new RuntimeException("User Not Found"));
-            String cartKey = "cart:"+userId;
-            Jedis jedis = jedisPool.getResource();
-            String cartData = jedis.get(cartKey);
-            CartDTO cart;
-            if(cartData == null){
-                cart = new CartDTO();
-            }else{
-            cart = objectMapper.readValue(cartData, CartDTO.class);
-            }
-            // Lấy thông tin sản phẩm từ database
-            Product product = productRepository.findById(cartItemDTO.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product Not Found"));
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        String lockKey = "lock:cart:" + userId;
 
-            // Kiểm tra số lượng tồn kho
-            if (product.getProduct_quantity() < cartItemDTO.getQuantity()) {
-                throw new RuntimeException("Not enough stock available for product: " + product.getProduct_name());
-            }
+        withRedisLock(lockKey, () -> {
+            try (Jedis jedis = jedisPool.getResource()) {
+                String cartKey = "cart:" + userId;
 
-            boolean exists = false;
-            for (CartItemDTO item : cart.getCartItemList()) {
-                if (item.getProductId() == cartItemDTO.getProductId()) {
-                    // Nếu sản phẩm đã có trong giỏ hàng, cộng thêm số lượng
-                    int newQuantity = item.getQuantity() + cartItemDTO.getQuantity();
+                String cartData = jedis.get(cartKey);
+                CartDTO cart = cartData == null || cartData.isEmpty() ? new CartDTO() : objectMapper.readValue(cartData, CartDTO.class);
 
-                    // Kiểm tra xem tổng số lượng có vượt quá số lượng tồn kho
-                    if (product.getProduct_quantity() < newQuantity) {
-                        throw new RuntimeException("Not enough stock available for product: " + product.getProduct_name());
-                    }
+                Product product = productRepository.findById(cartItemDTO.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Product Not Found"));
 
-                    item.setQuantity(newQuantity);
-                    exists = true;
-                    break;
+                if (product.getProduct_quantity() < cartItemDTO.getQuantity()) {
+                    throw new RuntimeException("Not enough stock available for product: " + product.getProduct_name());
                 }
-            }
 
-            if (!exists) {
-                cart.getCartItemList().add(cartItemDTO); // Thêm sản phẩm mới vào giỏ hàng
-            }
-            jedis.set(cartKey, objectMapper.writeValueAsString(cart));
-            jedis.expire(cartKey, CART_TTL_SECONDS);
+                boolean exists = false;
+                for (CartItemDTO item : cart.getCartItemList()) {
+                    if (item.getProductId() == cartItemDTO.getProductId()) {
+                        int newQuantity = item.getQuantity() + cartItemDTO.getQuantity();
+                        if (product.getProduct_quantity() < newQuantity) {
+                            throw new RuntimeException("Not enough stock available for product: " + product.getProduct_name());
+                        }
+                        item.setQuantity(newQuantity);
+                        exists = true;
+                        break;
+                    }
+                }
 
-        }catch (Exception e){
-            throw new RuntimeException(e);
-        }
+                if (!exists) {
+                    cartItemDTO.setStoreId(product.getStore().getStore_id());
+                    cart.getCartItemList().add(cartItemDTO);
+                }
+
+                jedis.set(cartKey, objectMapper.writeValueAsString(cart));
+                jedis.expire(cartKey, CART_TTL_SECONDS);
+            } catch (Exception e) {
+                throw new RuntimeException("Error while adding item to cart: " + e.getMessage(), e);
+            }
+        });
     }
+
+
+
 
 
     public void removeFromCart(String token, int productId) {
-        try {
-            int userId = jwtTokenProvider.getUserIdFromToken(token);
-            User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User Not Found"));
-            Jedis jedis = jedisPool.getResource();
-            String cartKey = "cart:" + userId;
-            String cartData = jedis.get(cartKey);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        String lockKey = "lock:cart:" + userId;
 
-            if (cartData != null) {
-                CartDTO cart = objectMapper.readValue(cartData, CartDTO.class);
-                cart.getCartItemList().removeIf(item -> item.getProductId() == productId);
+        withRedisLock(lockKey, () -> {
+            try (Jedis jedis = jedisPool.getResource()) {
+                String cartKey = "cart:" + userId;
+                String cartData = jedis.get(cartKey);
 
-                // Lưu lại giỏ hàng sau khi xóa sản phẩm
-                jedis.set(cartKey, objectMapper.writeValueAsString(cart));
+                if (cartData != null) {
+                    CartDTO cart = objectMapper.readValue(cartData, CartDTO.class);
+                    cart.getCartItemList().removeIf(item -> item.getProductId() == productId);
 
-                // Gia hạn TTL sau khi cập nhật giỏ hàng
-                jedis.expire(cartKey, CART_TTL_SECONDS);
+                    if (cart.getCartItemList().isEmpty()) {
+                        jedis.del(cartKey); // Xóa key Redis nếu giỏ hàng rỗng
+                    } else {
+                        jedis.set(cartKey, objectMapper.writeValueAsString(cart));
+                        jedis.expire(cartKey, CART_TTL_SECONDS);
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        });
     }
+
+
 
     public void updateCartItemQuantity(String token, int productId, int newQuantity) {
-        try {
-            int userId = jwtTokenProvider.getUserIdFromToken(token);
-            User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User Not Found"));
-            Jedis jedis = jedisPool.getResource();
-            String cartKey = "cart:" + userId;
-            String cartData = jedis.get(cartKey);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        String lockKey = "lock:cart:" + userId;
 
-            if (cartData == null) {
-                throw new RuntimeException("Cart is empty. Cannot update quantity.");
-            }
+        withRedisLock(lockKey, () -> {
+            try {
+                String cartKey = "cart:" + userId;
+                Jedis jedis = jedisPool.getResource();
+                String cartData = jedis.get(cartKey);
 
-            CartDTO cart = objectMapper.readValue(cartData, CartDTO.class);
-            boolean productExistsInCart = false;
-
-            // Lấy thông tin sản phẩm từ cơ sở dữ liệu
-            Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new RuntimeException("Product Not Found"));
-
-            // Kiểm tra số lượng tồn kho
-            if (product.getProduct_quantity() < newQuantity) {
-                throw new RuntimeException("Not enough stock available for product: " + product.getProduct_name());
-            }
-
-            // Duyệt qua danh sách sản phẩm trong giỏ hàng để cập nhật số lượng
-            for (CartItemDTO item : cart.getCartItemList()) {
-                if (item.getProductId() == productId) {
-                    item.setQuantity(newQuantity);  // Cập nhật số lượng sản phẩm
-                    productExistsInCart = true;
-                    break;
+                if (cartData == null) {
+                    throw new RuntimeException("Cart is empty. Cannot update quantity.");
                 }
+
+                CartDTO cart = objectMapper.readValue(cartData, CartDTO.class);
+
+                Product product = productRepository.findById(productId)
+                        .orElseThrow(() -> new RuntimeException("Product Not Found"));
+
+                if (product.getProduct_quantity() < newQuantity) {
+                    throw new RuntimeException("Not enough stock available for product: " + product.getProduct_name());
+                }
+
+                boolean productExistsInCart = false;
+                for (CartItemDTO item : cart.getCartItemList()) {
+                    if (item.getProductId() == productId) {
+                        item.setQuantity(newQuantity);
+                        productExistsInCart = true;
+                        break;
+                    }
+                }
+
+                if (!productExistsInCart) {
+                    throw new RuntimeException("Product does not exist in the cart.");
+                }
+
+                jedis.set(cartKey, objectMapper.writeValueAsString(cart));
+                jedis.expire(cartKey, CART_TTL_SECONDS);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-
-            if (!productExistsInCart) {
-                throw new RuntimeException("Product does not exist in the cart.");
-            }
-
-            // Lưu lại giỏ hàng sau khi cập nhật số lượng
-            jedis.set(cartKey, objectMapper.writeValueAsString(cart));
-            jedis.expire(cartKey, CART_TTL_SECONDS);  // Gia hạn TTL sau khi cập nhật giỏ hàng
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        });
     }
+
     public CartDTO getCartWithProductDetails(String token) {
         try {
             int userId = jwtTokenProvider.getUserIdFromToken(token);
@@ -170,6 +173,7 @@ public class CartService {
                 // Gán thêm thông tin sản phẩm cho từng item
                 item.setProductName(product.getProduct_name());
                 item.setPrice(product.getProduct_price());
+                item.setStoreId(product.getStore().getStore_id());
             }
             jedis.expire(cartKey, CART_TTL_SECONDS);
             return cart;
@@ -179,23 +183,50 @@ public class CartService {
         }
     }
     public void clearCart(String token) {
-        try {
-            // Lấy userId từ JWT token
-            int userId = jwtTokenProvider.getUserIdFromToken(token);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        String cartKey = "cart:" + userId;
 
-            // Tạo khóa giỏ hàng dựa trên userId
-            String cartKey = "cart:" + userId;
-
-            // Lấy kết nối đến Redis
-            Jedis jedis = jedisPool.getResource();
-
-            // Xóa giỏ hàng khỏi Redis
-            jedis.del(cartKey);
-
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.del(cartKey); // Xóa hoàn toàn key Redis
         } catch (Exception e) {
             throw new RuntimeException("Failed to clear the cart", e);
         }
     }
+
+    public void withRedisLock(String lockKey, Runnable action) {
+        String uniqueToken = UUID.randomUUID().toString(); // Token duy nhất cho mỗi khóa
+        int timeout = 5000; // 5 giây
+        long startTime = System.currentTimeMillis();
+
+        try (Jedis jedis = jedisPool.getResource()) {
+            while (true) {
+                if (jedis.setnx(lockKey, uniqueToken) == 1) {
+                    jedis.expire(lockKey, 10); // Đặt TTL cho khóa (10 giây)
+                    try {
+                        action.run(); // Thực thi hành động
+                    } finally {
+                        // Chỉ xóa khóa nếu token khớp
+                        String currentValue = jedis.get(lockKey);
+                        if (uniqueToken.equals(currentValue)) {
+                            jedis.del(lockKey);
+                        }
+                    }
+                    break;
+                } else {
+                    // Kiểm tra timeout
+                    if (System.currentTimeMillis() - startTime > timeout) {
+                        throw new RuntimeException("Could not acquire lock on cart. Please try again later.");
+                    }
+                    Thread.sleep(50); // Chờ 50ms trước khi thử lại
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread was interrupted while trying to acquire Redis lock.");
+        }
+    }
+
+
 
 
 }

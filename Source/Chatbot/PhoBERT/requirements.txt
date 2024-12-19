@@ -1,0 +1,9 @@
+flask
+torch
+transformers
+h5py
+numpy
+scikit-learn
+aiohttp
+requests
+python-dotenv

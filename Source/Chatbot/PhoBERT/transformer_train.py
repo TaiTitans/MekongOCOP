@@ -173,39 +173,3 @@ with h5py.File(h5_file, 'w') as h5f:
 
 print("Dữ liệu đã được lưu vào file H5.")
 
-# Vẽ biểu đồ hình cột của mỗi lớp bao gồm số lượng câu hỏi trong tập train và tập test
-labels = list(label_map.keys())
-x = np.arange(len(labels))
-
-fig, ax = plt.subplots(figsize=(12, 8))
-bar_width = 0.35
-
-train_bar = ax.bar(x - bar_width/2, train_counts, bar_width, label='Train')
-test_bar = ax.bar(x + bar_width/2, test_counts, bar_width, label='Test')
-
-ax.set_xlabel('Lớp')
-ax.set_ylabel('Số lượng câu hỏi')
-ax.set_title('Số lượng câu hỏi trong tập train và tập test cho mỗi lớp')
-ax.set_xticks(x)
-ax.set_xticklabels(labels, rotation=45, ha='right')
-ax.legend()
-
-plt.tight_layout()
-plt.show()
-
-# Vẽ biểu đồ các chỉ số đánh giá
-fig, ax = plt.subplots(figsize=(12, 8))
-
-x = np.arange(1, len(accuracies) + 1)
-ax.plot(x, accuracies, label='Accuracy', marker='o')
-ax.plot(x, precisions, label='Precision', marker='o')
-ax.plot(x, recalls, label='Recall', marker='o')
-ax.plot(x, f1_scores, label='F1 Score', marker='o')
-
-ax.set_xlabel('Fold')
-ax.set_ylabel('Giá trị')
-ax.set_title('Các chỉ số đánh giá qua các folds')
-ax.legend()
-
-plt.tight_layout()
-plt.show()

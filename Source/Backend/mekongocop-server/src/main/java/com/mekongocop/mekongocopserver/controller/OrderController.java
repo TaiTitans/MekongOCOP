@@ -29,7 +29,7 @@ public class OrderController {
     @Autowired
     private OrderRepository orderRepository;
     @PostMapping("common/order")
-    public ResponseEntity<StatusResponse<OrderDTO>> addOrder(
+    public ResponseEntity<StatusResponse<List<OrderDTO>>> addOrder(
             @RequestHeader("Authorization") String token,
             @RequestParam String address,
             @RequestParam String payment,
@@ -39,14 +39,15 @@ public class OrderController {
             if (!jwtTokenProvider.validateToken(token)) {
                 return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Error token", null));
             }
-            // Truyền voucherCode vào createOrder
-            OrderDTO orderDTO = orderService.createOrder(validToken, address, payment, voucherCode);
-            return ResponseEntity.ok().body(new StatusResponse<>("Success", "Order created", orderDTO));
+            // Truyền voucherCode vào createOrder và nhận về List<OrderDTO>
+            List<OrderDTO> orderDTOList = orderService.createOrder(validToken, address, payment, voucherCode);
+            return ResponseEntity.ok().body(new StatusResponse<>("Success", "Order(s) created", orderDTOList));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Create Order Failed", null));
         }
     }
+
 
 
     @GetMapping("/common/order")

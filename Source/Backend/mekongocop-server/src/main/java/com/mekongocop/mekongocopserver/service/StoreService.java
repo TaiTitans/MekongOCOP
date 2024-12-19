@@ -300,5 +300,17 @@ public StoreDTO convertJsonToDTO(String json)throws IOException {
         // Lưu lại thay đổi và trả về trạng thái mới
         storeRepository.save(store);
     }
+
+    public boolean hasUserStore(String token){
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        Optional<Store> storeOptional = storeRepository.findByUserId(userId);
+     return storeOptional.isPresent();
+    }
+
+
+    public Integer getStoreIdByUserId(String token){
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        return storeRepository.findStoreIdByUserId(userId);
+    }
 }
 

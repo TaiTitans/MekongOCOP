@@ -3,14 +3,15 @@ import 'dart:convert';
 import 'dart:io';
 
 
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_shop/Common/Widgets/app_title.dart';
 import 'package:smart_shop/Common/Widgets/catalogue_widget.dart';
@@ -30,10 +31,10 @@ import 'package:smart_shop/service/seller_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../common/Widgets/flash_sale.dart';
 import '../../model/product.dart';
+import '../../model/province.dart';
 import '../../service/product_service.dart';
 import '../search/search_screen.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -42,7 +43,7 @@ class Home extends StatefulWidget {
   @override
   State<Home> createState() => _HomeState();
 }
-
+// Test 1
 class _HomeState extends State<Home> {
   final GlobalKey<ScaffoldState> _key = GlobalKey();
   List<dynamic>? _products;
@@ -51,6 +52,7 @@ class _HomeState extends State<Home> {
   DateTime? _lastProductsUpdateTime;
   final productService = ProductService();
   final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +65,19 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
+  Future<void> _loadProducts() async {
+    await _fetchProducts(context);
+  }
+  Future<void> _fetchProducts(BuildContext context) async {
+    // Fetch latest products từ API
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final accessToken = sharedPreferences.getString('accessToken') ?? '';
+    _products = await productService.fetchProductsNewFeed(accessToken);
+    _lastProductsUpdateTime = DateTime.now();
+
+    setState(() {});
+  }
+
   Future<void> _submitSellerLicense(File? licenseFile) async {
     final sellerService = SellerService();
     if (licenseFile != null) {
@@ -70,19 +85,17 @@ class _HomeState extends State<Home> {
       if (isSubmitted) {
         // Tải lên thành công
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tải lên ảnh giấy phép thành công!')),
+          const SnackBar(content: Text('Tải lên ảnh giấy phép thành công!')),
         );
       } else {
         // Tải lên thất bại
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tải lên ảnh giấy phép thất bại.')),
+          const SnackBar(content: Text('Tải lên ảnh giấy phép thất bại.')),
         );
       }
     }
   }
-  Future<void> _loadProducts() async {
-    await _fetchProducts(context);
-  }
+
 
 
 
@@ -96,16 +109,6 @@ class _HomeState extends State<Home> {
     Navigator.pushReplacementNamed(context, OnBoarding.routeName);
   }
 
-  Future<void> _fetchProducts(BuildContext context) async {
-    // Fetch latest products từ API
-    final sharedPreferences = await SharedPreferences.getInstance();
-    final accessToken = sharedPreferences.getString('accessToken') ?? '';
-    _products = await productService.fetchProductsNewFeed(accessToken);
-    _lastProductsUpdateTime = DateTime.now();
-
-    setState(() {});
-  }
-
 
   Future<void> _handleFavorite(BuildContext context, int productId) async {
     // Lấy accessToken từ SharedPreferences
@@ -115,7 +118,7 @@ class _HomeState extends State<Home> {
 
     if (isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar( content: Text(
+        const SnackBar( content: Text(
           'Thao tác thành công',
           style: TextStyle(color: Colors.black), // Đổi màu chữ
         ),
@@ -124,7 +127,7 @@ class _HomeState extends State<Home> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Yêu thích sản phẩm thất bại!')),
+        const SnackBar(content: Text('Yêu thích sản phẩm thất bại!')),
       );
     }
   }
@@ -144,12 +147,12 @@ class _HomeState extends State<Home> {
   Widget _buildBody(BuildContext context) {
     if (_isLoading) {
       // Hiển thị loading khi đang tải dữ liệu
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     } else if (_searchResults.isNotEmpty) {
       // Khi có kết quả tìm kiếm, hiển thị danh sách sản phẩm tìm thấy
       return ListView.builder(
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         itemCount: _searchResults.length,
         itemBuilder: (context, index) {
           final product = _searchResults[index];
@@ -164,7 +167,7 @@ class _HomeState extends State<Home> {
       );
     } else if (_searchResults.isEmpty && _searchController.text.isNotEmpty) {
       // Nếu không tìm thấy kết quả tìm kiếm
-      return Center(
+      return const Center(
         child: Text('Không tìm thấy sản phẩm nào khớp với từ khóa.'),
       );
     } else {
@@ -440,9 +443,9 @@ class _HomeState extends State<Home> {
           ),
           SizedBox(height: 10.0.h),
           _products == null // Kiểm tra xem đã có sản phẩm chưa
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : (_products!.isEmpty
-              ? Center(child: Text('No products found.'))
+              ? const Center(child: Text('No products found.'))
               : SizedBox(
             child: GridView.builder(
               shrinkWrap: true,
@@ -491,7 +494,7 @@ class _HomeState extends State<Home> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Tải lên ảnh giấy phép'),
+        title: const Text('Tải lên ảnh giấy phép'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -504,13 +507,13 @@ class _HomeState extends State<Home> {
                   await _submitSellerLicense(_licenseFile);
                 }
               },
-              child: Text('Chọn ảnh từ thư viện'),
+              child: const Text('Chọn ảnh từ thư viện'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Hủy'),
+              child: const Text('Hủy'),
             ),
           ],
         ),
@@ -521,7 +524,6 @@ class _HomeState extends State<Home> {
   Widget _buildProductSuggestions(BuildContext context) {
     var screenHeight = MediaQuery.of(context).size.height;
     int? _currentProvinceId;
-    DateTime? _lastProductsUpdateTime;
     List<dynamic>? _products;
 
     return FutureBuilder<List<dynamic>>(
@@ -531,7 +533,7 @@ class _HomeState extends State<Home> {
       }),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Lỗi khi tải sản phẩm: ${snapshot.error}'));
         } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
@@ -615,7 +617,7 @@ class _HomeState extends State<Home> {
             ),
           );
         } else {
-          return Center(child: Text('Không có sản phẩm gợi ý'));
+          return const Center(child: Text('Không có sản phẩm gợi ý'));
         }
       },
     );
@@ -627,7 +629,7 @@ class _HomeState extends State<Home> {
 
     if (cachedProductSuggestions != null && lastUpdateTime != null) {
       DateTime lastUpdate = DateTime.parse(lastUpdateTime);
-      if (DateTime.now().difference(lastUpdate).inMinutes < 5) {
+      if (DateTime.now().difference(lastUpdate).inMinutes < 30) {
         return jsonDecode(cachedProductSuggestions); // Trả về dữ liệu cache
       }
     }
@@ -673,18 +675,48 @@ class _HomeState extends State<Home> {
     }
   }
   Future<int> _getCurrentProvinceId() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Người dùng từ chối quyền, hãy xử lý phù hợp
-        return -1;
+    final sharedPreferences = await SharedPreferences.getInstance();
+    final cachedLatitude = sharedPreferences.getDouble('lastLatitude');
+    final cachedLongitude = sharedPreferences.getDouble('lastLongitude');
+    final lastUpdateTime = sharedPreferences.getString('lastLocationUpdateTime');
+
+    if (cachedLatitude != null && cachedLongitude != null && lastUpdateTime != null) {
+      final lastUpdate = DateTime.parse(lastUpdateTime);
+      if (DateTime.now().difference(lastUpdate).inMinutes < 30) {
+        // Dùng dữ liệu cache nếu còn mới
+        return ProvinceUtils.getProvince(cachedLatitude, cachedLongitude);
       }
     }
 
-    final position = await Geolocator.getCurrentPosition();
-    return _getProvince(position.latitude, position.longitude);
+    final location = Location();
+
+    try {
+      bool serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) return -1;
+      }
+
+      PermissionStatus permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) return -1;
+      }
+
+      final locationData = await location.getLocation();
+      await sharedPreferences.setDouble('lastLatitude', locationData.latitude!);
+      await sharedPreferences.setDouble('lastLongitude', locationData.longitude!);
+      await sharedPreferences.setString('lastLocationUpdateTime', DateTime.now().toIso8601String());
+
+      return ProvinceUtils.getProvince(locationData.latitude!, locationData.longitude!);
+    } catch (e) {
+      print('Lỗi khi lấy vị trí: $e');
+      return -1; // Lỗi khi lấy định vị
+    }
   }
+
+
+
 
   Future<List<dynamic>> _fetchProductsByProvince(int provinceId) async {
     final sharedPreferences = await SharedPreferences.getInstance();
@@ -703,38 +735,7 @@ class _HomeState extends State<Home> {
     return await productService.fetchProductsByProvince(provinceId, accessToken);
   }
 
-  int _getProvince(double latitude, double longitude) {
-    // Xác định tỉnh/thành phố tương ứng với vị trí người dùng
-    if (latitude >= 10.5 && longitude >= 104.8 && latitude <= 11.5 && longitude <= 105.3) {
-      return 1; // An Giang
-    } else if (latitude >= 9.0 && longitude >= 105.0 && latitude <= 9.5 && longitude <= 105.5) {
-      return 2; // Bạc Liêu
-    } else if (latitude >= 9.7 && longitude >= 105.9 && latitude <= 10.2 && longitude <= 106.4) {
-      return 3; // Bến Tre
-    } else if (latitude >= 8.8 && longitude >= 104.7 && latitude <= 9.3 && longitude <= 105.2) {
-      return 4; // Cà Mau
-    } else if (latitude >= 9.9 && longitude >= 105.5 && latitude <= 10.4 && longitude <= 106.0) {
-      return 5; // Cần Thơ
-    } else if (latitude >= 10.1 && longitude >= 105.5 && latitude <= 10.6 && longitude <= 106.0) {
-      return 6; // Đồng Tháp
-    } else if (latitude >= 9.5 && longitude >= 105.3 && latitude <= 10.0 && longitude <= 105.8) {
-      return 7; // Hậu Giang
-    } else if (latitude >= 9.8 && longitude >= 104.8 && latitude <= 10.3 && longitude <= 105.3) {
-      return 8; // Kiên Giang
-    } else if (latitude >= 10.3 && longitude >= 105.8 && latitude <= 10.8 && longitude <= 106.3) {
-      return 9; // Long An
-    } else if (latitude >= 9.3 && longitude >= 105.3 && latitude <= 9.8 && longitude <= 105.8) {
-      return 10; // Sóc Trăng
-    } else if (latitude >= 10.1 && longitude >= 105.8 && latitude <= 10.6 && longitude <= 106.3) {
-      return 11; // Tiền Giang
-    } else if (latitude >= 9.5 && longitude >= 106.0 && latitude <= 10.0 && longitude <= 106.5) {
-      return 12; // Trà Vinh
-    } else if (latitude >= 10.0 && longitude >= 105.5 && latitude <= 10.5 && longitude <= 106.0) {
-      return 13; // Vĩnh Long
-    } else {
-      return -1; // Không xác định được
-    }
-  }
+
 
 
   String formatCurrency(double price) {
