@@ -1,27 +1,24 @@
-# Luận văn tốt nghiệp - Khoa học máy tính
-` Mekong OCOP Ecommerce`
+
+# ` Mekong OCOP Ecommerce`
 
 ---
-**Đề tài:** Xây dựng sàn giao dịch OCOP kết hợp Chatbot AI.
+E-commerce Platform: Designed and developed a comprehensive e-commerce platform to facilitate the trading of
+OCOP products. Built a robust Restful API, integrating Redis for caching to enhance performance, and Mailjet for
+secure OTP authentication. Incorporated VietQR for seamless payment processing and Cloudinary for efficient
+image storage and management.
 
-**Sinh viên thực hiện:** Phan Phát Tài
+AI Chatbot and Real-time Communication: Implemented an AI-powered chatbot using the PhoBERT model to
+support user interactions and enhance the customer experience. Developed a real-time chat feature using
+Socket.io, enabling dynamic communication between buyers and sellers.
 
-**MSSV:** B2014946
+Security and Deployment: Secured the platform with JWT-based authentication, utilizing AccessToken and
+RefreshToken mechanisms for enhanced security. Deployed the application using Docker for efficient
+containerization and PostgreSQL for database management, ensuring scalability and reliability.
 
-**Theo dõi tiến độ:** [Tại đây](https://phanphattai.notion.site/)
+Technologies: Spring Boot, Redis, Socket.io, Mailjet, Cloudinary, PostgreSQL, Docker, VueJS, Flutter, PhoBERT.
 
 
-**API Document:** [Tại đây](https://documenter.getpostman.com/view/30668997/2sAXqs8iAt)
+**API Document:** [Here](https://documenter.getpostman.com/view/30668997/2sAXqs8iAt)
 
----
-### Công nghệ sử dụng
-
-```
-FE: NuxtJS
-BE: Java Spring Boot, Python
-DB: MySQL, MongoDB, Redis, Cloudinary
-Deploy: Docker
-...
-```
 ---
 
