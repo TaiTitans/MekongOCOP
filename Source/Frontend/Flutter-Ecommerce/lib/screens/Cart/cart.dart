@@ -180,19 +180,35 @@ class _CartState extends State<Cart> {
 
   // Create order
   Future<void> _createOrder(String address, String paymentMethodId) async {
-    final response = await _cartService.createOrder(address, paymentMethodId, accessToken);
+    try {
+      final response = await _cartService.createOrder(address, paymentMethodId, accessToken);
 
-    if (response['status'] == 'Success') {
-      // Extract QR code URL
-      String qrCodeUrl = response['data']['qr_code_url'];
+      if (response['status'] == 'Success') {
+        final dataList = response['data'] as List;
+        if (dataList.isNotEmpty) {
+          // Lấy order đầu tiên từ danh sách
+          final orderData = dataList[0];
 
-      // Show QR code dialog or modal
-      _showQRCodeDialog(qrCodeUrl);
-    } else {
-      _showErrorSnackbar(response['message']);
+          // Lấy qr_code_url từ order data
+          String? qrCodeUrl = orderData['qr_code_url']?.toString();
+
+          if (qrCodeUrl != null) {
+            print('QR Code URL: $qrCodeUrl');
+            _showQRCodeDialog(qrCodeUrl);
+          } else {
+            throw Exception('QR Code URL not found');
+          }
+        } else {
+          throw Exception('No order data found');
+        }
+      } else {
+        _showErrorSnackbar(response['message'] ?? 'Unknown error');
+      }
+    } catch (e) {
+      print('Error creating order: $e');
+      _showErrorSnackbar('Failed to create order');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -264,7 +280,6 @@ class _CartState extends State<Cart> {
 
   Widget _buildBottomSheet(BuildContext context) {
     var size = MediaQuery.of(context).size;
-    const shippingFee = 30000; // Fixed shipping fee
 
     return Container(
       width: double.infinity,
@@ -286,18 +301,39 @@ class _CartState extends State<Cart> {
               children: [
                 // Display shipping fee
                 Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                  Text(
-                    'Phí ship: ',
-                    style: FontStyles.montserratBold17(),
-                  ),
-                  SizedBox(width: 4.0),
-                  Text(
-                    '30.000 đ',
-                    style: FontStyles.montserratBold14().copyWith(color: Colors.green),
-                  ),
-            ]
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Phí ship: ',
+                      style: FontStyles.montserratBold17(),
+                    ),
+                    SizedBox(width: 4.0),
+                    FutureBuilder<List<dynamic>>(
+                      future: _cartItemsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Text('...');
+                        } else if (snapshot.hasData) {
+                          final cartItems = snapshot.data!;
+
+                          // Calculate unique store IDs
+                          final uniqueStoreIds = Set<int>.from(
+                              cartItems.map((item) => item['storeId'])
+                          );
+
+                          // Calculate shipping fee (30,000 per unique store)
+                          final shippingFee = uniqueStoreIds.length * 30000;
+
+                          return Text(
+                            formatCurrency(shippingFee.toDouble()),
+                            style: FontStyles.montserratBold14().copyWith(color: Colors.green),
+                          );
+                        } else {
+                          return Text(formatCurrency(0), style: FontStyles.montserratBold14());
+                        }
+                      },
+                    ),
+                  ],
                 ),
                 SizedBox(height: 8.0), // Space between shipping fee and total price
                 Row(
@@ -311,18 +347,29 @@ class _CartState extends State<Cart> {
                           return Text('...');
                         } else if (snapshot.hasData) {
                           final cartItems = snapshot.data!;
+
+                          // Calculate product total
                           final totalPrice = cartItems.fold<double>(0, (sum, item) {
                             final price = double.parse(item['price'].toString());
                             final quantity = int.parse(item['quantity'].toString());
                             return sum + (price * quantity);
                           });
+
+                          // Calculate unique store IDs
+                          final uniqueStoreIds = Set<int>.from(
+                              cartItems.map((item) => item['storeId'])
+                          );
+
+                          // Calculate shipping fee (30,000 per unique store)
+                          final shippingFee = uniqueStoreIds.length * 30000;
+
                           // Add shipping fee to totalPrice
                           final totalPriceWithExtra = totalPrice + shippingFee;
 
                           // Format the total price with VND
                           return Text(
                             formatCurrency(totalPriceWithExtra),
-                            style: FontStyles.montserratBold19().copyWith(color: Colors.green), // Change color as needed
+                            style: FontStyles.montserratBold19().copyWith(color: Colors.green),
                           );
                         } else {
                           return Text(formatCurrency(0), style: FontStyles.montserratBold19().copyWith(color: Colors.blue));
@@ -377,6 +424,7 @@ class _CartState extends State<Cart> {
       },
     );
   }
+
   String formatCurrency(double price) {
     final formatter = NumberFormat.simpleCurrency(locale: 'vi_VN');
     return formatter.format(price);

@@ -59,8 +59,8 @@ public class StoreController {
     }
 
     @PutMapping("seller/store")
-    public ResponseEntity<StatusResponse<Object>> updateStore(@RequestPart("dto") String dto, @RequestHeader("Authorization") String authHeader){
-        try{
+    public ResponseEntity<StatusResponse<Object>> updateStore(@RequestPart("dto") String dto, @RequestHeader("Authorization") String authHeader) {
+        try {
             String validToken = TokenExtractor.extractToken(authHeader);
             if (!jwtTokenProvider.validateToken(authHeader)) {
                 return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Token error", null));
@@ -68,7 +68,7 @@ public class StoreController {
             StoreDTO storeDTO = storeService.convertJsonToDTO(dto);
             storeService.updateStore(storeDTO, validToken);
             return ResponseEntity.ok(new StatusResponse<>("Success", "Update Store Successfully", null));
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().body(new StatusResponse<>("Error", "Failed to process request", null));
         }
     }
@@ -132,22 +132,22 @@ public class StoreController {
 
     @GetMapping("/common/store/data")
     public ResponseEntity<StatusResponse<Store>> getStoreData(@RequestParam int storeId) {
-        try{
-Store store = storeService.getStoreData(storeId);
-return ResponseEntity.ok(new StatusResponse<>("Success", "Store data retrieved successfully", store));
-        }catch (Exception e){
+        try {
+            Store store = storeService.getStoreData(storeId);
+            return ResponseEntity.ok(new StatusResponse<>("Success", "Store data retrieved successfully", store));
+        } catch (Exception e) {
             log.error("Failed to retrieve store data", e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new StatusResponse<>("Error", "Store not found", null));
         }
     }
 
     @GetMapping("/admin/stores")
-    public ResponseEntity<List<StoreDTO>> getAllStores(){
+    public ResponseEntity<List<StoreDTO>> getAllStores() {
         List<StoreDTO> stores = storeService.getAllStore();
         return ResponseEntity.ok(stores);
     }
 
-    @PatchMapping("admin/store/{store_id}/status")
+    @PatchMapping("/admin/store/{store_id}/status")
     public ResponseEntity<?> updateStoreStatus(@PathVariable("store_id") int storeId) {
         try {
             storeService.updateStoreStatusToBanded(storeId);
@@ -158,4 +158,35 @@ return ResponseEntity.ok(new StatusResponse<>("Success", "Store data retrieved s
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Unable to update store status"));
         }
     }
+
+    @GetMapping("/seller/store/check")
+    public ResponseEntity<?> checkUserStore(@RequestHeader("Authorization") String token) {
+        try {
+            String validToken = TokenExtractor.extractToken(token);
+
+            if (!jwtTokenProvider.validateToken(token)) {
+                return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Invalid token", null));
+            }
+            boolean hasStore = storeService.hasUserStore(validToken);
+            return ResponseEntity.ok(hasStore);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(false);
+        }
+    }
+
+    @GetMapping("/seller/store/id")
+    public ResponseEntity<?> getStoreId(@RequestHeader("Authorization") String token){
+        try{
+            String validToken = TokenExtractor.extractToken(token);
+
+            if (!jwtTokenProvider.validateToken(token)) {
+                return ResponseEntity.badRequest().body(new StatusResponse<>("Error", "Invalid token", null));
+            }
+            Integer hasStoreId = storeService.getStoreIdByUserId(validToken);
+            return ResponseEntity.ok(hasStoreId);
+        }catch (Exception e){
+            return ResponseEntity.status(500).body(false);
+        }
+    }
+
 }

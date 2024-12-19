@@ -11,6 +11,7 @@ import sys
 import io
 import os
 from dotenv import load_dotenv
+import matplotlib.pyplot as plt
 
 # Cấu hình logging
 logging.basicConfig(filename='chatbot_interactions.log', level=logging.INFO, 
@@ -39,17 +40,19 @@ print(f"Tổng số lớp (intents): {num_classes}")
 # Tách dữ liệu thành câu hỏi và câu trả lời
 questions = []
 answers = []
-for intent in data['intents']:
+labels = []
+label_map = {}
+for idx, intent in enumerate(data['intents']):
+    label_map[intent['tag']] = idx
     for pattern in intent['patterns']:
         questions.append(pattern)
-    responses = intent['responses']
-    for pattern in intent['patterns']:
-        answer = responses[questions.index(pattern) % len(responses)]
-        answers.append(answer)
+        answers.append(intent['responses'][0])
+        labels.append(idx)
 
 # Chuyển đổi dữ liệu thành numpy array
 questions = np.array(questions)
 answers = np.array(answers)
+labels = np.array(labels)
 
 # Hàm lấy embedding từ PhoBERT
 def get_phobert_embedding(text):
@@ -57,21 +60,39 @@ def get_phobert_embedding(text):
     with torch.no_grad():
         outputs = phobert(**tokens)
     embedding = outputs.last_hidden_state.mean(dim=1)
-    return embedding.squeeze().numpy()
+    return embedding.squeeze().numpy(), tokens
 
 # Tính toán embedding cho tất cả câu hỏi
-question_embeddings = np.array([get_phobert_embedding(q) for q in questions])
+question_embeddings = np.array([get_phobert_embedding(q)[0] for q in questions])
 
 # Thiết lập K-fold Cross Validation
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
 # Lưu trữ các kết quả để tính toán độ chính xác
 accuracies = []
+precisions = []
+recalls = []
+f1_scores = []
+
+# Lưu trữ số lượng câu hỏi trong tập train và test cho mỗi lớp
+train_counts = np.zeros(num_classes, dtype=int)
+test_counts = np.zeros(num_classes, dtype=int)
 
 # Lặp qua từng fold
 for train_index, test_index in kf.split(question_embeddings):
     train_questions, test_questions = questions[train_index], questions[test_index]
     train_answers, test_answers = answers[train_index], answers[test_index]
+    train_labels, test_labels = labels[train_index], labels[test_index]
+
+    # Đếm số lượng câu hỏi trong tập train và test cho mỗi lớp
+    for label in train_labels:
+        train_counts[label] += 1
+    for label in test_labels:
+        test_counts[label] += 1
+
+    # In ra tổng số câu hỏi trên tập train và tập test
+    print(f"Tổng số câu hỏi trên tập train: {len(train_questions)}")
+    print(f"Tổng số câu hỏi trên tập test: {len(test_questions)}")
 
     # Đánh giá mô hình trên tập kiểm tra
     correct = 0
@@ -80,7 +101,8 @@ for train_index, test_index in kf.split(question_embeddings):
     predicted_answers = []
 
     for i, question in enumerate(test_questions):
-        input_embedding = get_phobert_embedding(question).reshape(1, -1)
+        input_embedding, _ = get_phobert_embedding(question)
+        input_embedding = input_embedding.reshape(1, -1)
         similarities = cosine_similarity(input_embedding, question_embeddings[train_index])
         max_similarity = similarities.max()
 
@@ -99,8 +121,8 @@ for train_index, test_index in kf.split(question_embeddings):
             predicted_answers.append(response)
 
         # Tính toán độ tương đồng với câu trả lời thực tế
-        answer_similarity = cosine_similarity(get_phobert_embedding(response).reshape(1, -1), 
-                                              get_phobert_embedding(test_answers[i]).reshape(1, -1))[0][0]
+        answer_similarity = cosine_similarity(get_phobert_embedding(response)[0].reshape(1, -1), 
+                                              get_phobert_embedding(test_answers[i])[0].reshape(1, -1))[0][0]
 
         loss = 1 - max_similarity
         total_loss += loss
@@ -115,15 +137,19 @@ for train_index, test_index in kf.split(question_embeddings):
     average_loss = total_loss / len(test_questions)
     accuracies.append(accuracy)
 
- # Tính toán precision, recall, F1-score
+    # Tính toán precision, recall, F1-score
     y_true = [1 if ans == exp_ans else 0 for ans, exp_ans in zip(predicted_answers, test_answers)]
-    y_pred = [1 if cosine_similarity(get_phobert_embedding(ans).reshape(1, -1), 
-                                       get_phobert_embedding(test_answers[i]).reshape(1, -1))[0][0] > threshold else 0 
+    y_pred = [1 if cosine_similarity(get_phobert_embedding(ans)[0].reshape(1, -1), 
+                                       get_phobert_embedding(test_answers[i])[0].reshape(1, -1))[0][0] > threshold else 0 
                for i, ans in enumerate(predicted_answers)]
 
     precision = precision_score(y_true, y_pred)
     recall = recall_score(y_true, y_pred)
     f1 = f1_score(y_true, y_pred)
+
+    precisions.append(precision)
+    recalls.append(recall)
+    f1_scores.append(f1)
 
     print(f"Accuracy for this fold: {accuracy * 100:.2f}%")
     print(f"Precision: {precision:.4f}, Recall: {recall:.4f}, F1 Score: {f1:.4f}")
@@ -146,3 +172,4 @@ with h5py.File(h5_file, 'w') as h5f:
     h5f.create_dataset('accuracies', data=np.array(accuracies, dtype='float32'))
 
 print("Dữ liệu đã được lưu vào file H5.")
+

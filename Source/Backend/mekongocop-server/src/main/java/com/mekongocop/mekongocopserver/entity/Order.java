@@ -40,7 +40,7 @@ public class Order {
     private Timestamp updated_at;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> items = new ArrayList<>();
-
+    private Integer storeId;
     public Order() {
 
     }

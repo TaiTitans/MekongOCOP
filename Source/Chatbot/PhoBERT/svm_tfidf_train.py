@@ -156,3 +156,22 @@ with h5py.File('chatbot_data_tfidf_svm.h5', 'w') as h5f:
     h5f.create_dataset('metrics/f1_scores', data=f1_scores)
 
 print("\nĐã lưu dữ liệu vào file H5.")
+
+# Test câu "Tôi muốn du lịch miền Tây"
+test_sentence = "Tôi muốn du lịch miền Tây"
+processed_test_sentence = preprocess_text(test_sentence)
+test_embedding = vectorizer.transform([processed_test_sentence])
+
+# Dự đoán nhãn cho câu kiểm tra
+predicted_label = svm.predict(test_embedding)[0]
+
+# Lấy xác suất dự đoán cho từng nhãn
+probabilities = svm.predict_proba(test_embedding)[0]
+predicted_probability = probabilities[predicted_label]
+
+# Lấy câu trả lời tương ứng
+response = random.choice([answers[i] for i in range(len(labels)) if labels[i] == predicted_label])
+
+print(f"\nTest câu: {test_sentence}")
+print(f"Phản hồi: {response}")
+print(f"Độ chính xác của dự đoán: {predicted_probability:.4f}")

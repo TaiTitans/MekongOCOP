@@ -117,5 +117,9 @@ public class UserProfileController {
         UserProfileDTO profile = userProfileService.getProfileByUserId(userId);
         return ResponseEntity.ok(profile);
     }
-
+    @GetMapping("/admin/profile/{userId}")
+    public ResponseEntity<UserProfileDTO> profileUserAdmin(@PathVariable int userId) {
+        UserProfileDTO profile = userProfileService.getProfileByUserId(userId);
+        return ResponseEntity.ok(profile);
+    }
 }

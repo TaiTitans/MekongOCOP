@@ -134,6 +134,8 @@ class _ItemWidgetState extends State<ItemWidget> with SingleTickerProviderStateM
                   Text(
                     widget.productName,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,  // Cắt bớt khi quá dài
+                    maxLines: 2,  // Giới hạn tối đa số dòng hiển thị
                   ),
                   SizedBox(height: 4),
                   // Tỉnh thành

@@ -355,16 +355,25 @@ class _OrdersState extends State<Orders> {
               ],
             ),
             SizedBox(height: 10.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tổng: ${formatCurrency(order['total_price'])}',
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.green),
+                  'Phí ship: 30.000đ',
+                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.grey),
                 ),
-                Text(
-                  'Ngày: ${_formatDate(order['created_at'])}',
-                  style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Tổng: ${formatCurrency(order['total_price'])}',
+                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.green),
+                    ),
+                    Text(
+                      'Ngày: ${_formatDate(order['created_at'])}',
+                      style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ],
             ),

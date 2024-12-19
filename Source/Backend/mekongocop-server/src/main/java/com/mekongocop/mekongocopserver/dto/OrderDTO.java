@@ -20,5 +20,6 @@ public class OrderDTO {
     private Timestamp created_at;
     private Timestamp updated_at;
     private String qr_code_url;
+    private Integer storeId;
     private List<OrderItemDTO> items;
 }

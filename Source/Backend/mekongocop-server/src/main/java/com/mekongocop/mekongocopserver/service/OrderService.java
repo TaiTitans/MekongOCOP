@@ -16,9 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,7 +64,7 @@ public class OrderService {
         orderDTO.setQr_code_url(order.getQr_code_url());
         orderDTO.setCreated_at(order.getCreated_at());
         orderDTO.setUpdated_at(order.getUpdated_at());
-
+        orderDTO.setStoreId(order.getStoreId());
         // Chuyển đổi danh sách OrderItem entity sang DTO
         orderDTO.setItems(order.getItems().stream()
                 .map(orderItemService::convertOrderItemEntityToDTO)
@@ -86,7 +84,7 @@ public class OrderService {
         order.setQr_code_url(orderDTO.getQr_code_url());
         order.setCreated_at(orderDTO.getCreated_at());
         order.setUpdated_at(orderDTO.getUpdated_at());
-
+        order.setStoreId(orderDTO.getStoreId());
         // Lấy user từ user_id và gán vào order
         User user = userRepository.findById(orderDTO.getUser_id())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -210,7 +208,7 @@ public class OrderService {
         }
 
     @Transactional
-    public OrderDTO createOrder(String token, String address, String paymentMethod, String voucherCode) {
+    public List<OrderDTO> createOrder(String token, String address, String paymentMethod, String voucherCode) {
         try {
             int userId = jwtTokenProvider.getUserIdFromToken(token);
             User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
@@ -219,68 +217,82 @@ public class OrderService {
                 throw new RuntimeException("Cart is empty");
             }
 
-            BigDecimal totalPrice = calculateTotalPrice(cart.getCartItemList());
+            // Phân loại sản phẩm theo cửa hàng
+            Map<Integer, List<CartItemDTO>> itemsByStore = cart.getCartItemList().stream()
+                    .collect(Collectors.groupingBy(CartItemDTO::getStoreId));
 
-            // Áp dụng mã giảm giá voucher
-            if (voucherCode != null && !voucherCode.isEmpty()) {
-                Voucher voucher = voucherRepository.findByCode(voucherCode)
-                        .orElseThrow(() -> new RuntimeException("Invalid voucher code"));
-                log.info("Voucher details: " + voucher.toString());
-                if ("ACTIVE".equalsIgnoreCase(voucher.getStatus()) && isVoucherApplicable(voucher, totalPrice, userId)) {
-                    totalPrice = applyVoucherDiscount(totalPrice, voucher); // Cập nhật lại totalPrice sau khi áp dụng giảm giá
+            List<OrderDTO> orderDTOList = new ArrayList<>();
 
-                    // Trừ đi total_limit của voucher
-                    voucher.setTotal_limit(voucher.getTotal_limit() - 1);
+            for (Map.Entry<Integer, List<CartItemDTO>> entry : itemsByStore.entrySet()) {
+                Integer storeId = entry.getKey();
+                List<CartItemDTO> storeItems = entry.getValue();
 
-                    // Lưu thông tin vào bảng voucher_users
-                    VoucherUsers voucherUsers = voucher.getVoucherUsers().stream()
-                            .filter(vu -> vu.getUser().getUser_id() == userId)
-                            .findFirst()
-                            .orElse(new VoucherUsers());
-                    voucherUsers.setVoucher(voucher);
-                    voucherUsers.setUser(user);
-                    voucherUsers.setUsage_count(voucherUsers.getUsage_count() + 1);
-                    voucherRepository.save(voucher);
-                    voucherUsersRepository.save(voucherUsers);
-                } else {
-                    log.warn("Voucher status: " + voucher.getStatus());
-                    throw new RuntimeException("Voucher is not applicable or inactive");
+                // Tính tổng giá cho từng cửa hàng
+                BigDecimal totalPrice = calculateTotalPrice(storeItems);
+
+                // Áp dụng voucher nếu có
+                if (voucherCode != null && !voucherCode.isEmpty()) {
+                    Voucher voucher = voucherRepository.findByCode(voucherCode)
+                            .orElseThrow(() -> new RuntimeException("Invalid voucher code"));
+                    log.info("Voucher details: " + voucher.toString());
+                    if ("ACTIVE".equalsIgnoreCase(voucher.getStatus()) && isVoucherApplicable(voucher, totalPrice, userId)) {
+                        totalPrice = applyVoucherDiscount(totalPrice, voucher);
+                        voucher.setTotal_limit(voucher.getTotal_limit() - 1);
+                        updateVoucherUsage(voucher, user);
+                    } else {
+                        log.warn("Voucher status: " + voucher.getStatus());
+                        throw new RuntimeException("Voucher is not applicable or inactive");
+                    }
                 }
+
+                // Cộng phí ship sau khi áp dụng voucher
+                BigDecimal shipFee = BigDecimal.valueOf(30000);
+                totalPrice = totalPrice.add(shipFee);
+
+                // Tạo OrderDTO cho từng cửa hàng
+                OrderDTO orderDTO = createOrderDTO(userId, storeItems, totalPrice);
+                orderDTO.setAddress(address);
+                orderDTO.setPayment(paymentMethod);
+                orderDTO.setShip(shipFee);
+
+                // Tạo đơn hàng trong cơ sở dữ liệu
+                Order order = createOrder(orderDTO, user, storeId);
+                orderDTO.setOrder_id(order.getOrder_id());
+
+                // Xử lý thanh toán và cập nhật trạng thái, QR code nếu cần
+                processPayment(orderDTO, order);
+
+                orderDTOList.add(orderDTO);
             }
 
-            // Cộng phí ship sau khi áp dụng voucher
-            BigDecimal shipFee = BigDecimal.valueOf(30000);
-            totalPrice = totalPrice.add(shipFee);
-
-            // Khởi tạo orderDTO với total_price sau khi đã áp dụng giảm giá và cộng ship
-            OrderDTO orderDTO = createOrderDTO(userId, cart, totalPrice);
-            orderDTO.setAddress(address);
-            orderDTO.setPayment(paymentMethod);
-            orderDTO.setShip(shipFee);
-
-            // Tạo đơn hàng trước khi xử lý thanh toán
-            Order order = createOrder(orderDTO, user);
-            orderDTO.setOrder_id(order.getOrder_id());
-
-            // Xử lý thanh toán và cập nhật trạng thái, qr_code_url
-            processPayment(orderDTO, order);
-
-            // Xóa giỏ hàng trong Redis sau khi tạo đơn hàng
+            // Xóa giỏ hàng sau khi tạo đơn hàng
             cartService.clearCart(token);
 
-            return orderDTO;
+            return orderDTOList;
         } catch (Exception e) {
             log.error("Error creating order: " + e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
 
-    private OrderDTO createOrderDTO(int userId, CartDTO cart, BigDecimal totalPrice) {
+    private void updateVoucherUsage(Voucher voucher, User user) {
+        VoucherUsers voucherUsers = voucher.getVoucherUsers().stream()
+                .filter(vu -> vu.getUser().getUser_id() == user.getUser_id())
+                .findFirst()
+                .orElse(new VoucherUsers());
+        voucherUsers.setVoucher(voucher);
+        voucherUsers.setUser(user);
+        voucherUsers.setUsage_count(voucherUsers.getUsage_count() + 1);
+        voucherRepository.save(voucher);
+        voucherUsersRepository.save(voucherUsers);
+    }
+
+    private OrderDTO createOrderDTO(int userId, List<CartItemDTO> storeItems, BigDecimal totalPrice) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setShip(BigDecimal.valueOf(30000));
         orderDTO.setUser_id(userId);
         orderDTO.setTotal_price(totalPrice);
-        orderDTO.setItems(cart.getCartItemList().stream().map(cartItem -> {
+        orderDTO.setItems(storeItems.stream().map(cartItem -> {
             OrderItemDTO orderItemDTO = new OrderItemDTO();
             orderItemDTO.setProductId(cartItem.getProductId());
             orderItemDTO.setQuantity(cartItem.getQuantity());
@@ -293,37 +305,40 @@ public class OrderService {
     }
 
 
-        private BigDecimal applyVoucherDiscount(BigDecimal totalPrice, Voucher voucher) {
-            if ("Percentage".equalsIgnoreCase(voucher.getType())) {
-                // Áp dụng giảm giá phần trăm
-                BigDecimal discount = totalPrice.multiply(BigDecimal.valueOf(voucher.getDiscount_value())).divide(BigDecimal.valueOf(100));
-                totalPrice = totalPrice.subtract(discount);
-            } else if ("Fixed".equalsIgnoreCase(voucher.getType())) {
-                // Áp dụng giảm giá cố định
-                totalPrice = totalPrice.subtract(BigDecimal.valueOf(voucher.getDiscount_value()));
-            }
 
-            // Đảm bảo totalPrice không âm
-            if (totalPrice.compareTo(BigDecimal.ZERO) < 0) {
-                totalPrice = BigDecimal.ZERO;
-            }
-
-            return totalPrice;
+    private BigDecimal applyVoucherDiscount(BigDecimal totalPrice, Voucher voucher) {
+        BigDecimal discountedPrice = totalPrice;
+        if ("Percentage".equalsIgnoreCase(voucher.getType())) {
+            // Áp dụng giảm giá phần trăm
+            BigDecimal discount = totalPrice.multiply(BigDecimal.valueOf(voucher.getDiscount_value())).divide(BigDecimal.valueOf(100));
+            discountedPrice = totalPrice.subtract(discount);
+        } else if ("Fixed".equalsIgnoreCase(voucher.getType())) {
+            // Áp dụng giảm giá cố định
+            discountedPrice = totalPrice.subtract(BigDecimal.valueOf(voucher.getDiscount_value()));
         }
 
-
-        private Order createOrder(OrderDTO orderDTO, User user) {
-            Order order = convertToEntity(orderDTO);
-            order.setUser(user);
-            order.setTotal_price(orderDTO.getTotal_price());
-            order.setStatus("Request");
-            orderRepository.save(order);
-            orderItemService.saveAll(order.getItems());
-            return order;
+        // Đảm bảo discountedPrice không âm
+        if (discountedPrice.compareTo(BigDecimal.ZERO) < 0) {
+            discountedPrice = BigDecimal.ZERO;
         }
 
+        return discountedPrice;
+    }
 
-        private void processPayment(OrderDTO orderDTO, Order order) {
+    private Order createOrder(OrderDTO orderDTO, User user, Integer storeId) {
+        Order order = convertToEntity(orderDTO);
+        order.setUser(user);
+        order.setTotal_price(orderDTO.getTotal_price());
+        order.setStatus("Request");
+        order.setStoreId(storeId);
+        orderRepository.save(order);
+        orderItemService.saveAll(order.getItems());
+        return order;
+    }
+
+
+
+    private void processPayment(OrderDTO orderDTO, Order order) {
             if (orderDTO.getPayment().equals("Cash")) {
                 order.setStatus("Request");
             } else if (orderDTO.getPayment().equals("VietQR")) {

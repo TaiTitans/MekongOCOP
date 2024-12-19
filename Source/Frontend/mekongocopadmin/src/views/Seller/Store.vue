@@ -196,7 +196,7 @@ export default {
     return {
       store: {},
       products: [],
-      storeId: 2,
+      storeId: null,
       searchQuery: '',
       currentPage: 1,
       itemsPerPage: 10,
@@ -243,6 +243,7 @@ export default {
     ],
     }
   },
+
   computed: {
     filteredProducts() {
       return this.products.filter(product => 
@@ -259,8 +260,7 @@ export default {
     }
   },
   created() {
-    this.fetchStoreData();
-    this.fetchProducts();
+    this.getStoreId();
   },
   methods: {
       openEditProductModal(product) {
@@ -284,14 +284,28 @@ export default {
         });
     },
     fetchProducts() {
-      api.get(`/api/v1/common/store/${this.storeId}/product`)
+      if (this.storeId) {
+        api.get(`/api/v1/common/store/${this.storeId}/product`)
+          .then(response => {
+            this.products = response.data.data;
+          })
+          .catch(error => {
+            console.error('Error fetching products:', error);
+          });
+      }
+    },
+    getStoreId() {
+      api.get("/api/v1/seller/store/id")
         .then(response => {
-          this.products = response.data.data;
+          this.storeId = response.data; // Lưu storeId vào data
+          this.fetchStoreData();  // Gọi fetchStoreData để lấy thông tin store
+          this.fetchProducts();   // Gọi fetchProducts để lấy danh sách sản phẩm
         })
         .catch(error => {
-          console.error('Error fetching products:', error);
+          console.error("Lỗi API:", error);
         });
     },
+
     formatPrice(price) {
       return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
     },

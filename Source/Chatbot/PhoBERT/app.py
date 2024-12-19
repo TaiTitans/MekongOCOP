@@ -73,7 +73,6 @@ abbreviation_dict = {
     "mng": "mọi người",
     "z": "zalo",
     "v": "vậy",
-    "ĐBSCL": "Đồng bằng sông Cửu Long",
 }
 
 # Hàm thay thế các từ viết tắt
@@ -82,38 +81,11 @@ def expand_abbreviations(text):
     expanded_words = [abbreviation_dict.get(word.lower(), word) for word in words]
     return " ".join(expanded_words)
 
-# Hàm đồng bộ tìm kiếm thông tin từ Google bằng Google Custom Search API
-def google_search(query, api_key, cse_id, num_results=5):
-    url = "https://www.googleapis.com/customsearch/v1"
-    params = {
-        "q": query,
-        "cx": cse_id,  # Custom Search Engine ID
-        "key": api_key,
-        "num": num_results
-    }
-    try:
-        response = requests.get(url, params=params, timeout=5)
-        results = response.json()
-        return results.get('items', [])
-    except requests.Timeout:
-        logger.error("Google Custom Search API request timed out")
-        return []
-
-# Hàm sinh câu trả lời từ Google Search
-def generate_response_from_google_results(search_results):
-    combined_text = " ".join([result['snippet'] for result in search_results if 'snippet' in result])
-
-    combined_text = re.sub(r'\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{1,2},\s\d{4}\b', '', combined_text)
-    
-    # Loại bỏ các khoảng trắng dư thừa
-    combined_text = re.sub(r'\s+', ' ', combined_text).strip()
-    
-    return combined_text if combined_text else "Xin lỗi, tôi không tìm thấy thông tin phù hợp."
 
 # Hàm load dữ liệu từ file h5
 def load_data():
     try:
-        with h5py.File('chatbot_data_phobert_v2.h5', 'r') as h5f:
+        with h5py.File('chatbot_data_phobert_v4.h5', 'r') as h5f:
             questions = [q.decode('utf-8') for q in h5f['questions'][:]]
             answers = [a.decode('utf-8') for a in h5f['answers'][:]]
             question_embeddings = np.array(h5f['question_embeddings'][:], dtype=np.float32)
@@ -156,12 +128,10 @@ def ask():
     logger.info(f"Độ tương đồng lớn nhất: {max_similarity}")
     most_similar_index = similarities.argmax()
 
-    if max_similarity > 0.8:
+    if max_similarity > 0.4:
         response = answers[most_similar_index]
     else:
-        # Tìm kiếm đồng bộ với Google Custom Search API
-        search_results = google_search(user_input, api_key, cse_id)
-        response = generate_response_from_google_results(search_results)
+        response = "Xin lỗi, tôi không hiểu câu hỏi của bạn."
 
     return jsonify({
         "question": user_input,

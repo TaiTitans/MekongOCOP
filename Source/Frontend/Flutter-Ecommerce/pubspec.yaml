@@ -63,7 +63,7 @@ dependencies:
   pdf: ^3.8.0
   path_provider: ^2.0.15
   open_file: ^3.3.2
-
+  location: ^5.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -99,6 +99,7 @@ flutter:
     - assets/checkOut/
     - assets/onBoarding/
     - assets/fonts/
+    - assets/
     - .env
   #   - images/a_dot_ham.jpeg
 flutter_icons:
